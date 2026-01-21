@@ -107,32 +107,77 @@ const battleData = ref({
 });
 
 // Collection data
-const collection = ref([
+const guestTemplates = [
   {
-    id: "1",
-    name: "Shreyas Doshi",
-    sprite: "👤",
-    difficulty: "Hard",
-    episode: "Product Management Excellence",
-    captured: false
-  },
-  {
-    id: "2",
     name: "Elena Verna",
     sprite: "👩",
     difficulty: "Medium",
-    episode: "Growth Strategy",
-    captured: false
+    episode: "Growth Strategy"
   },
   {
-    id: "3",
+    name: "Shreyas Doshi",
+    sprite: "👤",
+    difficulty: "Hard",
+    episode: "Product Management Excellence"
+  },
+  {
     name: "Lenny Rachitsky",
     sprite: "👨",
     difficulty: "Easy",
-    episode: "Intro to Product",
-    captured: false
+    episode: "Intro to Product"
+  },
+  {
+    name: "Casey Winters",
+    sprite: "👤",
+    difficulty: "Medium",
+    episode: "Growth Strategies"
+  },
+  {
+    name: "Nir Eyal",
+    sprite: "👤",
+    difficulty: "Hard",
+    episode: "Behavioral Design"
+  },
+  {
+    name: "Julie Zhuo",
+    sprite: "👩",
+    difficulty: "Medium",
+    episode: "Design Leadership"
+  },
+  {
+    name: "Des Traynor",
+    sprite: "👤",
+    difficulty: "Hard",
+    episode: "Product Strategy"
+  },
+  {
+    name: "April Dunford",
+    sprite: "👩",
+    difficulty: "Medium",
+    episode: "Positioning"
+  },
+  {
+    name: "Marty Cagan",
+    sprite: "👤",
+    difficulty: "Hard",
+    episode: "Product Leadership"
   }
-]);
+];
+
+// Generate collection for all 150 NPCs
+const collection = ref(
+  Array.from({ length: 150 }, (_, i) => {
+    const template = guestTemplates[i % guestTemplates.length];
+    return {
+      id: String(i + 1),
+      name: `${template.name} #${Math.floor(i / guestTemplates.length) + 1}`,
+      sprite: template.sprite,
+      difficulty: template.difficulty,
+      episode: template.episode,
+      captured: false
+    };
+  })
+);
 
 // Computed stats
 const capturedCount = computed(() => collection.value.filter(g => g.captured).length);

@@ -35,9 +35,10 @@ export class Preloader extends Scene
         this.load.image('logo', 'logo.png');
         this.load.image('star', 'star.png');
 
-        // Load Tuxemon tileset and tilemap (using extruded version to prevent texture bleeding)
+        // Load Tuxemon tileset and tilemaps (using extruded version to prevent texture bleeding)
         this.load.image('tiles', 'tuxmon-sample-32px-extruded.png');
         this.load.tilemapTiledJSON('map', 'tuxemon-town.json');
+        this.load.tilemapTiledJSON('large-map', 'pokelenny-large-map.json');
 
         // Load character sprites - all angles
         this.load.image('main-front', 'main-front.png');
