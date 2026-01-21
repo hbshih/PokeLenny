@@ -229,7 +229,13 @@ export class Overworld extends Scene
                         const isDefeated = gameState.isGuestDefeated(guestId);
                         if (isDefeated) {
                             sprite.setAlpha(0.4);
-                            sprite.setTint(0x888888); // Grey tint
+                            // Apply grey tint - different methods for sprites vs rectangles
+                            if (sprite.setTint) {
+                                sprite.setTint(0x888888); // Grey tint for sprites
+                            } else if (sprite.setFillStyle) {
+                                sprite.setFillStyle(0x888888); // Grey fill for rectangles
+                                sprite.setStrokeStyle(2, 0x555555); // Darker stroke for defeated
+                            }
                             npc.challenged = true; // Mark as already challenged
                         }
 
