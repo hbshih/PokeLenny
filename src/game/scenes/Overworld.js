@@ -17,6 +17,9 @@ export class Overworld extends Scene
         this.currentMap = 'large-map'; // Track current map (use large map by default)
         this.mapTransitions = []; // Store transition zones
         this.battleActive = false; // Track if battle is active to disable input
+        this.music = null;
+        this.battleMusic = null;
+        this.victorySound = null;
     }
 
     init (data)
@@ -125,14 +128,31 @@ export class Overworld extends Scene
         this.cursors = this.input.keyboard.createCursorKeys();
         this.keys = this.input.keyboard.addKeys('W,A,S,D,C,SPACE,ENTER');
 
+        // Start overworld music
+        if (!this.music || !this.music.isPlaying) {
+            this.music = this.sound.add('overworld-music', {
+                loop: true,
+                volume: 0.4
+            });
+            this.music.play();
+        }
+
         // Listen for battle start - disable input during battle
         EventBus.on('start-battle', () => {
             this.battleActive = true;
+            // Pause overworld music during battle
+            if (this.music && this.music.isPlaying) {
+                this.music.pause();
+            }
         });
 
         // Listen for battle end - re-enable input
         EventBus.on('battle-ended', () => {
             this.battleActive = false;
+            // Resume overworld music after battle
+            if (this.music && !this.music.isPlaying) {
+                this.music.resume();
+            }
         });
 
         // Listen for battle rejection
@@ -142,11 +162,60 @@ export class Overworld extends Scene
                 this.battleNPC = null;
             }
             this.battleActive = false;
+            // Resume music if paused
+            if (this.music && !this.music.isPlaying) {
+                this.music.resume();
+            }
         });
 
         // Listen for player name (stored but not displayed)
         EventBus.on('player-name-set', (name) => {
             this.playerName = name || 'Player';
+        });
+
+        // Audio control events from BattleScreen
+        EventBus.on('play-battle-music', () => {
+            // Stop overworld music and play battle music
+            if (this.music && this.music.isPlaying) {
+                this.music.stop();
+            }
+            if (!this.battleMusic) {
+                this.battleMusic = this.sound.add('battle-music', {
+                    loop: true,
+                    volume: 0.5
+                });
+            }
+            this.battleMusic.play();
+        });
+
+        EventBus.on('stop-battle-music', () => {
+            // Stop battle music and resume overworld music
+            if (this.battleMusic && this.battleMusic.isPlaying) {
+                this.battleMusic.stop();
+            }
+            if (this.music && !this.music.isPlaying) {
+                this.music.play();
+            }
+        });
+
+        EventBus.on('play-victory-sound', () => {
+            // Play victory fanfare (doesn't loop)
+            if (!this.victorySound) {
+                this.victorySound = this.sound.add('victory-fanfare', {
+                    loop: false,
+                    volume: 0.6
+                });
+            }
+            // Stop battle music first
+            if (this.battleMusic && this.battleMusic.isPlaying) {
+                this.battleMusic.stop();
+            }
+            this.victorySound.play();
+        });
+
+        // Global mute/unmute control
+        EventBus.on('toggle-mute', (isMuted) => {
+            this.sound.mute = isMuted;
         });
 
         EventBus.emit('current-scene-ready', this);

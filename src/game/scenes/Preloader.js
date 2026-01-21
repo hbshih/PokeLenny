@@ -47,6 +47,16 @@ export class Preloader extends Scene
         this.load.image('main-right', 'main-right.png');
         this.load.image('elena-front', 'elena-front.png');
         this.load.image('elena-side', 'elena-side.png');
+
+        // Load battle background
+        this.load.image('battle-bg', 'battle-background.png');
+
+        // Load audio files
+        this.load.audio('menu-music', 'audio/music/menu-theme.ogg');
+        this.load.audio('overworld-music', 'audio/music/overworld-theme.ogg');
+        this.load.audio('battle-music', 'audio/music/battle-theme.ogg');
+        this.load.audio('victory-fanfare', 'audio/music/victory-fanfare.ogg');
+        this.load.audio('victory-music', 'audio/music/victory-theme.ogg');
     }
 
     create ()

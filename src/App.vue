@@ -18,6 +18,9 @@ const encounterNPC = ref(null);
 const playerName = ref('Player');
 const showShareModal = ref(false);
 
+// Audio control
+const isMuted = ref(false);
+
 // Player stats
 const playerStats = ref({
   level: 1,
@@ -283,7 +286,25 @@ function setPlayerName(name) {
   playerName.value = name || 'Player';
 }
 
+function toggleMute() {
+  isMuted.value = !isMuted.value;
+  // Save mute preference to localStorage
+  localStorage.setItem('pokelenny-muted', isMuted.value.toString());
+  // Emit mute state to Phaser
+  EventBus.emit('toggle-mute', isMuted.value);
+}
+
 onMounted(() => {
+  // Load mute preference from localStorage
+  const savedMuteState = localStorage.getItem('pokelenny-muted');
+  if (savedMuteState !== null) {
+    isMuted.value = savedMuteState === 'true';
+    // Apply mute state to Phaser
+    setTimeout(() => {
+      EventBus.emit('toggle-mute', isMuted.value);
+    }, 1000); // Wait for game to initialize
+  }
+
   // Show encounter dialog when approaching NPC
   EventBus.on('show-encounter-dialog', (data) => {
     if (data && data.id) {
@@ -363,6 +384,9 @@ onUnmounted(() => {
         </button>
         <button class="action-btn share-btn" @click="handleShareStats">
           📤 Share Stats
+        </button>
+        <button class="action-btn mute-btn" @click="toggleMute" :title="isMuted ? 'Unmute' : 'Mute'">
+          {{ isMuted ? '🔇' : '🔊' }}
         </button>
       </div>
     </div>
@@ -585,6 +609,18 @@ body {
 .share-btn:hover {
   border-color: #8b5cf6;
   box-shadow: 0 6px 0 rgba(0, 0, 0, 0.3), 0 0 20px rgba(167, 139, 250, 0.4);
+}
+
+.mute-btn {
+  border-color: #fbbf24;
+  font-size: 18px;
+  padding: 12px 14px;
+  min-width: 50px;
+}
+
+.mute-btn:hover {
+  border-color: #f59e0b;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.3), 0 0 20px rgba(251, 191, 36, 0.4);
 }
 
 .game-controls {

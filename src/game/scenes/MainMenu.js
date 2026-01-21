@@ -9,6 +9,7 @@ export class MainMenu extends Scene
         super('MainMenu');
         this.playerName = '';
         this.nameInput = null;
+        this.music = null;
     }
 
     create ()
@@ -39,10 +40,24 @@ export class MainMenu extends Scene
         if (existingInput) {
             existingInput.remove();
         }
+
+        // Stop music
+        if (this.music) {
+            this.music.stop();
+        }
     }
 
     createMainMenu ()
     {
+        // Start menu music
+        if (!this.music || !this.music.isPlaying) {
+            this.music = this.sound.add('menu-music', {
+                loop: true,
+                volume: 0.5
+            });
+            this.music.play();
+        }
+
         // Vibrant outdoor gradient background - Sky to grass like the logo
         const graphics = this.add.graphics();
         // Sky blue to bright green gradient (matching logo's outdoor vibe)
@@ -195,6 +210,11 @@ export class MainMenu extends Scene
             stroke: 'rgba(45, 80, 22, 0.8)',
             strokeThickness: 2
         }).setOrigin(0.5);
+
+        // Global mute/unmute control
+        EventBus.on('toggle-mute', (isMuted) => {
+            this.sound.mute = isMuted;
+        });
 
         EventBus.emit('current-scene-ready', this);
     }

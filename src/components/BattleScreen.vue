@@ -158,6 +158,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import BattleResult from './BattleResult.vue';
 import gameState from '../game/GameState';
+import { EventBus } from '../game/EventBus';
 
 const props = defineProps({
   isActive: Boolean,
@@ -243,10 +244,15 @@ onUnmounted(() => {
 watch(() => props.isActive, (newVal) => {
   if (newVal) {
     showTransition.value = true;
+    // Start battle music
+    EventBus.emit('play-battle-music');
     setTimeout(() => {
       showTransition.value = false;
       resetBattle();
     }, 1800); // 1.8 second transition (matches animation duration)
+  } else {
+    // Stop battle music when battle screen closes
+    EventBus.emit('stop-battle-music');
   }
 });
 
@@ -353,6 +359,11 @@ function endBattle(won) {
   // Add bonus points for perfect battle
   if (battleStats.value.perfectBattle) {
     battleStats.value.score += 50; // 50 bonus points for perfect battle
+  }
+
+  // Play victory or defeat sound
+  if (won) {
+    EventBus.emit('play-victory-sound');
   }
 
   // Record battle result in game state
