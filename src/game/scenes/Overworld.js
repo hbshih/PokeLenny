@@ -128,6 +128,9 @@ export class Overworld extends Scene
         this.cursors = this.input.keyboard.createCursorKeys();
         this.keys = this.input.keyboard.addKeys('W,A,S,D,C,SPACE,ENTER');
 
+        // Mobile touch controls
+        this.createMobileControls();
+
         // Start overworld music
         if (!this.music || !this.music.isPlaying) {
             this.music = this.sound.add('overworld-music', {
@@ -144,6 +147,8 @@ export class Overworld extends Scene
             if (this.music && this.music.isPlaying) {
                 this.music.pause();
             }
+            // Hide mobile controls during battle
+            this.setMobileControlsVisible(false);
         });
 
         // Listen for battle end - re-enable input
@@ -153,6 +158,8 @@ export class Overworld extends Scene
             if (this.music && !this.music.isPlaying) {
                 this.music.resume();
             }
+            // Show mobile controls after battle
+            this.setMobileControlsVisible(true);
         });
 
         // Listen for battle rejection
@@ -166,6 +173,8 @@ export class Overworld extends Scene
             if (this.music && !this.music.isPlaying) {
                 this.music.resume();
             }
+            // Show mobile controls
+            this.setMobileControlsVisible(true);
         });
 
         // Listen for player name (stored but not displayed)
@@ -384,6 +393,7 @@ export class Overworld extends Scene
         let dx = 0;
         let dy = 0;
 
+        // Keyboard controls
         if (this.cursors.up.isDown || this.keys.W.isDown) {
             dy = -1;
         } else if (this.cursors.down.isDown || this.keys.S.isDown) {
@@ -392,6 +402,16 @@ export class Overworld extends Scene
             dx = -1;
         } else if (this.cursors.right.isDown || this.keys.D.isDown) {
             dx = 1;
+        }
+
+        // Mobile controls (override keyboard if active)
+        if (this.mobileDirection) {
+            dx = 0;
+            dy = 0;
+            if (this.mobileDirection === 'up') dy = -1;
+            else if (this.mobileDirection === 'down') dy = 1;
+            else if (this.mobileDirection === 'left') dx = -1;
+            else if (this.mobileDirection === 'right') dx = 1;
         }
 
         if (dx !== 0 || dy !== 0) {
@@ -405,7 +425,7 @@ export class Overworld extends Scene
         // Check for NPC interaction
         if (Phaser.Input.Keyboard.JustDown(this.keys.SPACE) ||
             Phaser.Input.Keyboard.JustDown(this.keys.ENTER)) {
-            this.checkNPCInteraction();
+            this.handleInteraction();
         }
 
         // Collection hotkey
@@ -551,7 +571,7 @@ export class Overworld extends Scene
         });
     }
 
-    checkNPCInteraction ()
+    handleInteraction ()
     {
         // Use the nearestNPC that's already tracked
         if (this.nearestNPC) {
@@ -576,5 +596,128 @@ export class Overworld extends Scene
 
         const tile = this.worldLayer.getTileAt(x, y);
         return !tile || !tile.collides;
+    }
+
+    setMobileControlsVisible (visible)
+    {
+        if (!this.mobileControls) return;
+
+        Object.values(this.mobileControls).forEach(control => {
+            if (control.button) control.button.setVisible(visible);
+            if (control.text) control.text.setVisible(visible);
+        });
+    }
+
+    createMobileControls ()
+    {
+        // Only show on touch devices or small screens
+        const isMobile = this.sys.game.device.input.touch || window.innerWidth <= 1024;
+
+        if (!isMobile) {
+            return;
+        }
+
+        // Virtual D-Pad
+        const buttonSize = 60;
+        const buttonGap = 10;
+        const padding = 20;
+
+        // Position in bottom-left corner
+        const startX = padding + buttonSize;
+        const startY = this.scale.height - padding - buttonSize;
+
+        // Create button background circle
+        const createButton = (x, y, direction, icon) => {
+            const button = this.add.circle(x, y, buttonSize / 2, 0x000000, 0.5);
+            button.setScrollFactor(0);
+            button.setDepth(1500);
+            button.setInteractive({ useHandCursor: true });
+
+            // Button icon
+            const text = this.add.text(x, y, icon, {
+                fontSize: '28px',
+                color: '#FFD700',
+                fontFamily: 'Arial, sans-serif'
+            });
+            text.setOrigin(0.5);
+            text.setScrollFactor(0);
+            text.setDepth(1501);
+
+            // Hover/press effects
+            button.on('pointerdown', () => {
+                button.setFillStyle(0xFFD700, 0.7);
+                text.setColor('#000000');
+                this.mobileDirection = direction;
+                this.lastMoveTime = 0; // Allow immediate movement
+            });
+
+            button.on('pointerup', () => {
+                button.setFillStyle(0x000000, 0.5);
+                text.setColor('#FFD700');
+                this.mobileDirection = null;
+            });
+
+            button.on('pointerout', () => {
+                button.setFillStyle(0x000000, 0.5);
+                text.setColor('#FFD700');
+                this.mobileDirection = null;
+            });
+
+            return { button, text };
+        };
+
+        // Create D-Pad buttons
+        this.mobileControls = {
+            up: createButton(startX, startY - buttonSize - buttonGap, 'up', '▲'),
+            down: createButton(startX, startY + buttonSize + buttonGap, 'down', '▼'),
+            left: createButton(startX - buttonSize - buttonGap, startY, 'left', '◀'),
+            right: createButton(startX + buttonSize + buttonGap, startY, 'right', '▶')
+        };
+
+        // Center button for interaction
+        const centerButton = this.add.circle(startX, startY, buttonSize / 2, 0x4CAF50, 0.6);
+        centerButton.setScrollFactor(0);
+        centerButton.setDepth(1500);
+        centerButton.setInteractive({ useHandCursor: true });
+
+        const centerText = this.add.text(startX, startY, 'A', {
+            fontSize: '24px',
+            color: '#FFFFFF',
+            fontFamily: 'Press Start 2P, monospace',
+            fontStyle: 'bold'
+        });
+        centerText.setOrigin(0.5);
+        centerText.setScrollFactor(0);
+        centerText.setDepth(1501);
+
+        centerButton.on('pointerdown', () => {
+            centerButton.setFillStyle(0x45A049, 0.8);
+            // Trigger interaction (same as SPACE key)
+            this.handleInteraction();
+        });
+
+        centerButton.on('pointerup', () => {
+            centerButton.setFillStyle(0x4CAF50, 0.6);
+        });
+
+        this.mobileControls.interact = { button: centerButton, text: centerText };
+
+        // Track mobile direction
+        this.mobileDirection = null;
+
+        // Make NPCs clickable
+        this.npcs.forEach(npc => {
+            if (npc.sprite && npc.sprite.setInteractive) {
+                npc.sprite.setInteractive({ useHandCursor: true });
+                npc.sprite.on('pointerdown', () => {
+                    // Check if in range
+                    const distance = Math.abs(npc.tileX - this.player.tileX) + Math.abs(npc.tileY - this.player.tileY);
+                    if (distance <= 5 && !npc.defeated) {
+                        this.nearestNPC = npc;
+                        this.handleInteraction();
+                    }
+                });
+            }
+        });
     }
 }
