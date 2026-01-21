@@ -3,14 +3,26 @@
     <div class="collection-header">
       <h1 class="collection-title">PokéLenny Collection</h1>
       <p class="collection-progress">
-        {{ capturedCount }} / {{ allGuests.length }} Captured
+        {{ capturedCount }} / {{ props.collection.length }} Captured
       </p>
       <button class="close-btn" @click="$emit('close')">✕</button>
     </div>
 
+    <div class="pagination-controls">
+      <button class="page-btn" @click="prevPage" :disabled="currentPage === 1">
+        ◀ Prev
+      </button>
+      <span class="page-info">
+        Page {{ currentPage }} / {{ totalPages }}
+      </span>
+      <button class="page-btn" @click="nextPage" :disabled="currentPage === totalPages">
+        Next ▶
+      </button>
+    </div>
+
     <div class="collection-grid">
       <div
-        v-for="guest in allGuests"
+        v-for="guest in paginatedGuests"
         :key="guest.id"
         class="guest-card"
         :class="{ 'captured': guest.captured, 'uncaptured': !guest.captured }"
@@ -53,7 +65,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 
 const props = defineProps({
   isActive: Boolean,
@@ -63,25 +75,28 @@ const props = defineProps({
 defineEmits(['close']);
 
 const selectedGuest = ref(null);
+const currentPage = ref(1);
+const itemsPerPage = 18; // 3x6 grid fits nicely on screen
 
 const capturedCount = computed(() => {
   return props.collection.filter(g => g.captured).length;
 });
 
-const allGuests = computed(() => {
-  const total = 15;
-  const result = [...props.collection];
-  for (let i = props.collection.length; i < total; i++) {
-    result.push({
-      id: String(i + 1),
-      name: '???',
-      sprite: '?',
-      difficulty: '???',
-      episode: '???',
-      captured: false
-    });
+const totalPages = computed(() => {
+  return Math.ceil(props.collection.length / itemsPerPage);
+});
+
+const paginatedGuests = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  return props.collection.slice(start, end);
+});
+
+// Reset to page 1 when collection screen opens
+watch(() => props.isActive, (newVal) => {
+  if (newVal) {
+    currentPage.value = 1;
   }
-  return result;
 });
 
 function selectGuest(guest) {
@@ -92,6 +107,18 @@ function selectGuest(guest) {
 
 function closeDetail() {
   selectedGuest.value = null;
+}
+
+function nextPage() {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++;
+  }
+}
+
+function prevPage() {
+  if (currentPage.value > 1) {
+    currentPage.value--;
+  }
 }
 </script>
 
@@ -136,6 +163,53 @@ function closeDetail() {
   color: #FFF;
   margin: 0;
   letter-spacing: 1px;
+}
+
+.pagination-controls {
+  background: rgba(0, 0, 0, 0.75);
+  padding: 12px 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+}
+
+.page-btn {
+  padding: 8px 16px;
+  font-size: 11px;
+  font-family: 'Press Start 2P', monospace, sans-serif;
+  background: #4CAF50;
+  color: #FFF;
+  border: 3px solid #FFD700;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.page-btn:hover:not(:disabled) {
+  background: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.page-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.page-btn:disabled {
+  background: #666;
+  border-color: #444;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.page-info {
+  font-size: 12px;
+  font-family: 'Press Start 2P', monospace, sans-serif;
+  color: #FFD700;
+  min-width: 140px;
+  text-align: center;
 }
 
 .close-btn {
@@ -364,6 +438,76 @@ function closeDetail() {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 16px;
     padding: 16px;
+  }
+
+  .collection-title {
+    font-size: 18px;
+  }
+
+  .collection-progress {
+    font-size: 12px;
+  }
+
+  .page-info {
+    font-size: 10px;
+    min-width: 120px;
+  }
+
+  .page-btn {
+    font-size: 10px;
+    padding: 8px 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  .collection-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .collection-header {
+    padding: 16px;
+  }
+
+  .collection-title {
+    font-size: 14px;
+  }
+
+  .collection-progress {
+    font-size: 10px;
+  }
+
+  .close-btn {
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+
+  .pagination-controls {
+    padding: 10px 16px;
+    gap: 12px;
+  }
+
+  .page-info {
+    font-size: 9px;
+    min-width: 100px;
+  }
+
+  .page-btn {
+    font-size: 9px;
+    padding: 6px 10px;
+  }
+
+  .guest-card-sprite {
+    font-size: 32px;
+  }
+
+  .guest-card-name {
+    font-size: 9px;
+  }
+
+  .guest-card-number {
+    font-size: 8px;
   }
 }
 </style>

@@ -75,7 +75,7 @@
         <div class="hp-display player-hp">
           <div class="hp-header">
             <span class="name-text">{{ playerName || 'You' }}</span>
-            <span class="level-badge">Lv42</span>
+            <span class="level-badge">Lv{{ playerLevel }}</span>
           </div>
           <div class="hp-bar-container">
             <div class="hp-label-small">HP</div>
@@ -83,7 +83,7 @@
               <div class="hp-bar-fill" :class="playerHPClass" :style="{ width: playerHPPercent + '%' }"></div>
             </div>
           </div>
-          <div class="hp-numeric">{{ playerHP }} / 100</div>
+          <div class="hp-numeric">{{ playerHP }} / {{ playerMaxHP }}</div>
         </div>
       </div>
     </div>
@@ -163,13 +163,16 @@ import { EventBus } from '../game/EventBus';
 const props = defineProps({
   isActive: Boolean,
   battleData: Object,
-  playerName: String
+  playerName: String,
+  playerStats: Object
 });
 
 const emit = defineEmits(['close', 'guest-captured', 'answer-submitted']);
 
 const guestHP = ref(100);
-const playerHP = ref(100);
+const playerHP = ref(props.playerStats?.hp || 100);
+const playerMaxHP = computed(() => props.playerStats?.maxHp || 100);
+const playerLevel = computed(() => props.playerStats?.level || 1);
 const currentQuestionIndex = ref(0);
 const selectedAnswer = ref(null);
 const selectedAnswerIndex = ref(0);
@@ -265,7 +268,7 @@ const guestHPPercent = computed(() => {
 });
 
 const playerHPPercent = computed(() => {
-  return (playerHP.value / 100) * 100;
+  return (playerHP.value / playerMaxHP.value) * 100;
 });
 
 const guestHPClass = computed(() => {
@@ -284,7 +287,7 @@ const playerHPClass = computed(() => {
 
 function resetBattle() {
   guestHP.value = 100;
-  playerHP.value = 100;
+  playerHP.value = props.playerStats?.hp || 100;
   currentQuestionIndex.value = 0;
   selectedAnswer.value = null;
   selectedAnswerIndex.value = 0;
@@ -512,8 +515,9 @@ function handleContinue() {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 960px;
-  height: 640px;
+  width: min(960px, 95vw);
+  height: min(640px, calc(95vw * 0.667));
+  max-height: 90vh;
   z-index: 1000;
   font-family: 'Press Start 2P', monospace, sans-serif;
   overflow: hidden;
@@ -523,6 +527,25 @@ function handleContinue() {
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges;
   image-rendering: crisp-edges;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 1024px) {
+  .battle-screen {
+    width: 92vw;
+    height: calc(92vw * 0.667);
+    max-height: 85vh;
+    border: 3px solid #FFD700;
+  }
+}
+
+@media (max-width: 768px) {
+  .battle-screen {
+    width: 96vw;
+    height: calc(96vw * 0.667);
+    max-height: 80vh;
+    border: 2px solid #FFD700;
+  }
 }
 
 /* Battle Background Image */
@@ -1155,6 +1178,70 @@ function handleContinue() {
 
   .pokemon-question-section {
     padding-right: 16px;
+  }
+}
+
+/* Mobile-specific font scaling */
+@media (max-width: 768px) {
+  .battle-screen {
+    font-size: 90%; /* Scale down all em/rem-based fonts */
+  }
+
+  .pokemon-question-text {
+    font-size: 11px !important;
+  }
+
+  .pokemon-answer-choice {
+    font-size: 10px !important;
+    padding: 10px 14px !important;
+  }
+
+  .hp-display {
+    font-size: 10px !important;
+  }
+
+  .battle-instructions {
+    font-size: 8px !important;
+  }
+
+  .exit-battle-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .opponent-sprite img, .player-sprite img {
+    max-width: 90%;
+    max-height: 90%;
+  }
+}
+
+@media (max-width: 480px) {
+  .battle-screen {
+    font-size: 85%;
+  }
+
+  .pokemon-question-text {
+    font-size: 10px !important;
+  }
+
+  .pokemon-answer-choice {
+    font-size: 9px !important;
+    padding: 8px 12px !important;
+  }
+
+  .hp-display {
+    font-size: 9px !important;
+  }
+
+  .battle-instructions {
+    font-size: 7px !important;
+  }
+
+  .exit-battle-btn {
+    width: 32px;
+    height: 32px;
+    top: 8px;
+    right: 8px;
   }
 }
 </style>

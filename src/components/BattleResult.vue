@@ -39,20 +39,30 @@
         <button
           v-if="!won"
           class="result-btn retry-btn"
+          :class="{ selected: selectedButton === 0 }"
           @click="retry"
         >
           ▶ TRY AGAIN
         </button>
-        <button class="result-btn continue-btn" @click="continueGame">
+        <button
+          class="result-btn continue-btn"
+          :class="{ selected: won ? selectedButton === 0 : selectedButton === 1 }"
+          @click="continueGame"
+        >
           ▶ {{ won ? 'CONTINUE' : 'RETURN' }}
         </button>
+      </div>
+
+      <!-- Keyboard hint -->
+      <div class="keyboard-hint">
+        ← → Arrow keys to select | ENTER to confirm
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 
 const props = defineProps({
   isActive: Boolean,
@@ -72,9 +82,51 @@ const props = defineProps({
 
 const emit = defineEmits(['continue', 'retry']);
 
+// Keyboard navigation
+const selectedButton = ref(0); // 0 = retry (if available), 1 = continue
+const numButtons = computed(() => props.won ? 1 : 2); // Victory: 1 button, Defeat: 2 buttons
+
 const accuracy = computed(() => {
   if (props.stats.totalQuestions === 0) return 0;
   return Math.round((props.stats.correctAnswers / props.stats.totalQuestions) * 100);
+});
+
+// Reset selected button when result screen opens
+watch(() => props.isActive, (newVal) => {
+  if (newVal) {
+    selectedButton.value = 0;
+  }
+});
+
+function handleKeyPress(event) {
+  if (!props.isActive) return;
+
+  const key = event.key;
+  const resultKeys = ['ArrowLeft', 'ArrowRight', 'Enter'];
+  if (!resultKeys.includes(key)) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+
+  if (key === 'ArrowLeft') {
+    selectedButton.value = Math.max(0, selectedButton.value - 1);
+  } else if (key === 'ArrowRight') {
+    selectedButton.value = Math.min(numButtons.value - 1, selectedButton.value + 1);
+  } else if (key === 'Enter') {
+    if (selectedButton.value === 0 && !props.won) {
+      retry();
+    } else {
+      continueGame();
+    }
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeyPress);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeyPress);
 });
 
 function retry() {
@@ -298,6 +350,32 @@ function continueGame() {
   background: #45A049;
   transform: translateY(-2px);
   box-shadow: 0 4px 0 #2E7D32;
+}
+
+/* Keyboard selected state */
+.result-btn.selected {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 4px 0 currentColor;
+  border-color: #FFD700;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 4px 0 currentColor;
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(255, 215, 0, 1), 0 4px 0 currentColor;
+  }
+}
+
+.keyboard-hint {
+  margin-top: 20px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  color: rgba(255, 255, 255, 0.6);
+  text-align: center;
+  letter-spacing: 1px;
 }
 
 /* Responsive */
