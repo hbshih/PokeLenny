@@ -1,22 +1,25 @@
 import { Boot } from './scenes/Boot';
+import { Preloader } from './scenes/Preloader';
+import { MainMenu } from './scenes/MainMenu';
+import { Overworld } from './scenes/Overworld';
 import { Game } from './scenes/Game';
 import { GameOver } from './scenes/GameOver';
-import { MainMenu } from './scenes/MainMenu';
 import Phaser from 'phaser';
-import { Preloader } from './scenes/Preloader';
 
 // Find out more information about the Game Config at:
 // https://docs.phaser.io/api-documentation/typedef/types-core#gameconfig
 const config = {
     type: Phaser.AUTO,
-    width: 1024,
-    height: 768,
+    width: 960,
+    height: 640,
     parent: 'game-container',
-    backgroundColor: '#028af8',
+    backgroundColor: '#000000',
+    pixelArt: true,
     scene: [
         Boot,
         Preloader,
         MainMenu,
+        Overworld,
         Game,
         GameOver
     ]

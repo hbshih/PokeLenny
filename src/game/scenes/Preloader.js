@@ -29,11 +29,23 @@ export class Preloader extends Scene
 
     preload ()
     {
-        //  Load the assets for the game - Replace with your own assets
+        //  Load the assets for the game
         this.load.setPath('assets');
 
         this.load.image('logo', 'logo.png');
         this.load.image('star', 'star.png');
+
+        // Load Tuxemon tileset and tilemap (using extruded version to prevent texture bleeding)
+        this.load.image('tiles', 'tuxmon-sample-32px-extruded.png');
+        this.load.tilemapTiledJSON('map', 'tuxemon-town.json');
+
+        // Load character sprites - all angles
+        this.load.image('main-front', 'main-front.png');
+        this.load.image('main-back', 'main-back.png');
+        this.load.image('main-left', 'main-left.png');
+        this.load.image('main-right', 'main-right.png');
+        this.load.image('elena-front', 'elena-front.png');
+        this.load.image('elena-side', 'elena-side.png');
     }
 
     create ()
