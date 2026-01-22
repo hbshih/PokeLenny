@@ -7,6 +7,7 @@ import EncounterDialog from './components/EncounterDialog.vue';
 import ShareModal from './components/ShareModal.vue';
 import LevelComplete from './components/LevelComplete.vue';
 import GameOver from './components/GameOver.vue';
+import TutorialModal from './components/TutorialModal.vue';
 import { EventBus } from './game/EventBus';
 import guestDataManager from './game/GuestData';
 
@@ -17,6 +18,7 @@ const showCollection = ref(false);
 const showEncounter = ref(false);
 const encounterNPC = ref(null);
 const showGameOver = ref(false);
+const showTutorial = ref(false);
 
 // Player data
 const playerName = ref('Player');
@@ -335,6 +337,12 @@ function toggleMute() {
   }
 }
 
+function handleCloseTutorial() {
+  showTutorial.value = false;
+  // Save that the user has seen the tutorial
+  localStorage.setItem('pokelenny-tutorial-seen', 'true');
+}
+
 onMounted(() => {
   // Listen for guests-loaded event from Preloader
   EventBus.on('guests-loaded', (guests) => {
@@ -437,6 +445,15 @@ onMounted(() => {
   EventBus.on('open-collection', handleOpenCollection);
   EventBus.on('player-name-set', (name) => {
     setPlayerName(name);
+
+    // Check if this is the first time playing
+    const hasSeenTutorial = localStorage.getItem('pokelenny-tutorial-seen');
+    if (!hasSeenTutorial) {
+      // Show tutorial modal after a brief delay
+      setTimeout(() => {
+        showTutorial.value = true;
+      }, 500);
+    }
   });
 });
 
@@ -580,6 +597,11 @@ onUnmounted(() => {
       :questionsAnswered="totalQuestionsAnswered"
       :accuracy="accuracy"
       @restart="handleGameRestart"
+    />
+
+    <TutorialModal
+      :show="showTutorial"
+      @close="handleCloseTutorial"
     />
   </div>
 </template>
