@@ -290,7 +290,7 @@ function copyToClipboard(text) {
   border-radius: 16px;
   padding: 24px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-  font-family: 'DotGothic16', monospace, sans-serif;
+  font-family: 'Press Start 2P', monospace, sans-serif;
 }
 
 .card-header {
@@ -533,7 +533,7 @@ function copyToClipboard(text) {
 
 .action-btn {
   flex: 1;
-  font-family: 'DotGothic16', monospace, sans-serif;
+  font-family: 'Press Start 2P', monospace, sans-serif;
   font-size: 11px;
   padding: 14px;
   background: rgba(0, 0, 0, 0.85);

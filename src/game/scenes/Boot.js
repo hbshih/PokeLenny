@@ -20,7 +20,7 @@ export class Boot extends Scene
 
         WebFont.load({
             google: {
-                families: ['DotGothic16']
+                families: ['Press Start 2P']
             },
             active: () => {
                 this.fontsReady = true;

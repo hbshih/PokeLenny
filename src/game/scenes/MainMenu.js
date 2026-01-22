@@ -136,7 +136,7 @@ export class MainMenu extends Scene
 
         // Info text - warm golden color matching logo (reduced sizes)
         this.add.text(this.scale.width / 2, 250, 'BATTLE LENNY\'S PODCAST GUESTS', {
-            fontFamily: '"DotGothic16"',
+            fontFamily: '"Press Start 2P"',
             fontSize: '16px',
             color: '#FFE066', // Warm yellow from logo
             align: 'center',
@@ -145,7 +145,7 @@ export class MainMenu extends Scene
         }).setOrigin(0.5);
 
         this.add.text(this.scale.width / 2, 280, 'Answer Questions to Win!', {
-            fontFamily: '"DotGothic16"',
+            fontFamily: '"Press Start 2P"',
             fontSize: '13px',
             color: '#FFFFFF',
             align: 'center',
@@ -155,7 +155,7 @@ export class MainMenu extends Scene
 
         // Name input label - bright green matching logo
         this.add.text(this.scale.width / 2, 345, 'ENTER YOUR NAME:', {
-            fontFamily: '"DotGothic16"',
+            fontFamily: '"Press Start 2P"',
             fontSize: '12px',
             color: '#FFD700', // Gold
             letterSpacing: 2,
@@ -196,7 +196,7 @@ export class MainMenu extends Scene
             .setInteractive({ useHandCursor: true });
 
         const newGameText = this.add.text(this.scale.width / 2, buttonY, '▶  START GAME', {
-            fontFamily: '"DotGothic16"',
+            fontFamily: '"Press Start 2P"',
             fontSize: '18px',
             color: '#FFFFFF',
             letterSpacing: 3,
@@ -233,7 +233,7 @@ export class MainMenu extends Scene
 
         // Version text - properly separated below button
         this.add.text(this.scale.width / 2, 610, 'v0.5 • BUILT WITH PHASER 3', {
-            fontFamily: '"DotGothic16"',
+            fontFamily: '"Press Start 2P"',
             fontSize: '8px',
             color: 'rgba(255, 255, 255, 0.6)',
             letterSpacing: 1,
@@ -334,7 +334,7 @@ export class MainMenu extends Scene
         this.playerName = initialText;
 
         this.nameInputText = this.add.text(inputX, inputY, initialText || 'TRAINER', {
-            fontFamily: '"DotGothic16"',
+            fontFamily: '"Press Start 2P"',
             fontSize: '14px',
             color: initialText ? '#FFFFFF' : '#BBBBBB',
             letterSpacing: 4,
@@ -343,7 +343,7 @@ export class MainMenu extends Scene
 
         // Create blinking cursor
         this.nameInputCursor = this.add.text(inputX, inputY, '|', {
-            fontFamily: '"DotGothic16"',
+            fontFamily: '"Press Start 2P"',
             fontSize: '14px',
             color: '#FFD700',
             letterSpacing: 4
