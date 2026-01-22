@@ -1,6 +1,7 @@
 <template>
-  <div class="leaderboard-panel">
-    <div class="leaderboard-header">
+  <div v-if="isActive" class="leaderboard-overlay" @click="handleClose">
+    <div class="leaderboard-panel" @click.stop>
+      <div class="leaderboard-header">
       <h3 class="leaderboard-title">🏆 Leaderboard</h3>
       <button class="refresh-btn" @click="handleRefresh" :disabled="loading">
         {{ loading ? '⏳' : '🔄' }}
@@ -56,6 +57,9 @@
       <div class="loading-spinner">⏳</div>
       <p>Loading leaderboard...</p>
     </div>
+
+    <button class="close-modal-btn" @click="handleClose">✕</button>
+    </div>
   </div>
 </template>
 
@@ -63,13 +67,17 @@
 import { ref, computed, onMounted } from 'vue';
 
 const props = defineProps({
+  isActive: {
+    type: Boolean,
+    default: false
+  },
   currentPlayer: {
     type: Object,
     default: () => ({})
   }
 });
 
-const emit = defineEmits(['refresh']);
+const emit = defineEmits(['close', 'refresh']);
 
 const loading = ref(false);
 const currentPage = ref(1);
@@ -123,6 +131,10 @@ function prevPage() {
   }
 }
 
+function handleClose() {
+  emit('close');
+}
+
 function handleRefresh() {
   loading.value = true;
   emit('refresh');
@@ -140,19 +152,55 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.leaderboard-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5000;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .leaderboard-panel {
-  background: rgba(0, 0, 0, 0.85);
-  border: 3px solid #FFD700;
-  border-radius: 8px;
-  padding: 16px;
-  width: 100%;
-  max-width: 350px;
+  position: relative;
+  background: rgba(0, 0, 0, 0.95);
+  border: 4px solid #FFD700;
+  border-radius: 12px;
+  padding: 24px;
+  width: 90%;
+  max-width: 500px;
   height: fit-content;
-  max-height: 640px;
+  max-height: 80vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 40px rgba(255, 215, 0, 0.3);
   font-family: 'Press Start 2P', monospace, sans-serif;
+  animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px) scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
 }
 
 .leaderboard-header {
@@ -355,16 +403,42 @@ onMounted(() => {
   margin: 0;
 }
 
+.close-modal-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(255, 69, 96, 0.2);
+  border: 2px solid #ff4560;
+  border-radius: 6px;
+  color: #ff4560;
+  font-size: 18px;
+  font-weight: bold;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+}
+
+.close-modal-btn:hover {
+  background: rgba(255, 69, 96, 0.4);
+  transform: rotate(90deg) scale(1.1);
+}
+
 /* Mobile Responsive */
-@media (max-width: 1300px) {
+@media (max-width: 600px) {
   .leaderboard-panel {
-    max-width: 100%;
-    width: 100%;
-    max-height: none;
+    width: 95%;
+    max-height: 85vh;
+    padding: 20px;
   }
 
   .leaderboard-list {
-    max-height: 400px;
+    max-height: 50vh;
   }
 }
 

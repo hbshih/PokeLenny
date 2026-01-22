@@ -20,6 +20,7 @@ const showEncounter = ref(false);
 const encounterNPC = ref(null);
 const showGameOver = ref(false);
 const showTutorial = ref(false);
+const showLeaderboard = ref(false);
 
 // Player data
 const playerName = ref('Player');
@@ -344,6 +345,14 @@ function handleCloseTutorial() {
   localStorage.setItem('pokelenny-tutorial-seen', 'true');
 }
 
+function handleOpenLeaderboard() {
+  showLeaderboard.value = true;
+}
+
+function handleCloseLeaderboard() {
+  showLeaderboard.value = false;
+}
+
 onMounted(() => {
   // Listen for guests-loaded event from Preloader
   EventBus.on('guests-loaded', (guests) => {
@@ -503,6 +512,9 @@ onUnmounted(() => {
         <button class="action-btn collection-btn" @click="handleOpenCollection">
           📚 Collection
         </button>
+        <button class="action-btn leaderboard-btn" @click="handleOpenLeaderboard">
+          🏆 Leaderboard
+        </button>
         <button class="action-btn share-btn" @click="handleShareStats">
           📤 Share Stats
         </button>
@@ -510,17 +522,6 @@ onUnmounted(() => {
           {{ isMuted ? '🔇 Unmute' : '🔊 Mute' }}
         </button>
       </div>
-
-      <LeaderboardPanel
-        :currentPlayer="{
-          name: playerName,
-          level: playerStats.level,
-          maxHp: playerStats.maxHp,
-          captured: capturedCount,
-          total: totalGuests,
-          accuracy: accuracy
-        }"
-      />
     </div>
 
     <div class="game-footer">
@@ -614,6 +615,19 @@ onUnmounted(() => {
     <TutorialModal
       :show="showTutorial"
       @close="handleCloseTutorial"
+    />
+
+    <LeaderboardPanel
+      :isActive="showLeaderboard"
+      :currentPlayer="{
+        name: playerName,
+        level: playerStats.level,
+        maxHp: playerStats.maxHp,
+        captured: capturedCount,
+        total: totalGuests,
+        accuracy: accuracy
+      }"
+      @close="handleCloseLeaderboard"
     />
   </div>
 </template>

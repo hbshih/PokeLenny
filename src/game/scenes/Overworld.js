@@ -211,9 +211,12 @@ export class Overworld extends Scene
             this.setMobileControlsVisible(true);
         });
 
-        // Listen for player name (stored but not displayed)
+        // Listen for player name and update display
         EventBus.on('player-name-set', (name) => {
             this.playerName = name || 'Player';
+            if (this.playerNameText) {
+                this.playerNameText.setText(this.playerName);
+            }
         });
 
         // Audio control events from BattleScreen
@@ -311,6 +314,10 @@ export class Overworld extends Scene
             this.player.tileX = this.spawnX || 6;
             this.player.tileY = this.spawnY || 4;
             this.player.sprite.setPosition(this.player.tileX * 32 + 16, this.player.tileY * 32 + 16);
+            // Reset player name text position
+            if (this.playerNameText) {
+                this.playerNameText.setPosition(this.player.tileX * 32 + 16, this.player.tileY * 32 + 16 + 35);
+            }
         });
 
         // Listen for NPC removal (when guest is captured)
@@ -340,6 +347,18 @@ export class Overworld extends Scene
         this.player.sprite = this.add.sprite(px, py, 'main-front');
         this.player.sprite.setScale(0.15); // Smaller character to match zoom
         this.player.sprite.setDepth(10);
+
+        // Create player name text below sprite
+        this.playerNameText = this.add.text(px, py + 35, this.playerName, {
+            fontSize: '10px',
+            fontFamily: 'Press Start 2P, monospace',
+            color: '#FFD700',
+            stroke: '#000000',
+            strokeThickness: 3,
+            align: 'center'
+        });
+        this.playerNameText.setOrigin(0.5, 0);
+        this.playerNameText.setDepth(10);
     }
 
     createNPCs ()
@@ -650,6 +669,17 @@ export class Overworld extends Scene
                 duration: this.moveDelay - 50,
                 ease: 'Linear'
             });
+
+            // Move player name text with sprite
+            if (this.playerNameText) {
+                this.tweens.add({
+                    targets: this.playerNameText,
+                    x: newX * 32 + 16,
+                    y: newY * 32 + 16 + 35,
+                    duration: this.moveDelay - 50,
+                    ease: 'Linear'
+                });
+            }
         }
     }
 
