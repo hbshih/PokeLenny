@@ -20,7 +20,7 @@ export class Boot extends Scene
 
         WebFont.load({
             google: {
-                families: ['Press Start 2P']
+                families: ['Pixelify Sans']
             },
             active: () => {
                 this.fontsReady = true;
