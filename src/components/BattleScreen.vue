@@ -95,7 +95,7 @@
           <!-- Left: Question (40%) -->
           <div class="question-section">
             <div class="q-header">
-              <span class="q-num">Q{{ currentQuestionIndex + 1 }}/5</span>
+              <span class="q-num">Q{{ currentQuestionIndex + 1 }}/{{ battleData.questions?.length || 1 }}</span>
               <span class="diff-badge">{{ battleData.guest.difficulty || 'Med' }}</span>
             </div>
             <div class="q-text">{{ currentQuestion.prompt }}</div>
@@ -147,7 +147,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import BattleResult from './BattleResult.vue';
-import gameState from '../game/GameState';
+import gameState from '../game/GameState.js';
 import { EventBus } from '../game/EventBus';
 
 const props = defineProps({
@@ -157,7 +157,7 @@ const props = defineProps({
   playerStats: Object
 });
 
-const emit = defineEmits(['close', 'guest-captured', 'answer-submitted']);
+const emit = defineEmits(['close', 'guest-captured', 'answer-submitted', 'hp-changed']);
 
 const guestHP = ref(100);
 const playerHP = ref(props.playerStats?.hp || 100);
@@ -249,8 +249,30 @@ watch(() => props.isActive, (newVal) => {
   }
 });
 
+// Watch for battleData changes to reset battle when new questions come in
+watch(() => props.battleData?.questions, (newQuestions, oldQuestions) => {
+  console.log('Battle questions changed:', newQuestions?.length, 'questions');
+  if (newQuestions && newQuestions !== oldQuestions && props.isActive) {
+    // Reset battle state when new questions arrive
+    console.log('Resetting battle for new questions');
+    resetBattle();
+  }
+}, { deep: true });
+
 const currentQuestion = computed(() => {
-  return props.battleData?.questions[currentQuestionIndex.value] || {};
+  const questions = props.battleData?.questions;
+  if (!questions || !Array.isArray(questions) || questions.length === 0) {
+    console.warn('No questions available in battleData');
+    return { prompt: 'Loading...', choices: [], correctAnswer: 0 };
+  }
+
+  const question = questions[currentQuestionIndex.value];
+  if (!question) {
+    console.warn(`Question at index ${currentQuestionIndex.value} not found`);
+    return { prompt: 'Loading...', choices: [], correctAnswer: 0 };
+  }
+
+  return question;
 });
 
 const guestHPPercent = computed(() => {
@@ -299,13 +321,16 @@ function resetBattle() {
   battleWon.value = false;
 
   // Reset battle stats
+  const totalQs = props.battleData?.questions?.length || 0;
   battleStats.value = {
-    totalQuestions: 0,
+    totalQuestions: totalQs,
     correctAnswers: 0,
     wrongAnswers: 0,
     score: 0,
     perfectBattle: false
   };
+
+  console.log('Battle reset with', totalQs, 'questions');
 }
 
 function selectAnswer(index) {
@@ -315,8 +340,7 @@ function selectAnswer(index) {
   answered.value = true;
   isCorrect.value = index === currentQuestion.value.correctAnswer;
 
-  // Track battle stats
-  battleStats.value.totalQuestions++;
+  // Track battle stats (totalQuestions is already set in resetBattle, don't increment it)
   if (isCorrect.value) {
     battleStats.value.correctAnswers++;
     battleStats.value.score += 20; // 20 points per correct answer
@@ -330,27 +354,37 @@ function selectAnswer(index) {
   setTimeout(() => {
     if (isCorrect.value) {
       guestHP.value = Math.max(0, guestHP.value - 20);
-      if (guestHP.value === 0) {
-        endBattle(true);
-      }
     } else {
-      playerHP.value = Math.max(0, playerHP.value - 20);
-      if (playerHP.value === 0) {
-        endBattle(false);
-      }
+      const newHP = Math.max(0, playerHP.value - 20);
+      playerHP.value = newHP;
+      // Emit HP change to sync with global stats
+      emit('hp-changed', newHP);
     }
   }, 100);
 }
 
 function nextQuestion() {
-  if (currentQuestionIndex.value < 4) {
+  const totalQuestions = props.battleData?.questions?.length || 1;
+  if (currentQuestionIndex.value < totalQuestions - 1) {
     currentQuestionIndex.value++;
     answered.value = false;
     selectedAnswer.value = null;
     selectedAnswerIndex.value = 0;
     isCorrect.value = false;
   } else {
-    endBattle(guestHP.value === 0);
+    // Battle ends after all questions - check if player won based on accuracy
+    const correct = battleStats.value.correctAnswers;
+    const total = battleStats.value.totalQuestions;
+    const accuracy = (correct / total) * 100;
+
+    // Win if accuracy is 60% or higher
+    // 1 question: must get it right (100%)
+    // 2 questions: must get both right (100%)
+    // 3 questions: must get at least 2 right (66.7%)
+    const won = accuracy >= 60;
+
+    console.log(`Battle ended: ${correct}/${total} correct (${accuracy.toFixed(1)}%) - ${won ? 'WIN' : 'LOSE'}`);
+    endBattle(won);
   }
 }
 

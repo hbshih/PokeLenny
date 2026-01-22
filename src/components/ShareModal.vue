@@ -67,8 +67,11 @@
               class="guest-card"
             >
               <div class="guest-sprite">
-                <img v-if="guest.id === '1'" src="/assets/elena-front.png" alt="Guest" />
-                <span v-else>{{ guest.sprite }}</span>
+                <img
+                  :src="getGuestAvatarPath(guest)"
+                  :alt="guest.name"
+                  @error="handleImageError"
+                />
               </div>
               <p class="guest-name">{{ guest.name }}</p>
             </div>
@@ -115,6 +118,24 @@ const emit = defineEmits(['close']);
 const capturedGuests = computed(() => {
   return props.collection.filter(g => g.captured);
 });
+
+function getGuestAvatarPath(guest) {
+  if (!guest.name) return '/assets/avatars/default.png';
+
+  // Special case for Elena - use elena-front.png
+  if (guest.name.includes('Elena Verna')) {
+    return '/assets/elena-front.png';
+  }
+
+  // Use the avatar naming convention from the assets folder
+  return `/assets/avatars/${guest.name}_pixel_art.png`;
+}
+
+function handleImageError(event) {
+  // Fallback to a default avatar if image fails to load
+  event.target.style.display = 'none';
+  event.target.parentElement.textContent = '👤';
+}
 
 function closeModal() {
   emit('close');

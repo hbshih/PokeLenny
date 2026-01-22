@@ -6,6 +6,7 @@ import CollectionScreen from './components/CollectionScreen.vue';
 import EncounterDialog from './components/EncounterDialog.vue';
 import ShareModal from './components/ShareModal.vue';
 import LevelComplete from './components/LevelComplete.vue';
+import GameOver from './components/GameOver.vue';
 import { EventBus } from './game/EventBus';
 import guestDataManager from './game/GuestData';
 
@@ -15,6 +16,7 @@ const showBattle = ref(false);
 const showCollection = ref(false);
 const showEncounter = ref(false);
 const encounterNPC = ref(null);
+const showGameOver = ref(false);
 
 // Player data
 const playerName = ref('Player');
@@ -167,23 +169,24 @@ function handleAcceptBattle() {
     const guest = collection.value.find(g => g.id === encounterNPC.value.id);
     console.log('Found guest for battle:', guest);
     if (guest) {
-      battleData.value.guest = guest;
-
       // Random 1-3 questions per battle
       const questionCount = Math.floor(Math.random() * 3) + 1; // 1, 2, or 3
       const questions = guestDataManager.getRandomQuestions(guest.id, questionCount);
       console.log(`Questions loaded for battle (${questionCount} questions):`, questions);
 
       if (questions && questions.length > 0) {
-        // Update battle data with real questions
-        battleData.value.questions = questions.map((q, index) => ({
-          id: index + 1,
-          type: "mcq",
-          prompt: q.question,
-          choices: q.options,
-          correctAnswer: q.options.indexOf(q.answer),
-          explanation: `The correct answer is: ${q.answer}`
-        }));
+        // Create new battle data object (better reactivity)
+        battleData.value = {
+          guest: guest,
+          questions: questions.map((q, index) => ({
+            id: index + 1,
+            type: "mcq",
+            prompt: q.question,
+            choices: q.options,
+            correctAnswer: q.options.indexOf(q.answer),
+            explanation: `The correct answer is: ${q.answer}`
+          }))
+        };
         console.log('Formatted battle questions:', battleData.value.questions);
         totalQuestionsAnswered.value += questions.length;
       } else {
@@ -212,6 +215,9 @@ function handleGuestCaptured(guestId) {
     // Track level progress
     currentLevelEnemiesDefeated.value++;
 
+    // Notify Overworld to remove this NPC
+    EventBus.emit('remove-npc', guestId);
+
     // Check if level is complete (defeated 10 enemies)
     if (currentLevelEnemiesDefeated.value >= enemiesPerLevel) {
       checkLevelCompletion();
@@ -229,6 +235,11 @@ function checkLevelCompletion() {
 
 function handleLevelContinue() {
   showLevelComplete.value = false;
+
+  // Increase player stats level
+  playerStats.value.level++;
+  playerStats.value.maxHp += 20;
+  playerStats.value.hp = playerStats.value.maxHp; // Restore HP to full
 
   // Check if there are more guests to fight
   if (remainingGuests.value > 0) {
@@ -253,32 +264,54 @@ function handleAnswerResult(isCorrect) {
     gainXP(10); // 10 XP per correct answer
   } else {
     playerStats.value.wrongAnswers++;
-    // Lose HP on wrong answer
-    playerStats.value.hp = Math.max(0, playerStats.value.hp - 10);
   }
+}
+
+function handleHPChanged(newHP) {
+  playerStats.value.hp = newHP;
+  console.log('HP updated:', newHP);
+
+  // Check for game over
+  if (newHP <= 0) {
+    console.log('HP reached 0 - Game Over!');
+    showBattle.value = false;
+    showGameOver.value = true;
+  }
+}
+
+function handleGameRestart() {
+  // Reset all game state
+  showGameOver.value = false;
+
+  // Reset player stats
+  playerStats.value = {
+    level: 1,
+    xp: 0,
+    hp: 100,
+    maxHp: 100,
+    rightAnswers: 0,
+    wrongAnswers: 0,
+    totalBattles: 0
+  };
+
+  // Reset level progression
+  currentGameLevel.value = 1;
+  currentLevelEnemiesDefeated.value = 0;
+  totalQuestionsAnswered.value = 0;
+
+  // Reset collection (mark all as uncaptured)
+  collection.value.forEach(guest => {
+    guest.captured = false;
+  });
+
+  // Return to main menu
+  EventBus.emit('return-to-menu');
 }
 
 function gainXP(amount) {
+  // Still track XP for stats display, but don't level up from it
   playerStats.value.xp += amount;
-
-  // Check for level up
-  while (playerStats.value.xp >= xpForNextLevel.value) {
-    levelUp();
-  }
-}
-
-function levelUp() {
-  playerStats.value.xp -= xpForNextLevel.value;
-  playerStats.value.level++;
-
-  // Increase max HP by 20 each level
-  playerStats.value.maxHp += 20;
-
-  // Restore HP to full on level up
-  playerStats.value.hp = playerStats.value.maxHp;
-
-  // Show level up notification
-  alert(`🎉 Level Up! You are now level ${playerStats.value.level}!\n💚 HP increased to ${playerStats.value.maxHp}`);
+  // XP-based leveling disabled - using level-based progression instead
 }
 
 function handleShareStats() {
@@ -368,21 +401,23 @@ onMounted(() => {
       const guest = collection.value.find(g => g.id === data.guestId);
       console.log('Found guest for battle:', guest);
       if (guest) {
-        battleData.value.guest = guest;
         // Random 1-3 questions per battle
         const questionCount = Math.floor(Math.random() * 3) + 1;
         const questions = guestDataManager.getRandomQuestions(data.guestId, questionCount);
         console.log(`Questions loaded for battle (${questionCount} questions):`, questions);
         if (questions && questions.length > 0) {
-          // Update battle data with real questions
-          battleData.value.questions = questions.map((q, index) => ({
-            id: index + 1,
-            type: "mcq",
-            prompt: q.question,
-            choices: q.options,
-            correctAnswer: q.options.indexOf(q.answer),
-            explanation: `The correct answer is: ${q.answer}`
-          }));
+          // Create new battle data object (better reactivity)
+          battleData.value = {
+            guest: guest,
+            questions: questions.map((q, index) => ({
+              id: index + 1,
+              type: "mcq",
+              prompt: q.question,
+              choices: q.options,
+              correctAnswer: q.options.indexOf(q.answer),
+              explanation: `The correct answer is: ${q.answer}`
+            }))
+          };
           console.log('Formatted battle questions:', battleData.value.questions);
           totalQuestionsAnswered.value += questions.length;
         }
@@ -470,6 +505,7 @@ onUnmounted(() => {
       @close="handleCloseBattle"
       @guest-captured="handleGuestCaptured"
       @answer-submitted="handleAnswerResult"
+      @hp-changed="handleHPChanged"
     />
 
     <CollectionScreen
@@ -498,6 +534,14 @@ onUnmounted(() => {
       :totalGuests="totalGuests"
       :remainingGuests="remainingGuests"
       @continue="handleLevelContinue"
+    />
+
+    <GameOver
+      :show="showGameOver"
+      :guestsCaptured="capturedCount"
+      :questionsAnswered="totalQuestionsAnswered"
+      :accuracy="accuracy"
+      @restart="handleGameRestart"
     />
 
     <div class="credits">

@@ -15,12 +15,14 @@ export class Overworld extends Scene
         this.nearestNPC = null;
         this.playerName = 'Player';
         this.playerNameText = null;
-        this.currentMap = 'large-map'; // Track current map (use large map by default)
+        this.currentMap = 'map'; // Use smaller map by default
         this.mapTransitions = []; // Store transition zones
         this.battleActive = false; // Track if battle is active to disable input
         this.music = null;
         this.battleMusic = null;
         this.victorySound = null;
+        this.spawnedGuestIndices = []; // Track which guests have been spawned
+        this.currentLevel = 1;
     }
 
     init (data)
@@ -288,6 +290,45 @@ export class Overworld extends Scene
             }
         });
 
+        // Level progression - spawn next batch of NPCs
+        EventBus.on('spawn-next-level', (data) => {
+            console.log('spawn-next-level event received:', data);
+            this.currentLevel = data.level;
+            this.clearAllNPCs();
+            this.spawnNPCsForLevel(data.enemiesCount);
+        });
+
+        // Handle game restart
+        EventBus.on('restart-game', () => {
+            console.log('restart-game event received');
+            // Reset level and spawned indices
+            this.currentLevel = 1;
+            this.spawnedGuestIndices = [];
+            // Clear all NPCs and spawn fresh level 1
+            this.clearAllNPCs();
+            this.spawnNPCsForLevel(10);
+            // Reset player position
+            this.player.tileX = this.spawnX || 6;
+            this.player.tileY = this.spawnY || 4;
+            this.player.sprite.setPosition(this.player.tileX * 32 + 16, this.player.tileY * 32 + 16);
+        });
+
+        // Listen for NPC removal (when guest is captured)
+        EventBus.on('remove-npc', (guestId) => {
+            this.removeNPC(guestId);
+        });
+
+        // Listen for return to menu (game over retry)
+        EventBus.on('return-to-menu', () => {
+            console.log('return-to-menu event received - transitioning to MainMenu');
+            // Stop overworld music
+            if (this.music) {
+                this.music.stop();
+            }
+            // Transition to MainMenu scene
+            this.scene.start('MainMenu');
+        });
+
         EventBus.emit('current-scene-ready', this);
     }
 
@@ -303,190 +344,167 @@ export class Overworld extends Scene
 
     createNPCs ()
     {
-        // Generate NPCs distributed across the map
-        // For large map: place NPCs on path tiles (every 8 tiles in grid pattern)
-        const isLargeMap = this.currentMap === 'large-map';
+        // Spawn first 10 NPCs for level 1
+        this.spawnNPCsForLevel(10);
+    }
 
-        if (isLargeMap) {
-            // Get selected guests from GuestDataManager
-            const selectedGuests = guestDataManager.getSelectedGuests();
-            if (selectedGuests.length === 0) {
-                console.error('No guests loaded! NPCs will not be created.');
-                return;
+    spawnNPCsForLevel(count)
+    {
+        // Get selected guests from GuestDataManager
+        const selectedGuests = guestDataManager.getSelectedGuests();
+        if (selectedGuests.length === 0) {
+            console.error('No guests loaded! NPCs will not be created.');
+            return;
+        }
+
+        // Calculate which guests to spawn for this level
+        const startIndex = this.spawnedGuestIndices.length;
+        const endIndex = Math.min(startIndex + count, selectedGuests.length);
+        const guestsToSpawn = selectedGuests.slice(startIndex, endIndex);
+
+        if (guestsToSpawn.length === 0) {
+            console.log('All guests have been spawned!');
+            return;
+        }
+
+        console.log(`Spawning ${guestsToSpawn.length} NPCs for level ${this.currentLevel}`);
+
+        const mapWidth = this.map.width;
+        const mapHeight = this.map.height;
+        const minSpacing = 2; // Minimum tiles between NPCs (reduced for better distribution)
+        const maxAttempts = 1000; // Maximum placement attempts per NPC
+
+        let npcCount = 0;
+        let attempts = 0;
+
+        // Helper function to check if position is valid
+        const isValidPosition = (x, y, existingPositions) => {
+            // Check bounds
+            if (x < 2 || x >= mapWidth - 2 || y < 2 || y >= mapHeight - 2) {
+                return false;
             }
 
-            const maxNPCs = selectedGuests.length;
-            const mapWidth = this.map.width;
-            const mapHeight = this.map.height;
-            const minSpacing = 8; // Minimum tiles between NPCs
-            const maxAttempts = 500; // Maximum placement attempts per NPC
+            // Check if tile is walkable
+            const tile = this.worldLayer.getTileAt(x, y);
+            if (!tile || tile.collides) {
+                return false;
+            }
 
-            let npcCount = 0;
-            let attempts = 0;
-
-            // Helper function to check if position is valid
-            const isValidPosition = (x, y, existingPositions) => {
-                // Check bounds
-                if (x < 3 || x >= mapWidth - 3 || y < 3 || y >= mapHeight - 3) {
+            // Check spacing from existing NPCs
+            for (const pos of existingPositions) {
+                const distance = Math.abs(pos.x - x) + Math.abs(pos.y - y);
+                if (distance < minSpacing) {
                     return false;
-                }
-
-                // Check if tile is walkable
-                const tile = this.worldLayer.getTileAt(x, y);
-                if (!tile || tile.collides) {
-                    return false;
-                }
-
-                // Check spacing from existing NPCs
-                for (const pos of existingPositions) {
-                    const distance = Math.abs(pos.x - x) + Math.abs(pos.y - y);
-                    if (distance < minSpacing) {
-                        return false;
-                    }
-                }
-
-                return true;
-            };
-
-            const npcPositions = [];
-
-            // Randomly place NPCs
-            while (npcCount < maxNPCs && attempts < maxAttempts * maxNPCs) {
-                attempts++;
-
-                // Generate random position
-                let x, y;
-
-                // For Elena (first guest), place near starting position
-                if (npcCount === 0) {
-                    // Place Elena within 10 tiles of starting position
-                    const offsetX = Math.floor(Math.random() * 20) - 10; // -10 to +10
-                    const offsetY = Math.floor(Math.random() * 20) - 10;
-                    x = Math.max(3, Math.min(mapWidth - 3, this.player.tileX + offsetX));
-                    y = Math.max(3, Math.min(mapHeight - 3, this.player.tileY + offsetY));
-                } else {
-                    // Random position for other NPCs
-                    x = Math.floor(Math.random() * (mapWidth - 10)) + 5;
-                    y = Math.floor(Math.random() * (mapHeight - 10)) + 5;
-                }
-
-                if (isValidPosition(x, y, npcPositions)) {
-                    const guest = selectedGuests[npcCount];
-                    const guestId = guest.id;
-                    const guestName = guest.name;
-                    const avatarKey = guest.avatarKey;
-
-                    const npc = {
-                        id: guestId,
-                        name: guestName,
-                        tileX: x,
-                        tileY: y,
-                        direction: ['down', 'up', 'left', 'right'][Math.floor(Math.random() * 4)],
-                        sprite: null,
-                        challenged: false
-                    };
-
-                    // Create NPC sprite using avatar image
-                    let sprite;
-
-                    if (this.textures.exists(avatarKey)) {
-                        sprite = this.add.sprite(
-                            x * 32 + 16,
-                            y * 32 + 16,
-                            avatarKey
-                        );
-                        sprite.setDisplaySize(80, 80);
-                    } else {
-                        console.warn(`Avatar not found for ${guestName}, using fallback`);
-                        const colors = [0xFF69B4, 0x87CEEB, 0x98D982, 0xFFD700, 0xFF6B6B, 0x9B59B6];
-                        sprite = this.add.rectangle(
-                            x * 32 + 16,
-                            y * 32 + 16,
-                            20, 20,
-                            colors[npcCount % colors.length]
-                        );
-                        sprite.setStrokeStyle(2, 0x000000);
-                    }
-                    sprite.setDepth(5);
-
-                    // Check if NPC is already defeated
-                    const isDefeated = gameState.isGuestDefeated(guestId);
-                    if (isDefeated) {
-                        sprite.setAlpha(0.4);
-                        if (sprite.setTint) {
-                            sprite.setTint(0x888888);
-                        } else if (sprite.setFillStyle) {
-                            sprite.setFillStyle(0x888888);
-                            sprite.setStrokeStyle(2, 0x555555);
-                        }
-                        npc.challenged = true;
-                    }
-
-                    npc.sprite = sprite;
-                    npc.defeated = isDefeated;
-                    this.npcs.push(npc);
-                    npcPositions.push({ x, y });
-                    npcCount++;
                 }
             }
 
-            console.log(`Created ${npcCount} NPCs across the city (${attempts} placement attempts)`);
-            if (npcCount > 0) {
-                console.log('First NPC:', this.npcs[0]);
-                console.log('All NPC names:', this.npcs.map(n => n.name).join(', '));
+            return true;
+        };
+
+        const npcPositions = this.npcs.map(npc => ({ x: npc.tileX, y: npc.tileY }));
+
+        // Place NPCs
+        while (npcCount < guestsToSpawn.length && attempts < maxAttempts * guestsToSpawn.length) {
+            attempts++;
+
+            let x, y;
+
+            // For first NPC of first level (Elena), place near starting position
+            if (this.currentLevel === 1 && npcCount === 0 && this.npcs.length === 0) {
+                const offsetX = Math.floor(Math.random() * 10) - 5;
+                const offsetY = Math.floor(Math.random() * 10) - 5;
+                x = Math.max(2, Math.min(mapWidth - 2, this.player.tileX + offsetX));
+                y = Math.max(2, Math.min(mapHeight - 2, this.player.tileY + offsetY));
             } else {
-                console.error('NO NPCs WERE CREATED! Check validation logic.');
+                // Random position for other guests
+                x = Math.floor(Math.random() * (mapWidth - 6)) + 3;
+                y = Math.floor(Math.random() * (mapHeight - 6)) + 3;
             }
-        } else {
-            // Small map - original 3 NPCs
-            const guestData = [
-                { id: '1', name: 'Elena Verna', x: 10, y: 8, direction: 'down' },
-                { id: '2', name: 'Shreyas Doshi', x: 15, y: 12, direction: 'right' },
-                { id: '3', name: 'Lenny Rachitsky', x: 5, y: 6, direction: 'left' }
-            ];
 
-            guestData.forEach(data => {
+            if (isValidPosition(x, y, npcPositions)) {
+                const guest = guestsToSpawn[npcCount];
+                const guestId = guest.id;
+                const guestName = guest.name;
+                const avatarKey = guest.avatarKey;
+
                 const npc = {
-                    id: data.id,
-                    name: data.name,
-                    tileX: data.x,
-                    tileY: data.y,
-                    direction: data.direction,
+                    id: guestId,
+                    name: guestName,
+                    tileX: x,
+                    tileY: y,
+                    direction: ['down', 'up', 'left', 'right'][Math.floor(Math.random() * 4)],
                     sprite: null,
-                    challenged: false
+                    challenged: false,
+                    episode: guest.episode || guestName,
+                    difficulty: guest.difficulty || 'Medium'
                 };
 
+                // Create NPC sprite using avatar image
                 let sprite;
-                if (data.id === '1') {
+
+                if (this.textures.exists(avatarKey)) {
                     sprite = this.add.sprite(
-                        data.x * 32 + 16,
-                        data.y * 32 + 16,
-                        'elena-front'
+                        x * 32 + 16,
+                        y * 32 + 16,
+                        avatarKey
                     );
-                    sprite.setScale(0.15);
+                    sprite.setDisplaySize(80, 80);
                 } else {
+                    console.warn(`Avatar not found for ${guestName}, using fallback`);
+                    const colors = [0xFF69B4, 0x87CEEB, 0x98D982, 0xFFD700, 0xFF6B6B, 0x9B59B6];
                     sprite = this.add.rectangle(
-                        data.x * 32 + 16,
-                        data.y * 32 + 16,
-                        20, 20,
-                        0xFF69B4
+                        x * 32 + 16,
+                        y * 32 + 16,
+                        40, 40,
+                        colors[(startIndex + npcCount) % colors.length]
                     );
                     sprite.setStrokeStyle(2, 0x000000);
                 }
                 sprite.setDepth(5);
 
-                // Check if NPC is already defeated
-                const isDefeated = gameState.isGuestDefeated(data.id);
-                if (isDefeated) {
-                    sprite.setAlpha(0.4);
-                    sprite.setTint(0x888888); // Grey tint
-                    npc.challenged = true; // Mark as already challenged
-                }
-
                 npc.sprite = sprite;
-                npc.defeated = isDefeated;
+                npc.defeated = false;
                 this.npcs.push(npc);
-            });
+                npcPositions.push({ x, y });
+                this.spawnedGuestIndices.push(startIndex + npcCount);
+                npcCount++;
+
+                console.log(`✓ Placed NPC ${npcCount}/${guestsToSpawn.length}: ${guestName} at (${x}, ${y})`);
+            }
+        }
+
+        if (npcCount < guestsToSpawn.length) {
+            console.warn(`Warning: Only placed ${npcCount}/${guestsToSpawn.length} NPCs after ${attempts} attempts`);
+        } else {
+            console.log(`✓ Successfully placed ${npcCount} NPCs for level ${this.currentLevel}`);
+        }
+    }
+
+    clearAllNPCs()
+    {
+        // Remove all NPC sprites
+        this.npcs.forEach(npc => {
+            if (npc.sprite) {
+                npc.sprite.destroy();
+            }
+        });
+        this.npcs = [];
+        console.log('✓ Cleared all NPCs from map');
+    }
+
+    removeNPC (guestId)
+    {
+        // Find the NPC with this guest ID
+        const npcIndex = this.npcs.findIndex(npc => npc.id === guestId);
+        if (npcIndex !== -1) {
+            const npc = this.npcs[npcIndex];
+            // Destroy the sprite
+            if (npc.sprite) {
+                npc.sprite.destroy();
+            }
+            // Remove from npcs array
+            this.npcs.splice(npcIndex, 1);
+            console.log(`✓ Removed NPC ${guestId} from map`);
         }
     }
 
