@@ -103,12 +103,12 @@ export class MainMenu extends Scene
         overlay.fillRect(0, 0, this.scale.width, this.scale.height);
 
         // Logo - reduced size and proper positioning
-        const logo = this.add.image(this.scale.width / 2, 100, 'logo');
-        logo.setScale(0.25);
+        const logo = this.add.image(this.scale.width / 2, 140, 'logo');
+        logo.setScale(0.22);
 
         // Logo glow effect - golden/sunny glow matching logo
-        const logoGlow = this.add.image(this.scale.width / 2, 100, 'logo');
-        logoGlow.setScale(0.27);
+        const logoGlow = this.add.image(this.scale.width / 2, 140, 'logo');
+        logoGlow.setScale(0.24);
         logoGlow.setTint(0xFFD700); // Gold color matching logo's warm tones
         logoGlow.setAlpha(0.3);
         logoGlow.setDepth(-1);
@@ -116,7 +116,7 @@ export class MainMenu extends Scene
         // Logo floating animation
         this.tweens.add({
             targets: [logo, logoGlow],
-            y: { from: 100, to: 95 },
+            y: { from: 140, to: 135 },
             duration: 2500,
             yoyo: true,
             repeat: -1,
@@ -135,7 +135,7 @@ export class MainMenu extends Scene
         });
 
         // Info text - warm golden color matching logo (reduced sizes)
-        this.add.text(this.scale.width / 2, 230, 'BATTLE LENNY\'S PODCAST GUESTS', {
+        this.add.text(this.scale.width / 2, 250, 'BATTLE LENNY\'S PODCAST GUESTS', {
             fontFamily: '"Press Start 2P"',
             fontSize: '16px',
             color: '#FFE066', // Warm yellow from logo
@@ -144,7 +144,7 @@ export class MainMenu extends Scene
             strokeThickness: 4
         }).setOrigin(0.5);
 
-        this.add.text(this.scale.width / 2, 275, 'Answer Questions to Win!', {
+        this.add.text(this.scale.width / 2, 280, 'Answer Questions to Win!', {
             fontFamily: '"Press Start 2P"',
             fontSize: '13px',
             color: '#FFFFFF',
@@ -167,7 +167,7 @@ export class MainMenu extends Scene
         this.createNameInput();
 
         // Start button - vibrant Pokemon-style
-        const buttonY = 500;
+        const buttonY = 470;
         const buttonWidth = 380;
         const buttonHeight = 58;
 
@@ -243,7 +243,9 @@ export class MainMenu extends Scene
 
         // Global mute/unmute control
         EventBus.on('toggle-mute', (isMuted) => {
-            this.sound.mute = isMuted;
+            if (this.sound && this.sound.context) {
+                this.sound.mute = isMuted;
+            }
         });
 
         EventBus.emit('current-scene-ready', this);
@@ -334,7 +336,7 @@ export class MainMenu extends Scene
         this.nameInputText = this.add.text(inputX, inputY, initialText || 'TRAINER', {
             fontFamily: '"Press Start 2P"',
             fontSize: '14px',
-            color: initialText ? '#FFFFFF' : '#888888',
+            color: initialText ? '#FFFFFF' : '#BBBBBB',
             letterSpacing: 4,
             align: 'center'
         }).setOrigin(0.5);
@@ -454,7 +456,7 @@ export class MainMenu extends Scene
     {
         this.isInputFocused = false;
         this.updateInputBackground(false);
-        this.nameInputText.setColor(this.playerName ? '#FFFFFF' : '#888888');
+        this.nameInputText.setColor(this.playerName ? '#FFFFFF' : '#BBBBBB');
         if (this.playerName === '') {
             this.nameInputText.setText('TRAINER');
         }
@@ -531,7 +533,7 @@ export class MainMenu extends Scene
     {
         if (this.playerName === '') {
             this.nameInputText.setText('TRAINER');
-            this.nameInputText.setColor('#888888');
+            this.nameInputText.setColor('#BBBBBB');
         } else {
             this.nameInputText.setText(this.playerName);
             this.nameInputText.setColor(this.isInputFocused ? '#FFD700' : '#FFFFFF');

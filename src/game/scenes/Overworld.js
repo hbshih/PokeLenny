@@ -285,7 +285,7 @@ export class Overworld extends Scene
 
         // Global mute/unmute control
         EventBus.on('toggle-mute', (isMuted) => {
-            if (this.sound) {
+            if (this.sound && this.sound.context) {
                 this.sound.mute = isMuted;
             }
         });
@@ -448,14 +448,14 @@ export class Overworld extends Scene
                         y * 32 + 16,
                         avatarKey
                     );
-                    sprite.setDisplaySize(80, 80);
+                    sprite.setDisplaySize(64, 64);
                 } else {
                     console.warn(`Avatar not found for ${guestName}, using fallback`);
                     const colors = [0xFF69B4, 0x87CEEB, 0x98D982, 0xFFD700, 0xFF6B6B, 0x9B59B6];
                     sprite = this.add.rectangle(
                         x * 32 + 16,
                         y * 32 + 16,
-                        40, 40,
+                        32, 32,
                         colors[(startIndex + npcCount) % colors.length]
                     );
                     sprite.setStrokeStyle(2, 0x000000);
