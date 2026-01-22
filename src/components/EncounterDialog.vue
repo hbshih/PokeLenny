@@ -141,7 +141,7 @@ onUnmounted(() => {
 /* Pokemon-style dialog positioned inside game canvas */
 .pokemon-dialog-container {
   position: fixed;
-  bottom: calc(50% - 320px + 20px); /* Position inside game canvas (640px height / 2 = 320px) */
+  bottom: calc(55% - 320px + 20px); /* Position inside game canvas (640px height / 2 = 320px, adjusted for 45% top) */
   left: 50%;
   transform: translateX(-50%);
   width: 880px; /* Match game canvas width minus padding */

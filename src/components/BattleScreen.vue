@@ -446,7 +446,7 @@ function handleContinue() {
 /* Pokemon Game Boy Battle Transition */
 .battle-transition {
   position: absolute;
-  top: 50%;
+  top: 45%;
   left: 50%;
   transform: translate(-50%, -50%);
   width: 960px;
@@ -551,7 +551,7 @@ function handleContinue() {
 /* === BATTLE SCREEN - Authentic Pokemon Layout === */
 .battle-screen {
   position: absolute;
-  top: 50%;
+  top: 45%;
   left: 50%;
   transform: translate(-50%, -50%);
   width: min(960px, 95vw);
