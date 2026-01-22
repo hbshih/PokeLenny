@@ -8,6 +8,7 @@ import ShareModal from './components/ShareModal.vue';
 import LevelComplete from './components/LevelComplete.vue';
 import GameOver from './components/GameOver.vue';
 import TutorialModal from './components/TutorialModal.vue';
+import LeaderboardPanel from './components/LeaderboardPanel.vue';
 import { EventBus } from './game/EventBus';
 import guestDataManager from './game/GuestData';
 
@@ -509,6 +510,17 @@ onUnmounted(() => {
           {{ isMuted ? '🔇 Unmute' : '🔊 Mute' }}
         </button>
       </div>
+
+      <LeaderboardPanel
+        :currentPlayer="{
+          name: playerName,
+          level: playerStats.level,
+          maxHp: playerStats.maxHp,
+          captured: capturedCount,
+          total: totalGuests,
+          accuracy: accuracy
+        }"
+      />
     </div>
 
     <div class="game-footer">
@@ -666,8 +678,9 @@ body {
 .game-wrapper {
   display: flex;
   gap: 16px;
-  align-items: center;
+  align-items: flex-start;
   flex-shrink: 0;
+  justify-content: center;
 }
 
 .stats-bar {
@@ -862,6 +875,13 @@ body {
   color: #FFD700;
   margin-bottom: 12px;
   text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+}
+
+@media (max-width: 1600px) {
+  .game-wrapper {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 }
 
 @media (max-width: 1300px) {
