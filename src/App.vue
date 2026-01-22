@@ -5,6 +5,7 @@ import BattleScreen from './components/BattleScreen.vue';
 import CollectionScreen from './components/CollectionScreen.vue';
 import EncounterDialog from './components/EncounterDialog.vue';
 import ShareModal from './components/ShareModal.vue';
+import LevelComplete from './components/LevelComplete.vue';
 import { EventBus } from './game/EventBus';
 import guestDataManager from './game/GuestData';
 
@@ -113,6 +114,13 @@ const battleData = ref({
 // Collection data - will be populated from GuestDataManager
 const collection = ref([]);
 
+// Level system
+const currentGameLevel = ref(1);
+const enemiesPerLevel = 10;
+const showLevelComplete = ref(false);
+const currentLevelEnemiesDefeated = ref(0);
+const totalQuestionsAnswered = ref(0);
+
 // Computed stats
 const capturedCount = computed(() => collection.value.filter(g => g.captured).length);
 const totalGuests = computed(() => collection.value.length);
@@ -120,6 +128,7 @@ const accuracy = computed(() => {
   const total = playerStats.value.rightAnswers + playerStats.value.wrongAnswers;
   return total > 0 ? Math.round((playerStats.value.rightAnswers / total) * 100) : 0;
 });
+const remainingGuests = computed(() => totalGuests.value - capturedCount.value);
 
 // Event handlers
 function handleStartBattle() {
@@ -160,9 +169,10 @@ function handleAcceptBattle() {
     if (guest) {
       battleData.value.guest = guest;
 
-      // Load questions from GuestDataManager
-      const questions = guestDataManager.getRandomQuestions(guest.id, 5);
-      console.log('Questions loaded for battle:', questions);
+      // Random 1-3 questions per battle
+      const questionCount = Math.floor(Math.random() * 3) + 1; // 1, 2, or 3
+      const questions = guestDataManager.getRandomQuestions(guest.id, questionCount);
+      console.log(`Questions loaded for battle (${questionCount} questions):`, questions);
 
       if (questions && questions.length > 0) {
         // Update battle data with real questions
@@ -175,6 +185,7 @@ function handleAcceptBattle() {
           explanation: `The correct answer is: ${q.answer}`
         }));
         console.log('Formatted battle questions:', battleData.value.questions);
+        totalQuestionsAnswered.value += questions.length;
       } else {
         console.error('No questions found for guest:', guest.id, guest.name);
       }
@@ -197,6 +208,42 @@ function handleGuestCaptured(guestId) {
     // Award XP for capturing a guest (battle win)
     gainXP(50);
     playerStats.value.totalBattles++;
+
+    // Track level progress
+    currentLevelEnemiesDefeated.value++;
+
+    // Check if level is complete (defeated 10 enemies)
+    if (currentLevelEnemiesDefeated.value >= enemiesPerLevel) {
+      checkLevelCompletion();
+    }
+  }
+}
+
+function checkLevelCompletion() {
+  // Show level complete modal
+  showLevelComplete.value = true;
+
+  // Hide battle screen
+  showBattle.value = false;
+}
+
+function handleLevelContinue() {
+  showLevelComplete.value = false;
+
+  // Check if there are more guests to fight
+  if (remainingGuests.value > 0) {
+    // Move to next level
+    currentGameLevel.value++;
+    currentLevelEnemiesDefeated.value = 0;
+
+    // Spawn next 10 enemies
+    EventBus.emit('spawn-next-level', {
+      level: currentGameLevel.value,
+      enemiesCount: Math.min(enemiesPerLevel, remainingGuests.value)
+    });
+  } else {
+    // Game complete!
+    alert('🎉 Congratulations! You\'ve met all the guests from Lenny\'s Podcast! 🎙️');
   }
 }
 
@@ -322,9 +369,10 @@ onMounted(() => {
       console.log('Found guest for battle:', guest);
       if (guest) {
         battleData.value.guest = guest;
-        // Get 5 random questions for this guest from GuestDataManager
-        const questions = guestDataManager.getRandomQuestions(data.guestId, 5);
-        console.log('Questions loaded for battle:', questions);
+        // Random 1-3 questions per battle
+        const questionCount = Math.floor(Math.random() * 3) + 1;
+        const questions = guestDataManager.getRandomQuestions(data.guestId, questionCount);
+        console.log(`Questions loaded for battle (${questionCount} questions):`, questions);
         if (questions && questions.length > 0) {
           // Update battle data with real questions
           battleData.value.questions = questions.map((q, index) => ({
@@ -336,6 +384,7 @@ onMounted(() => {
             explanation: `The correct answer is: ${q.answer}`
           }));
           console.log('Formatted battle questions:', battleData.value.questions);
+          totalQuestionsAnswered.value += questions.length;
         }
         showBattle.value = true;
       }
@@ -439,6 +488,35 @@ onUnmounted(() => {
       :accuracy="accuracy"
       @close="showShareModal = false"
     />
+
+    <LevelComplete
+      :show="showLevelComplete"
+      :currentLevel="currentGameLevel"
+      :enemiesDefeated="currentLevelEnemiesDefeated"
+      :questionsAnswered="totalQuestionsAnswered"
+      :accuracy="accuracy"
+      :totalGuests="totalGuests"
+      :remainingGuests="remainingGuests"
+      @continue="handleLevelContinue"
+    />
+
+    <div class="credits">
+      <div class="credits-content">
+        <span class="credits-text">
+          Built by <a href="https://benshih.design" target="_blank" rel="noopener noreferrer" class="credits-link">Ben Shih</a>
+        </span>
+        <span class="credits-separator">•</span>
+        <span class="credits-text">
+          With love from <span class="credits-lenny">Lenny Podcast</span>
+        </span>
+        <span class="credits-separator">•</span>
+        <a href="https://github.com/benmiro/PokeLenny" target="_blank" rel="noopener noreferrer" class="credits-github" title="View on GitHub">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+          </svg>
+        </a>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -738,6 +816,99 @@ body {
   .action-btn {
     font-size: 9px;
     padding: 10px 12px;
+  }
+}
+
+.credits {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 20px;
+  background: rgba(0, 0, 0, 0.85);
+  border-top: 2px solid #FFD700;
+  z-index: 1000;
+  flex-shrink: 0;
+}
+
+.credits-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.credits-text {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 12px;
+  color: #fff;
+  line-height: 1.6;
+}
+
+.credits-link {
+  color: #FFD700;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.credits-link:hover {
+  color: #fff;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.8);
+}
+
+.credits-lenny {
+  color: #a78bfa;
+}
+
+.credits-separator {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+}
+
+.credits-github {
+  display: inline-flex;
+  align-items: center;
+  color: #fff;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.credits-github:hover {
+  color: #FFD700;
+  transform: scale(1.1);
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.credits-github svg {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .credits {
+    padding: 10px 15px;
+  }
+
+  .credits-content {
+    gap: 8px;
+  }
+
+  .credits-text {
+    font-size: 10px;
+  }
+
+  .credits-separator {
+    font-size: 10px;
+  }
+
+  .credits-github svg {
+    width: 14px;
+    height: 14px;
   }
 }
 </style>

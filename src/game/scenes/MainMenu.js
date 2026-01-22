@@ -9,7 +9,12 @@ export class MainMenu extends Scene
         super('MainMenu');
         this.playerName = '';
         this.nameInput = null;
+        this.nameInputText = null;
+        this.nameInputBg = null;
+        this.nameInputCursor = null;
+        this.cursorBlinkTimer = null;
         this.music = null;
+        this.isInputFocused = false;
     }
 
     create ()
@@ -29,13 +34,28 @@ export class MainMenu extends Scene
 
     cleanup ()
     {
-        // Remove input from DOM
-        if (this.nameInput) {
-            this.nameInput.remove();
-            this.nameInput = null;
+        // Remove Phaser input elements
+        if (this.nameInputText) {
+            this.nameInputText.destroy();
+            this.nameInputText = null;
+        }
+        if (this.nameInputBg) {
+            this.nameInputBg.destroy();
+            this.nameInputBg = null;
+        }
+        if (this.nameInputCursor) {
+            this.nameInputCursor.destroy();
+            this.nameInputCursor = null;
+        }
+        if (this.cursorBlinkTimer) {
+            this.cursorBlinkTimer.remove();
+            this.cursorBlinkTimer = null;
         }
 
-        // Double check for any lingering inputs
+        // Remove keyboard listeners
+        this.input.keyboard.off('keydown', this.handleKeyDown, this);
+
+        // Double check for any lingering DOM inputs
         const existingInput = document.getElementById('player-name-input');
         if (existingInput) {
             existingInput.remove();
@@ -49,6 +69,16 @@ export class MainMenu extends Scene
 
     createMainMenu ()
     {
+        // Clean up any existing HTML inputs first (in case scene was restarted)
+        const existingInput = document.getElementById('player-name-input');
+        if (existingInput) {
+            existingInput.remove();
+        }
+        
+        // Also remove any inputs that might have been created
+        const allInputs = document.querySelectorAll('input[id="player-name-input"]');
+        allInputs.forEach(input => input.remove());
+
         // Start menu music
         if (!this.music || !this.music.isPlaying) {
             this.music = this.sound.add('menu-music', {
@@ -133,7 +163,7 @@ export class MainMenu extends Scene
             strokeThickness: 3
         }).setOrigin(0.5);
 
-        // Create HTML input for name
+        // Create Phaser-based input for name
         this.createNameInput();
 
         // Start button - vibrant Pokemon-style
@@ -273,82 +303,246 @@ export class MainMenu extends Scene
 
     createNameInput ()
     {
-        // Create HTML input element
-        const inputElement = document.createElement('input');
-        inputElement.type = 'text';
-        inputElement.id = 'player-name-input';
-        inputElement.placeholder = 'TRAINER';
-        inputElement.maxLength = 15;
-        inputElement.style.position = 'absolute';
-        inputElement.style.fontFamily = '"Press Start 2P"';
-        inputElement.style.fontSize = '14px';
-        inputElement.style.padding = '14px 24px';
-        inputElement.style.background = 'rgba(95, 184, 89, 0.9)'; // Green from logo
-        inputElement.style.border = '4px solid #FFD700'; // Gold border
-        inputElement.style.borderRadius = '14px';
-        inputElement.style.color = '#FFFFFF';
-        inputElement.style.textAlign = 'center';
-        inputElement.style.width = '340px';
-        inputElement.style.outline = 'none';
-        inputElement.style.letterSpacing = '4px';
-        inputElement.style.boxShadow = '0 0 25px rgba(255, 215, 0, 0.5), inset 0 0 15px rgba(45, 80, 22, 0.3)';
-        inputElement.style.transition = 'all 0.3s ease';
-
-        // Add focus effect
-        inputElement.addEventListener('focus', () => {
-            inputElement.style.boxShadow = '0 0 35px rgba(255, 215, 0, 0.8), inset 0 0 20px rgba(255, 215, 0, 0.2)';
-            inputElement.style.color = '#FFD700';
-            inputElement.style.background = 'rgba(95, 184, 89, 1)';
-            inputElement.style.borderColor = '#FFF';
-        });
-
-        inputElement.addEventListener('blur', () => {
-            inputElement.style.boxShadow = '0 0 25px rgba(255, 215, 0, 0.5), inset 0 0 15px rgba(45, 80, 22, 0.3)';
-            inputElement.style.color = '#FFFFFF';
-            inputElement.style.background = 'rgba(95, 184, 89, 0.9)';
-            inputElement.style.borderColor = '#FFD700';
-        });
-
-        // Position the input based on canvas position
-        const canvas = this.game.canvas;
-        const rect = canvas.getBoundingClientRect();
-        const canvasScale = rect.width / this.scale.width;
-        const inputX = rect.left + (this.scale.width / 2) * canvasScale - 170;
-        const inputY = rect.top + 390 * canvasScale;
-
-        inputElement.style.left = inputX + 'px';
-        inputElement.style.top = inputY + 'px';
-        inputElement.style.zIndex = '1000';
-
-        // Add to DOM
-        document.body.appendChild(inputElement);
-
-        // Store reference
-        this.nameInput = inputElement;
-
-        // Pre-fill with saved player name if exists
-        const savedName = gameState.getPlayerName();
-        if (savedName && savedName !== 'Player') {
-            inputElement.value = savedName;
+        // Ensure no old Phaser input elements exist
+        if (this.nameInputBg) {
+            this.nameInputBg.destroy();
+        }
+        if (this.nameInputText) {
+            this.nameInputText.destroy();
+        }
+        if (this.nameInputCursor) {
+            this.nameInputCursor.destroy();
+        }
+        if (this.cursorBlinkTimer) {
+            this.cursorBlinkTimer.remove();
         }
 
-        // Focus on load
-        setTimeout(() => inputElement.focus(), 100);
+        const inputX = this.scale.width / 2;
+        const inputY = 390;
+        const inputWidth = 340;
+        const inputHeight = 50;
 
-        // Allow Enter key to start game
-        inputElement.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                this.changeScene();
+        // Create input background with glow effect
+        this.nameInputBg = this.add.graphics();
+        this.updateInputBackground(false);
+
+        // Create input text
+        const savedName = gameState.getPlayerName();
+        const initialText = (savedName && savedName !== 'Player') ? savedName : '';
+        this.playerName = initialText;
+
+        this.nameInputText = this.add.text(inputX, inputY, initialText || 'TRAINER', {
+            fontFamily: '"Press Start 2P"',
+            fontSize: '14px',
+            color: initialText ? '#FFFFFF' : '#888888',
+            letterSpacing: 4,
+            align: 'center'
+        }).setOrigin(0.5);
+
+        // Create blinking cursor
+        this.nameInputCursor = this.add.text(inputX, inputY, '|', {
+            fontFamily: '"Press Start 2P"',
+            fontSize: '14px',
+            color: '#FFD700',
+            letterSpacing: 4
+        }).setOrigin(0.5, 0.5);
+        this.nameInputCursor.setVisible(false);
+
+        // Make input area interactive
+        const inputZone = this.add.rectangle(inputX, inputY, inputWidth, inputHeight, 0x000000, 0)
+            .setInteractive({ useHandCursor: true });
+
+        inputZone.on('pointerdown', () => {
+            this.focusInput();
+        });
+
+        // Make entire scene clickable to blur input when clicking outside
+        this.input.on('pointerdown', (pointer) => {
+            const inputBounds = {
+                x: inputX - inputWidth / 2,
+                y: inputY - inputHeight / 2,
+                width: inputWidth,
+                height: inputHeight
+            };
+            
+            if (pointer.x < inputBounds.x || 
+                pointer.x > inputBounds.x + inputBounds.width ||
+                pointer.y < inputBounds.y || 
+                pointer.y > inputBounds.y + inputBounds.height) {
+                this.blurInput();
             }
         });
+
+        // Keyboard input handling
+        this.input.keyboard.on('keydown', this.handleKeyDown, this);
+
+        // Auto-focus on scene start
+        this.time.delayedCall(200, () => {
+            this.focusInput();
+        });
+
+        // Start cursor blink animation
+        this.startCursorBlink();
+    }
+
+    updateInputBackground (isFocused)
+    {
+        this.nameInputBg.clear();
+
+        const inputX = this.scale.width / 2;
+        const inputY = 390;
+        const inputWidth = 340;
+        const inputHeight = 50;
+        const borderRadius = 14;
+        const borderWidth = 4;
+
+        // Outer glow
+        if (isFocused) {
+            this.nameInputBg.fillStyle(0xFFD700, 0.4);
+            this.nameInputBg.fillRoundedRect(
+                inputX - inputWidth / 2 - 8,
+                inputY - inputHeight / 2 - 8,
+                inputWidth + 16,
+                inputHeight + 16,
+                borderRadius + 4
+            );
+        }
+
+        // Background
+        this.nameInputBg.fillStyle(isFocused ? 0x5FB859 : 0x5FB859, isFocused ? 1 : 0.9);
+        this.nameInputBg.fillRoundedRect(
+            inputX - inputWidth / 2,
+            inputY - inputHeight / 2,
+            inputWidth,
+            inputHeight,
+            borderRadius
+        );
+
+        // Border
+        this.nameInputBg.lineStyle(borderWidth, isFocused ? 0xFFFFFF : 0xFFD700, 1);
+        this.nameInputBg.strokeRoundedRect(
+            inputX - inputWidth / 2,
+            inputY - inputHeight / 2,
+            inputWidth,
+            inputHeight,
+            borderRadius
+        );
+
+        // Inner shadow
+        this.nameInputBg.fillStyle(0x2D5016, isFocused ? 0.2 : 0.3);
+        this.nameInputBg.fillRoundedRect(
+            inputX - inputWidth / 2 + 2,
+            inputY - inputHeight / 2 + 2,
+            inputWidth - 4,
+            inputHeight - 4,
+            borderRadius - 2
+        );
+    }
+
+    focusInput ()
+    {
+        this.isInputFocused = true;
+        this.updateInputBackground(true);
+        this.nameInputText.setColor('#FFD700');
+        if (this.playerName === '') {
+            this.nameInputText.setText('');
+        }
+        this.startCursorBlink();
+    }
+
+    blurInput ()
+    {
+        this.isInputFocused = false;
+        this.updateInputBackground(false);
+        this.nameInputText.setColor(this.playerName ? '#FFFFFF' : '#888888');
+        if (this.playerName === '') {
+            this.nameInputText.setText('TRAINER');
+        }
+        this.nameInputCursor.setVisible(false);
+        if (this.cursorBlinkTimer) {
+            this.cursorBlinkTimer.remove();
+            this.cursorBlinkTimer = null;
+        }
+    }
+
+    startCursorBlink ()
+    {
+        if (!this.isInputFocused) return;
+
+        if (this.cursorBlinkTimer) {
+            this.cursorBlinkTimer.remove();
+        }
+
+        this.nameInputCursor.setVisible(true);
+        this.updateCursorPosition();
+
+        this.cursorBlinkTimer = this.time.addEvent({
+            delay: 500,
+            callback: () => {
+                if (this.nameInputCursor) {
+                    this.nameInputCursor.setVisible(!this.nameInputCursor.visible);
+                }
+            },
+            loop: true
+        });
+    }
+
+    updateCursorPosition ()
+    {
+        if (!this.nameInputText || !this.nameInputCursor) return;
+
+        const textWidth = this.nameInputText.width;
+        const inputX = this.scale.width / 2;
+        const cursorX = inputX + textWidth / 2 + 4;
+        this.nameInputCursor.setX(cursorX);
+    }
+
+    handleKeyDown (event)
+    {
+        if (!this.isInputFocused) return;
+
+        // Handle Enter key
+        if (event.keyCode === 13) { // Enter
+            this.changeScene();
+            return;
+        }
+
+        // Handle Backspace
+        if (event.keyCode === 8) { // Backspace
+            if (this.playerName.length > 0) {
+                this.playerName = this.playerName.slice(0, -1);
+                this.updateInputText();
+            }
+            return;
+        }
+
+        // Handle regular character input
+        if (event.keyCode >= 32 && event.keyCode <= 126) { // Printable characters
+            const char = event.key;
+            // Only allow alphanumeric and spaces
+            if (/^[A-Za-z0-9 ]$/.test(char) && this.playerName.length < 15) {
+                this.playerName += char.toUpperCase();
+                this.updateInputText();
+            }
+        }
+    }
+
+    updateInputText ()
+    {
+        if (this.playerName === '') {
+            this.nameInputText.setText('TRAINER');
+            this.nameInputText.setColor('#888888');
+        } else {
+            this.nameInputText.setText(this.playerName);
+            this.nameInputText.setColor(this.isInputFocused ? '#FFD700' : '#FFFFFF');
+        }
+        this.updateCursorPosition();
     }
 
     changeScene ()
     {
-        // Get player name from input
-        if (this.nameInput) {
-            this.playerName = this.nameInput.value.trim() || 'Player';
-        }
+        // Get player name (already stored in this.playerName)
+        this.playerName = this.playerName.trim() || 'Player';
 
         // Save player name to game state
         gameState.setPlayerName(this.playerName);
