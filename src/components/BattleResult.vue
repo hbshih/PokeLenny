@@ -221,7 +221,7 @@ function continueGame() {
 }
 
 .result-title {
-  font-family: 'Pixelify Sans', monospace;
+  font-family: 'DotGothic16', monospace;
   font-size: 42px;
   color: #FFD700;
   margin: 0 0 10px 0;
@@ -251,7 +251,7 @@ function continueGame() {
 }
 
 .result-subtitle {
-  font-family: 'Pixelify Sans', monospace;
+  font-family: 'DotGothic16', monospace;
   font-size: 14px;
   color: #ECF0F1;
   text-shadow: 2px 2px 0 #000;
@@ -272,7 +272,7 @@ function continueGame() {
   align-items: center;
   padding: 10px 0;
   border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-  font-family: 'Pixelify Sans', monospace;
+  font-family: 'DotGothic16', monospace;
 }
 
 .stat-row:last-child {
@@ -313,7 +313,7 @@ function continueGame() {
 
 .perfect-badge {
   text-align: center;
-  font-family: 'Pixelify Sans', monospace;
+  font-family: 'DotGothic16', monospace;
   font-size: 14px;
   color: #FFD700;
   padding: 15px;
@@ -336,7 +336,7 @@ function continueGame() {
 }
 
 .result-btn {
-  font-family: 'Pixelify Sans', monospace;
+  font-family: 'DotGothic16', monospace;
   font-size: 14px;
   padding: 15px 30px;
   border: 4px solid;
@@ -389,7 +389,7 @@ function continueGame() {
 
 .keyboard-hint {
   margin-top: 20px;
-  font-family: 'Pixelify Sans', monospace;
+  font-family: 'DotGothic16', monospace;
   font-size: 8px;
   color: rgba(255, 255, 255, 0.6);
   text-align: center;

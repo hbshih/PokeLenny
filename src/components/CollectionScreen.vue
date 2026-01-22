@@ -152,7 +152,7 @@ function prevPage() {
   flex-direction: column;
   overflow: hidden;
   z-index: 1000;
-  font-family: 'Pixelify Sans', monospace, sans-serif;
+  font-family: 'DotGothic16', monospace, sans-serif;
 }
 
 .collection-header {
@@ -169,7 +169,7 @@ function prevPage() {
 
 .collection-title {
   font-size: 24px;
-  font-family: 'Pixelify Sans', monospace, sans-serif;
+  font-family: 'DotGothic16', monospace, sans-serif;
   color: #FFD700;
   margin: 0;
   letter-spacing: 1px;
@@ -177,7 +177,7 @@ function prevPage() {
 
 .collection-progress {
   font-size: 14px;
-  font-family: 'Pixelify Sans', monospace, sans-serif;
+  font-family: 'DotGothic16', monospace, sans-serif;
   color: #FFF;
   margin: 0;
   letter-spacing: 1px;
@@ -196,7 +196,7 @@ function prevPage() {
 .page-btn {
   padding: 8px 16px;
   font-size: 11px;
-  font-family: 'Pixelify Sans', monospace, sans-serif;
+  font-family: 'DotGothic16', monospace, sans-serif;
   background: #4CAF50;
   color: #FFF;
   border: 3px solid #FFD700;
@@ -224,7 +224,7 @@ function prevPage() {
 
 .page-info {
   font-size: 12px;
-  font-family: 'Pixelify Sans', monospace, sans-serif;
+  font-family: 'DotGothic16', monospace, sans-serif;
   color: #FFD700;
   min-width: 140px;
   text-align: center;
@@ -233,7 +233,7 @@ function prevPage() {
 .close-btn {
   padding: 10px 16px;
   font-size: 18px;
-  font-family: 'Pixelify Sans', monospace, sans-serif;
+  font-family: 'DotGothic16', monospace, sans-serif;
   font-weight: bold;
   background: #F44336;
   color: #FFF;
@@ -301,7 +301,7 @@ function prevPage() {
 
 .sprite-silhouette {
   font-size: 40px;
-  font-family: 'Pixelify Sans', monospace, sans-serif;
+  font-family: 'DotGothic16', monospace, sans-serif;
   color: #999;
 }
 
@@ -330,7 +330,7 @@ function prevPage() {
 
 .guest-card-number {
   font-size: 10px;
-  font-family: 'Pixelify Sans', monospace, sans-serif;
+  font-family: 'DotGothic16', monospace, sans-serif;
   color: #666;
   margin: 0;
   letter-spacing: 1px;
@@ -368,7 +368,7 @@ function prevPage() {
   right: 16px;
   padding: 8px 12px;
   font-size: 16px;
-  font-family: 'Pixelify Sans', monospace, sans-serif;
+  font-family: 'DotGothic16', monospace, sans-serif;
   font-weight: bold;
   background: #F44336;
   color: #FFF;
@@ -410,7 +410,7 @@ function prevPage() {
 
 .detail-name {
   font-size: 20px;
-  font-family: 'Pixelify Sans', monospace, sans-serif;
+  font-family: 'DotGothic16', monospace, sans-serif;
   margin: 0 0 10px 0;
   color: #000;
   letter-spacing: 1px;
@@ -418,7 +418,7 @@ function prevPage() {
 
 .detail-number {
   font-size: 14px;
-  font-family: 'Pixelify Sans', monospace, sans-serif;
+  font-family: 'DotGothic16', monospace, sans-serif;
   color: #666;
   margin: 0 0 24px 0;
   letter-spacing: 1px;

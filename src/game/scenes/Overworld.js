@@ -121,7 +121,7 @@ export class Overworld extends Scene
         // Add minimap label
         this.add.text(minimapX + 5, minimapY + 5, 'MAP', {
             fontSize: '10px',
-            fontFamily: 'Pixelify Sans, monospace',
+            fontFamily: 'DotGothic16, monospace',
             color: '#FFD700',
             backgroundColor: '#000000',
             padding: { x: 4, y: 2 }
@@ -813,7 +813,7 @@ export class Overworld extends Scene
         const centerText = this.add.text(startX, startY, 'A', {
             fontSize: '24px',
             color: '#FFFFFF',
-            fontFamily: 'Pixelify Sans, monospace',
+            fontFamily: 'DotGothic16, monospace',
             fontStyle: 'bold'
         });
         centerText.setOrigin(0.5);

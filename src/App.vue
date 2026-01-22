@@ -619,7 +619,7 @@ body {
 .game-header {
   text-align: center;
   color: #fff;
-  font-family: 'Pixelify Sans', monospace, sans-serif;
+  font-family: 'DotGothic16', monospace, sans-serif;
   text-shadow: 3px 3px 0px rgba(0, 0, 0, 0.5);
   flex-shrink: 0;
 }
@@ -638,7 +638,7 @@ body {
   margin: 0;
   letter-spacing: 2px;
   color: #fff;
-  font-family: 'Pixelify Sans', monospace, sans-serif;
+  font-family: 'DotGothic16', monospace, sans-serif;
 }
 
 .game-wrapper {
@@ -667,20 +667,20 @@ body {
 }
 
 .stat-label {
-  font-family: 'Pixelify Sans', monospace, sans-serif;
+  font-family: 'DotGothic16', monospace, sans-serif;
   font-size: 9px;
   color: #FFD700;
   text-transform: uppercase;
 }
 
 .stat-value {
-  font-family: 'Pixelify Sans', monospace, sans-serif;
+  font-family: 'DotGothic16', monospace, sans-serif;
   font-size: 14px;
   color: #fff;
 }
 
 .stat-value-small {
-  font-family: 'Pixelify Sans', monospace, sans-serif;
+  font-family: 'DotGothic16', monospace, sans-serif;
   font-size: 9px;
   color: #fff;
 }
@@ -723,7 +723,7 @@ body {
 }
 
 .action-btn {
-  font-family: 'Pixelify Sans', monospace, sans-serif;
+  font-family: 'DotGothic16', monospace, sans-serif;
   font-size: 11px;
   padding: 14px 16px;
   background: rgba(0, 0, 0, 0.85);
@@ -807,7 +807,7 @@ body {
 }
 
 .controls-title {
-  font-family: 'Pixelify Sans', monospace, sans-serif;
+  font-family: 'DotGothic16', monospace, sans-serif;
   font-size: 10px;
   color: #FFD700;
   margin-bottom: 12px;
@@ -821,7 +821,7 @@ body {
 }
 
 .control-item {
-  font-family: 'Pixelify Sans', monospace, sans-serif;
+  font-family: 'DotGothic16', monospace, sans-serif;
   font-size: 9px;
   color: #fff;
   line-height: 1.6;
@@ -835,7 +835,7 @@ body {
 }
 
 .credits-title {
-  font-family: 'Pixelify Sans', monospace, sans-serif;
+  font-family: 'DotGothic16', monospace, sans-serif;
   font-size: 10px;
   color: #FFD700;
   margin-bottom: 12px;
@@ -974,7 +974,7 @@ body {
 }
 
 .credits-line {
-  font-family: 'Pixelify Sans', monospace, sans-serif;
+  font-family: 'DotGothic16', monospace, sans-serif;
   font-size: 9px;
   color: #fff;
   line-height: 1.6;

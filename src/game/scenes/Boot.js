@@ -20,7 +20,7 @@ export class Boot extends Scene
 
         WebFont.load({
             google: {
-                families: ['Pixelify Sans']
+                families: ['DotGothic16']
             },
             active: () => {
                 this.fontsReady = true;

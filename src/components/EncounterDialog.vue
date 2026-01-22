@@ -171,7 +171,7 @@ onUnmounted(() => {
     0 8px 0 #000,
     0 12px 24px rgba(0, 0, 0, 0.5);
   padding: 20px 28px;
-  font-family: 'Pixelify Sans', monospace, sans-serif;
+  font-family: 'DotGothic16', monospace, sans-serif;
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges;
   image-rendering: crisp-edges;

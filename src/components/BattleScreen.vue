@@ -558,7 +558,7 @@ function handleContinue() {
   height: min(640px, calc(95vw * 0.667));
   max-height: 90vh;
   z-index: 1000;
-  font-family: 'Pixelify Sans', monospace, sans-serif;
+  font-family: 'DotGothic16', monospace, sans-serif;
   overflow: hidden;
   background: #000;
   border: 4px solid #FFD700;
@@ -880,7 +880,7 @@ function handleContinue() {
   border: 6px solid #000;
   box-shadow: 0 6px 0 #000, 0 10px 20px rgba(0, 0, 0, 0.4);
   padding: 14px 18px;
-  font-family: 'Pixelify Sans', monospace, sans-serif;
+  font-family: 'DotGothic16', monospace, sans-serif;
 }
 
 /* Horizontal Layout: 40% / 60% Split */
