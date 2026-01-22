@@ -10,73 +10,81 @@
           <p class="card-subtitle">Trainer Card</p>
         </div>
 
-        <!-- Player Info -->
-        <div class="player-section">
-          <div class="player-avatar">{{ playerName.charAt(0).toUpperCase() }}</div>
-          <div class="player-info">
-            <h3 class="player-name">{{ playerName }}</h3>
-            <p class="player-level">Level {{ stats.level }} Trainer</p>
-          </div>
-        </div>
-
-        <!-- Stats Grid -->
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-icon">💚</div>
-            <div class="stat-label">HP</div>
-            <div class="stat-value">{{ stats.hp }}/{{ stats.maxHp }}</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon">⭐</div>
-            <div class="stat-label">XP</div>
-            <div class="stat-value">{{ stats.xp }}</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon">🎯</div>
-            <div class="stat-label">Accuracy</div>
-            <div class="stat-value">{{ accuracy }}%</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon">🏆</div>
-            <div class="stat-label">Battles</div>
-            <div class="stat-value">{{ stats.totalBattles }}</div>
-          </div>
-        </div>
-
-        <!-- Answer Stats -->
-        <div class="answer-stats">
-          <div class="answer-stat correct">
-            <span class="answer-icon">✅</span>
-            <span class="answer-count">{{ stats.rightAnswers }}</span>
-            <span class="answer-label">Correct</span>
-          </div>
-          <div class="answer-stat incorrect">
-            <span class="answer-icon">❌</span>
-            <span class="answer-count">{{ stats.wrongAnswers }}</span>
-            <span class="answer-label">Wrong</span>
-          </div>
-        </div>
-
-        <!-- Captured Guests -->
-        <div class="captured-section">
-          <h4 class="section-title">Captured Guests ({{ capturedCount }}/{{ totalGuests }})</h4>
-          <div class="captured-grid">
-            <div
-              v-for="guest in capturedGuests"
-              :key="guest.id"
-              class="guest-card"
-            >
-              <div class="guest-sprite">
-                <img
-                  :src="getGuestAvatarPath(guest)"
-                  :alt="guest.name"
-                  @error="handleImageError"
-                />
+        <!-- Horizontal Content Grid -->
+        <div class="card-content">
+          <!-- Left Column: Player & Stats -->
+          <div class="left-column">
+            <!-- Player Info -->
+            <div class="player-section">
+              <div class="player-avatar">{{ playerName.charAt(0).toUpperCase() }}</div>
+              <div class="player-info">
+                <h3 class="player-name">{{ playerName }}</h3>
+                <p class="player-level">Level {{ stats.level }} Trainer</p>
               </div>
-              <p class="guest-name">{{ guest.name }}</p>
             </div>
-            <div v-if="capturedCount === 0" class="no-captures">
-              No guests captured yet!
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-icon">💚</div>
+                <div class="stat-label">HP</div>
+                <div class="stat-value">{{ stats.hp }}/{{ stats.maxHp }}</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon">⭐</div>
+                <div class="stat-label">XP</div>
+                <div class="stat-value">{{ stats.xp }}</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-label">Accuracy</div>
+                <div class="stat-value">{{ accuracy }}%</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon">🏆</div>
+                <div class="stat-label">Battles</div>
+                <div class="stat-value">{{ stats.totalBattles }}</div>
+              </div>
+            </div>
+
+            <!-- Answer Stats -->
+            <div class="answer-stats">
+              <div class="answer-stat correct">
+                <span class="answer-icon">✅</span>
+                <span class="answer-count">{{ stats.rightAnswers }}</span>
+                <span class="answer-label">Correct</span>
+              </div>
+              <div class="answer-stat incorrect">
+                <span class="answer-icon">❌</span>
+                <span class="answer-count">{{ stats.wrongAnswers }}</span>
+                <span class="answer-label">Wrong</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Captured Guests -->
+          <div class="right-column">
+            <div class="captured-section">
+              <h4 class="section-title">Captured Guests ({{ capturedCount }}/{{ totalGuests }})</h4>
+              <div class="captured-grid">
+                <div
+                  v-for="guest in capturedGuests"
+                  :key="guest.id"
+                  class="guest-card"
+                >
+                  <div class="guest-sprite">
+                    <img
+                      :src="getGuestAvatarPath(guest)"
+                      :alt="guest.name"
+                      @error="handleImageError"
+                    />
+                  </div>
+                  <p class="guest-name">{{ guest.name }}</p>
+                </div>
+                <div v-if="capturedCount === 0" class="no-captures">
+                  No guests captured yet!
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -89,6 +97,12 @@
 
       <!-- Action Buttons -->
       <div class="modal-actions">
+        <button class="action-btn linkedin-btn" @click="shareOnLinkedIn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+          </svg>
+          Share on LinkedIn
+        </button>
         <button class="action-btn share-btn" @click="shareCard">
           📤 Share
         </button>
@@ -139,6 +153,27 @@ function handleImageError(event) {
 
 function closeModal() {
   emit('close');
+}
+
+function shareOnLinkedIn() {
+  const shareText = `Just played PokéLenny - a fun game where you catch Lenny's Podcast guests and answer trivia!
+
+My Stats:
+🎮 Trainer: ${props.playerName}
+⭐ Level ${props.stats.level}
+🏆 ${props.stats.totalBattles} Battles Won
+🎯 ${props.accuracy}% Accuracy
+👥 ${props.capturedCount}/${props.totalGuests} Guests Captured
+
+${capturedGuests.value.length > 0 ? 'Captured Guests: ' + capturedGuests.value.slice(0, 5).map(g => g.name).join(', ') + (capturedGuests.value.length > 5 ? '...' : '') : ''}
+
+Check it out and test your knowledge of Lenny's Podcast!
+
+https://pokelenny.com`;
+
+  const linkedInUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(shareText)}`;
+
+  window.open(linkedInUrl, '_blank', 'width=700,height=700');
 }
 
 function shareCard() {
@@ -202,8 +237,8 @@ function copyToClipboard(text) {
 
 .share-modal {
   position: relative;
-  max-width: 500px;
-  width: 90%;
+  max-width: 900px;
+  width: 95%;
   max-height: 90vh;
   overflow-y: auto;
   animation: slideUp 0.4s ease;
@@ -279,11 +314,29 @@ function copyToClipboard(text) {
   opacity: 0.9;
 }
 
+/* Horizontal Layout Grid */
+.card-content {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+
+.left-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.right-column {
+  display: flex;
+  flex-direction: column;
+}
+
 .player-section {
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-bottom: 20px;
   background: rgba(0, 0, 0, 0.3);
   padding: 16px;
   border-radius: 12px;
@@ -325,7 +378,6 @@ function copyToClipboard(text) {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
-  margin-bottom: 20px;
 }
 
 .stat-card {
@@ -357,7 +409,6 @@ function copyToClipboard(text) {
 .answer-stats {
   display: flex;
   gap: 12px;
-  margin-bottom: 20px;
 }
 
 .answer-stat {
@@ -401,7 +452,9 @@ function copyToClipboard(text) {
   background: rgba(0, 0, 0, 0.3);
   border-radius: 12px;
   padding: 16px;
-  margin-bottom: 16px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .section-title {
@@ -413,8 +466,10 @@ function copyToClipboard(text) {
 
 .captured-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
+  flex: 1;
+  align-content: start;
 }
 
 .guest-card {
@@ -519,6 +574,33 @@ function copyToClipboard(text) {
   box-shadow: 0 6px 0 rgba(0, 0, 0, 0.3), 0 0 20px rgba(96, 165, 250, 0.4);
 }
 
+.linkedin-btn {
+  border-color: #0077b5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.linkedin-btn:hover {
+  border-color: #005582;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.3), 0 0 20px rgba(0, 119, 181, 0.4);
+}
+
+.linkedin-btn svg {
+  flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+  .card-content {
+    grid-template-columns: 1fr;
+  }
+
+  .captured-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @media (max-width: 600px) {
   .share-card {
     padding: 16px;
@@ -538,7 +620,15 @@ function copyToClipboard(text) {
 
   .action-btn {
     font-size: 9px;
-    padding: 12px;
+    padding: 10px 8px;
+  }
+
+  .linkedin-btn {
+    font-size: 8px;
+  }
+
+  .modal-actions {
+    flex-wrap: wrap;
   }
 }
 </style>
