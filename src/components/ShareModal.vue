@@ -180,6 +180,8 @@ function closeModal() {
 }
 
 function shareOnLinkedIn() {
+  // Trigger local download of the trainer card image
+  downloadCard();
   const rawName = (props.playerName || 'Player').toString();
   const safeName = rawName.replace(/[^a-zA-Z0-9 _-]/g, '').trim() || 'Player';
   const safeGuestNames = capturedGuests.value
