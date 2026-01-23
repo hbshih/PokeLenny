@@ -21,7 +21,7 @@
               <span class="name-text">{{ battleData.guest.name }}</span>
               <span class="guest-title">{{ guestTitle }}</span>
             </div>
-            <span class="level-badge">Lv{{ Math.floor(Math.random() * 20) + 30 }}</span>
+            <span class="level-badge">Lv{{ opponentLevel }}</span>
           </div>
           <div class="hp-bar-container">
             <div class="hp-label-small">HP</div>
@@ -369,6 +369,16 @@ const playerHPClass = computed(() => {
   if (percent > 50) return 'hp-high';
   if (percent > 20) return 'hp-medium';
   return 'hp-low';
+});
+
+const opponentLevel = computed(() => {
+  const guestLevel = props.battleData?.guest?.level;
+  if (Number.isFinite(guestLevel)) return guestLevel;
+
+  const difficulty = (props.battleData?.guest?.difficulty || '').toLowerCase();
+  if (difficulty.includes('hard')) return 40;
+  if (difficulty.includes('medium')) return 35;
+  return 30;
 });
 
 const guestAvatarPath = computed(() => {
@@ -816,10 +826,12 @@ function handleContinue() {
 .hp-bar-track {
   flex: 1;
   height: 20px;
-  background: #e0e0e0;
+  background: rgba(0, 0, 0, 0.12);
   border-radius: 6px;
   overflow: hidden;
   position: relative;
+  border: none;
+  box-shadow: none;
 }
 
 .hp-bar-fill {
