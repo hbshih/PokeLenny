@@ -1,21 +1,8 @@
 <template>
-  <!-- Battle Transition Animation - Pokemon Style -->
+  <!-- Battle Transition - Simple Fade -->
   <div v-if="showTransition" class="battle-transition">
-    <!-- Screen flash effect first -->
-    <div class="screen-flash"></div>
-    <!-- Zigzag pattern effect (like Pokemon) -->
-    <div class="zigzag-pattern"></div>
-    <!-- Circular iris transition (expanding from center) -->
-    <div class="iris-wipe">
-      <svg class="iris-svg" viewBox="0 0 960 640" preserveAspectRatio="xMidYMid slice">
-        <defs>
-          <mask id="irisMask">
-            <rect width="960" height="640" fill="black"/>
-            <circle cx="480" cy="320" r="0" fill="white" class="iris-circle-animated"/>
-          </mask>
-        </defs>
-        <rect width="960" height="640" fill="#000" mask="url(#irisMask)"/>
-      </svg>
+    <div class="transition-content">
+      <div class="battle-announcement">BATTLE!</div>
     </div>
   </div>
 
@@ -242,7 +229,7 @@ watch(() => props.isActive, (newVal) => {
     setTimeout(() => {
       showTransition.value = false;
       resetBattle();
-    }, 1800); // 1.8 second transition (matches animation duration)
+    }, 1200); // 1.2 second transition (matches animation duration)
   } else {
     // Stop battle music when battle screen closes
     EventBus.emit('stop-battle-music');
@@ -443,108 +430,73 @@ function handleContinue() {
 </script>
 
 <style scoped>
-/* Pokemon Game Boy Battle Transition */
+/* Simple Battle Transition */
 .battle-transition {
   position: absolute;
   top: 45%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 960px;
-  height: 640px;
-  background: #fff;
+  width: min(960px, 95vw);
+  height: min(640px, calc(95vw * 0.667));
+  max-height: 90vh;
+  background: #000;
   z-index: 10000;
-  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: 4px solid #FFD700;
   box-shadow: 0 0 40px rgba(255, 215, 0, 0.6), 0 8px 32px rgba(0, 0, 0, 0.8);
+  animation: transitionFade 1.2s ease-in-out;
 }
 
-/* Screen flash effect (classic Pokemon white flash) */
-.screen-flash {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: #fff;
-  animation: screenFlash 0.4s ease-out;
-  z-index: 1;
-  pointer-events: none;
-}
-
-@keyframes screenFlash {
-  0% { opacity: 1; }
-  100% { opacity: 0; }
-}
-
-/* Zigzag pattern (Pokemon battle entry effect) */
-.zigzag-pattern {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background:
-    repeating-linear-gradient(
-      45deg,
-      #000 0px,
-      #000 20px,
-      transparent 20px,
-      transparent 40px
-    ),
-    repeating-linear-gradient(
-      -45deg,
-      #000 0px,
-      #000 20px,
-      transparent 20px,
-      transparent 40px
-    );
-  animation: zigzagSlide 0.6s steps(8) 0.3s forwards;
-  z-index: 2;
-  opacity: 1;
-}
-
-@keyframes zigzagSlide {
+@keyframes transitionFade {
   0% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  100% {
     opacity: 0;
-    transform: scale(1.5);
+    background: #fff;
   }
-}
-
-/* Iris wipe effect container with SVG */
-.iris-wipe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 3;
-  animation: fadeOut 0.3s ease-out 1.5s forwards;
-}
-
-@keyframes fadeOut {
-  to { opacity: 0; }
-}
-
-.iris-svg {
-  width: 100%;
-  height: 100%;
-}
-
-/* Animate the circle radius */
-.iris-circle-animated {
-  animation: irisExpand 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.5s forwards;
-}
-
-@keyframes irisExpand {
-  0% {
-    r: 0;
+  15% {
+    opacity: 1;
+    background: #fff;
+  }
+  50% {
+    background: #000;
   }
   100% {
-    r: 1000;
+    opacity: 1;
+    background: #000;
+  }
+}
+
+.transition-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.battle-announcement {
+  font-family: 'Press Start 2P', monospace, sans-serif;
+  font-size: 48px;
+  color: #FFD700;
+  text-shadow:
+    4px 4px 0 #000,
+    -2px -2px 0 #000,
+    2px -2px 0 #000,
+    -2px 2px 0 #000,
+    0 0 20px rgba(255, 215, 0, 0.8);
+  animation: battlePulse 1.2s ease-in-out;
+  letter-spacing: 8px;
+}
+
+@keyframes battlePulse {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
   }
 }
 
@@ -1173,6 +1125,11 @@ function handleContinue() {
     font-size: 90%;
   }
 
+  .battle-announcement {
+    font-size: 32px;
+    letter-spacing: 6px;
+  }
+
   .battle-layout-horizontal {
     flex-direction: column;
     gap: 10px;
@@ -1225,6 +1182,11 @@ function handleContinue() {
 @media (max-width: 480px) {
   .battle-screen {
     font-size: 85%;
+  }
+
+  .battle-announcement {
+    font-size: 24px;
+    letter-spacing: 4px;
   }
 
   .q-text {
