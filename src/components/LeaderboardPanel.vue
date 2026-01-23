@@ -2,14 +2,12 @@
   <div v-if="isActive" class="leaderboard-overlay" @click="handleClose">
     <div class="leaderboard-panel" @click.stop>
       <div class="leaderboard-header">
-      <h3 class="leaderboard-title">
-        <Icon class="title-icon" :icon="trophy" />
-        Leaderboard
-      </h3>
-      <button class="refresh-btn" @click="handleRefresh" :disabled="loading">
-        <Icon :class="['refresh-icon', { spinning: loading }]" :icon="loading ? loader : reload" />
-      </button>
-    </div>
+        <h3 class="leaderboard-title">
+          <Icon class="title-icon" :icon="trophy" />
+          Hall of Fame
+        </h3>
+        <button class="close-modal-btn" @click="handleClose">✕</button>
+      </div>
 
     <div class="leaderboard-content" v-if="!loading">
       <div class="leaderboard-list">
@@ -17,7 +15,10 @@
           v-for="(player, index) in currentPagePlayers"
           :key="player.id"
           class="leaderboard-item"
-          :class="{ 'current-player': player.isCurrentPlayer }"
+          :class="[
+            getRankTier(getRank(index)),
+            { 'current-player': player.isCurrentPlayer }
+          ]"
         >
           <div class="rank">
             <span v-if="getRank(index) === 1" class="medal gold">
@@ -29,15 +30,17 @@
             <span v-else-if="getRank(index) === 3" class="medal bronze">
               <Icon class="medal-icon" :icon="trophy" />
             </span>
-            <span v-else class="rank-number">#{{ getRank(index) }}</span>
+            <span v-else class="rank-badge" :class="getRankTier(getRank(index))">
+              #{{ getRank(index) }}
+            </span>
           </div>
           <div class="player-info">
             <div class="player-name">{{ player.name }}</div>
             <div class="player-stats">
-              <span class="stat">Lv.{{ player.level }}</span>
-              <span class="stat"><Icon class="stat-icon" :icon="heart" /> {{ player.maxHp }}</span>
-              <span class="stat"><Icon class="stat-icon" :icon="users" /> {{ player.captured }}/{{ player.total }}</span>
-              <span class="stat"><Icon class="stat-icon" :icon="bullseye" /> {{ player.accuracy }}%</span>
+              <span class="stat stat-level">Lv.{{ player.level }}</span>
+              <span class="stat stat-hp"><Icon class="stat-icon" :icon="heart" /> {{ player.maxHp }}</span>
+              <span class="stat stat-caught"><Icon class="stat-icon" :icon="users" /> {{ player.captured }}/{{ player.total }}</span>
+              <span class="stat stat-accuracy"><Icon class="stat-icon" :icon="bullseye" /> {{ player.accuracy }}%</span>
             </div>
           </div>
         </div>
@@ -51,7 +54,17 @@
         >
           <Icon class="page-icon" :icon="arrowLeft" />
         </button>
-        <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
+        <div class="page-numbers">
+          <button
+            v-for="page in visiblePages"
+            :key="page"
+            class="page-num-btn"
+            :class="{ active: currentPage === page }"
+            @click="goToPage(page)"
+          >
+            {{ page }}
+          </button>
+        </div>
         <button
           class="page-btn"
           @click="nextPage"
@@ -60,6 +73,11 @@
           <Icon class="page-icon" :icon="arrowRight" />
         </button>
       </div>
+
+      <button class="refresh-btn" @click="handleRefresh" :disabled="loading">
+        <Icon :class="['refresh-icon', { spinning: loading }]" :icon="loading ? loader : reload" />
+        Refresh
+      </button>
     </div>
 
     <div class="loading-state" v-else>
@@ -68,8 +86,6 @@
       </div>
       <p>Loading leaderboard...</p>
     </div>
-
-    <button class="close-modal-btn" @click="handleClose">✕</button>
     </div>
   </div>
 </template>
@@ -126,6 +142,47 @@ const currentPagePlayers = computed(() => {
 
 function getRank(index) {
   return (currentPage.value - 1) * playersPerPage + index + 1;
+}
+
+function getRankTier(rank) {
+  if (rank <= 3) return 'tier-gold';
+  if (rank <= 10) return 'tier-blue';
+  if (rank <= 20) return 'tier-green';
+  if (rank <= 30) return 'tier-purple';
+  if (rank <= 40) return 'tier-red';
+  return 'tier-orange';
+}
+
+const visiblePages = computed(() => {
+  const pages = [];
+  const total = totalPages.value;
+  const current = currentPage.value;
+
+  if (total <= 5) {
+    for (let i = 1; i <= total; i++) {
+      pages.push(i);
+    }
+  } else {
+    if (current <= 3) {
+      pages.push(1, 2, 3, 4, 5);
+    } else if (current >= total - 2) {
+      for (let i = total - 4; i <= total; i++) {
+        pages.push(i);
+      }
+    } else {
+      for (let i = current - 2; i <= current + 2; i++) {
+        pages.push(i);
+      }
+    }
+  }
+
+  return pages;
+});
+
+function goToPage(page) {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page;
+  }
 }
 
 function nextPage() {
@@ -208,23 +265,22 @@ onMounted(() => {
   border-radius: 12px;
   padding: 24px;
   width: 90%;
-  max-width: 500px;
+  max-width: 520px;
   height: fit-content;
-  max-height: 80vh;
+  max-height: 85vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 40px rgba(255, 215, 0, 0.3);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
   font-family: 'Press Start 2P', monospace, sans-serif;
-  animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @keyframes slideUp {
   from {
-    transform: translateY(50px) scale(0.9);
+    transform: translateY(50px);
     opacity: 0;
   }
   to {
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
     opacity: 1;
   }
 }
@@ -235,7 +291,7 @@ onMounted(() => {
   justify-content: space-between;
   margin-bottom: 16px;
   padding-bottom: 12px;
-  border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+  border-bottom: 3px solid #FFD700;
 }
 
 .title-icon {
@@ -246,8 +302,9 @@ onMounted(() => {
 }
 
 .refresh-icon {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
+  margin-right: 6px;
 }
 
 .refresh-icon.spinning {
@@ -291,28 +348,29 @@ onMounted(() => {
   align-items: center;
 }
 
-.refresh-btn {
-  background: rgba(255, 215, 0, 0.2);
-  border: 2px solid #FFD700;
-  border-radius: 4px;
-  padding: 6px 10px;
-  font-size: 12px;
+.close-modal-btn {
+  background: #F44336;
+  border: 3px solid #000;
+  border-radius: 8px;
+  color: #FFF;
+  font-size: 16px;
+  font-weight: bold;
+  width: 36px;
+  height: 36px;
   cursor: pointer;
   transition: all 0.2s ease;
-  color: #FFD700;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0;
+  line-height: 1;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.refresh-btn:hover:not(:disabled) {
-  background: rgba(255, 215, 0, 0.4);
-  transform: scale(1.05);
-}
-
-.refresh-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.close-modal-btn:hover {
+  background: #D32F2F;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
 
 .leaderboard-content {
@@ -346,6 +404,31 @@ onMounted(() => {
   background: rgba(255, 215, 0, 0.7);
 }
 
+/* Tier color definitions */
+.leaderboard-item.tier-gold {
+  --tier-color: #FFD700;
+}
+
+.leaderboard-item.tier-blue {
+  --tier-color: #4A90E2;
+}
+
+.leaderboard-item.tier-green {
+  --tier-color: #50C878;
+}
+
+.leaderboard-item.tier-purple {
+  --tier-color: #9B59B6;
+}
+
+.leaderboard-item.tier-red {
+  --tier-color: #E74C3C;
+}
+
+.leaderboard-item.tier-orange {
+  --tier-color: #FF8C42;
+}
+
 .leaderboard-item {
   display: flex;
   align-items: center;
@@ -353,21 +436,21 @@ onMounted(() => {
   padding: 10px;
   margin-bottom: 8px;
   background: rgba(255, 255, 255, 0.05);
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  border: 3px solid var(--tier-color, #FFD700);
   border-radius: 6px;
   transition: all 0.2s ease;
 }
 
 .leaderboard-item:hover {
   background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 215, 0, 0.5);
-  transform: translateX(4px);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .leaderboard-item.current-player {
-  background: rgba(255, 215, 0, 0.2);
-  border-color: #FFD700;
-  box-shadow: 0 0 12px rgba(255, 215, 0, 0.3);
+  background: rgba(255, 215, 0, 0.15);
+  border-width: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .rank {
@@ -394,10 +477,15 @@ onMounted(() => {
   color: #CD7F32;
 }
 
-.rank-number {
+.rank-badge {
   font-size: 10px;
-  color: #FFD700;
+  color: var(--tier-color);
   font-weight: bold;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 2px solid var(--tier-color);
+  border-radius: 6px;
+  display: inline-block;
 }
 
 .player-info {
@@ -406,17 +494,22 @@ onMounted(() => {
 }
 
 .player-name {
-  font-size: 9px;
+  font-size: 11px;
   color: #fff;
   margin-bottom: 6px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-weight: bold;
+}
+
+.current-player .player-name {
+  color: #FFD700;
 }
 
 .player-stats {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
@@ -424,11 +517,32 @@ onMounted(() => {
   font-size: 7px;
   color: #aaa;
   background: rgba(0, 0, 0, 0.4);
-  padding: 2px 6px;
-  border-radius: 3px;
+  padding: 3px 6px;
+  border-radius: 4px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-level {
+  border-color: #FFD700;
+  color: #FFD700;
+}
+
+.stat-hp {
+  border-color: #E74C3C;
+  color: #E74C3C;
+}
+
+.stat-caught {
+  border-color: #4A90E2;
+  color: #4A90E2;
+}
+
+.stat-accuracy {
+  border-color: #50C878;
+  color: #50C878;
 }
 
 .pagination {
@@ -441,35 +555,95 @@ onMounted(() => {
 }
 
 .page-btn {
-  background: rgba(255, 215, 0, 0.2);
-  border: 2px solid #FFD700;
-  border-radius: 4px;
-  padding: 6px 12px;
+  background: #4CAF50;
+  border: 3px solid #FFD700;
+  border-radius: 8px;
+  padding: 8px 12px;
   font-size: 10px;
-  color: #FFD700;
+  color: #FFF;
   cursor: pointer;
   font-family: 'Press Start 2P', monospace, sans-serif;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .page-btn:hover:not(:disabled) {
-  background: rgba(255, 215, 0, 0.4);
-  transform: scale(1.05);
+  background: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .page-btn:disabled {
-  opacity: 0.3;
+  background: #666;
+  border-color: #444;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-.page-info {
+.page-numbers {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.page-num-btn {
+  background: rgba(0, 0, 0, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  padding: 6px 10px;
   font-size: 8px;
-  color: #FFD700;
-  min-width: 60px;
+  color: #aaa;
+  cursor: pointer;
+  font-family: 'Press Start 2P', monospace, sans-serif;
+  transition: all 0.2s ease;
+  min-width: 32px;
   text-align: center;
+}
+
+.page-num-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
+}
+
+.page-num-btn.active {
+  background: rgba(255, 215, 0, 0.2);
+  border-color: #FFD700;
+  color: #FFD700;
+  font-weight: bold;
+}
+
+.refresh-btn {
+  margin-top: 12px;
+  width: 100%;
+  background: #4CAF50;
+  border: 3px solid #FFD700;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 9px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #FFF;
+  font-family: 'Press Start 2P', monospace, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.refresh-btn:hover:not(:disabled) {
+  background: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.refresh-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .loading-state {
@@ -482,14 +656,7 @@ onMounted(() => {
 }
 
 .loading-spinner {
-  font-size: 32px;
   margin-bottom: 12px;
-  animation: spin 2s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
 }
 
 .loading-state p {
@@ -498,30 +665,23 @@ onMounted(() => {
   margin: 0;
 }
 
-.close-modal-btn {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  background: rgba(255, 69, 96, 0.2);
-  border: 2px solid #ff4560;
-  border-radius: 6px;
-  color: #ff4560;
-  font-size: 18px;
-  font-weight: bold;
-  width: 36px;
-  height: 36px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  line-height: 1;
+/* Scrollbar styling */
+.leaderboard-list::-webkit-scrollbar {
+  width: 8px;
 }
 
-.close-modal-btn:hover {
-  background: rgba(255, 69, 96, 0.4);
-  transform: rotate(90deg) scale(1.1);
+.leaderboard-list::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+.leaderboard-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 215, 0, 0.5);
+  border-radius: 4px;
+}
+
+.leaderboard-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 215, 0, 0.7);
 }
 
 /* Mobile Responsive */
