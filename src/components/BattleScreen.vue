@@ -454,7 +454,7 @@ function selectAnswer(index) {
       );
       guestHP.value = nextGuestHP;
     } else {
-      const newHP = Math.max(0, playerHP.value - 20);
+      const newHP = Math.max(0, playerHP.value - 10);
       playerHP.value = newHP;
       // Emit HP change to sync with global stats
       emit('hp-changed', newHP);
