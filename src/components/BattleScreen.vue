@@ -1,10 +1,7 @@
 <template>
-  <!-- Battle Transition - Pokemon Swirl -->
-  <div v-if="showTransition" class="battle-transition">
-    <div class="swirl-mask"></div>
-  </div>
-
-  <div class="battle-screen" v-if="isActive && !showTransition">
+  <div class="battle-screen" v-if="isActive">
+    <!-- Battle Transition Overlay -->
+    <canvas v-if="showTransition" ref="swirlCanvas" class="swirl-canvas"></canvas>
     <!-- Battle background image -->
     <div class="battle-background"></div>
 
@@ -144,6 +141,7 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'guest-captured', 'answer-submitted', 'hp-changed']);
 
+const swirlCanvas = ref(null);
 const guestHP = ref(100);
 const playerHP = ref(props.playerStats?.hp || 100);
 const playerMaxHP = computed(() => props.playerStats?.maxHp || 100);
@@ -218,12 +216,97 @@ onUnmounted(() => {
   window.removeEventListener('keydown', handleKeyPress);
 });
 
+// Pixel swirl animation with sweeping spiral
+function drawPixelSwirl() {
+  if (!swirlCanvas.value) return;
+
+  const canvas = swirlCanvas.value;
+  const ctx = canvas.getContext('2d');
+  const width = canvas.width;
+  const height = canvas.height;
+
+  const gridSize = 16; // 16x16 grid
+  const blockWidth = width / gridSize;
+  const blockHeight = height / gridSize;
+  const centerX = gridSize / 2;
+  const centerY = gridSize / 2;
+
+  let progress = 0;
+  const duration = 1200; // 1.2 seconds
+  const startTime = Date.now();
+  const spiralTurns = 3; // Number of spiral rotations
+
+  function animate() {
+    const elapsed = Date.now() - startTime;
+    progress = Math.min(elapsed / duration, 1);
+
+    // Start with white covering everything
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, width, height);
+
+    // Clear blocks in clockwise spiral pattern to reveal battle background
+    for (let gridY = 0; gridY < gridSize; gridY++) {
+      for (let gridX = 0; gridX < gridSize; gridX++) {
+        // Calculate angle and distance from center
+        const dx = gridX - centerX + 0.5;
+        const dy = gridY - centerY + 0.5;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Calculate angle starting from top (12 o'clock) going clockwise
+        // atan2 gives angle from right, so we adjust: subtract 90° and reverse direction
+        let angle = Math.atan2(dy, dx);
+        // Convert to start at top and go clockwise
+        angle = -angle + Math.PI / 2;
+        // Normalize to 0-1 range
+        const normalizedAngle = ((angle + Math.PI * 2) % (Math.PI * 2)) / (Math.PI * 2);
+
+        // Calculate spiral value (combines angle and distance)
+        const maxDistance = Math.sqrt(centerX * centerX + centerY * centerY);
+        const normalizedDistance = distance / maxDistance;
+
+        // Spiral formula: sweeps clockwise while moving outward
+        const spiralValue = normalizedAngle + normalizedDistance * spiralTurns;
+        const normalizedSpiral = (spiralValue / spiralTurns);
+
+        // Clear block (reveal background) when progress passes its spiral position
+        if (normalizedSpiral < progress) {
+          ctx.clearRect(
+            gridX * blockWidth,
+            gridY * blockHeight,
+            blockWidth,
+            blockHeight
+          );
+        }
+      }
+    }
+
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    }
+  }
+
+  animate();
+}
+
 // Reset battle when it becomes active with transition
 watch(() => props.isActive, (newVal) => {
   if (newVal) {
     showTransition.value = true;
     // Start battle music
     EventBus.emit('play-battle-music');
+
+    // Start pixel swirl animation
+    setTimeout(() => {
+      if (swirlCanvas.value) {
+        // Match canvas size to container
+        const rect = swirlCanvas.value.getBoundingClientRect();
+        swirlCanvas.value.width = rect.width;
+        swirlCanvas.value.height = rect.height;
+        drawPixelSwirl();
+      }
+    }, 50);
+
     setTimeout(() => {
       showTransition.value = false;
       resetBattle();
@@ -428,52 +511,18 @@ function handleContinue() {
 </script>
 
 <style scoped>
-/* Pokemon Swirl Transition */
-.battle-transition {
-  position: absolute;
-  top: 45%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: min(960px, 95vw);
-  height: min(640px, calc(95vw * 0.667));
-  max-height: 90vh;
-  background: #000;
-  z-index: 10000;
-  border: 4px solid #FFD700;
-  box-shadow: 0 0 40px rgba(255, 215, 0, 0.6), 0 8px 32px rgba(0, 0, 0, 0.8);
-  overflow: hidden;
-}
-
-.swirl-mask {
+/* Pokemon Pixel Swirl Canvas Overlay */
+.swirl-canvas {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: #000;
-  animation: swirlWipe 1.2s steps(30) forwards;
-
-  /* Create spiral pattern using conic gradient */
-  background-image: repeating-conic-gradient(
-    from 0deg at 50% 50%,
-    #000 0deg,
-    #000 2deg,
-    transparent 2deg,
-    transparent 4deg
-  );
-  background-size: 200% 200%;
-  background-position: center;
-}
-
-@keyframes swirlWipe {
-  0% {
-    clip-path: circle(0% at 50% 50%);
-    transform: rotate(0deg) scale(1);
-  }
-  100% {
-    clip-path: circle(150% at 50% 50%);
-    transform: rotate(720deg) scale(2);
-  }
+  z-index: 10000;
+  pointer-events: none;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
 }
 
 /* === BATTLE SCREEN - Authentic Pokemon Layout === */
