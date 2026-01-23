@@ -2,655 +2,24 @@
 
 ## Project Overview
 
-**PokéLenny** is a Pokemon-style RPG game featuring guests from Lenny's Podcast. Players navigate an overworld, encounter podcast guests, and battle them by answering trivia questions about their episodes.
+**PokéLenny** is a Pokemon-style RPG game featuring guests from Lenny's Podcast. Players navigate an overworld, encounter podcast guests, and battle them by answering trivia questions about their episodes. The game features a complete progression system with leveling, guest collection, leaderboards, and social sharing.
 
 **Tech Stack:**
 - **Game Engine:** Phaser 3
 - **Frontend Framework:** Vue 3 (Composition API)
 - **Build Tool:** Vite
 - **Styling:** CSS with custom animations
+- **Backend Ready:** Firebase integration prepared (MCP tools available)
 
-**Game Version:** v0.5
-
----
-
-## Project Structure
-
-```
-pokelenny-phaser/
-├── public/
-│   └── assets/
-│       ├── main-front.png          # Player character facing down
-│       ├── main-back.png           # Player character facing up
-│       ├── main-left.png           # Player character facing left
-│       ├── main-right.png          # Player character facing right
-│       ├── elena-front.png         # Elena Verna NPC sprite (front)
-│       ├── elena-side.png          # Elena Verna NPC sprite (side)
-│       ├── tuxemon-town.json       # Tilemap data (40x40 tiles)
-│       ├── tuxmon-sample-32px-extruded.png  # Tileset (extruded to prevent bleeding)
-│       ├── bg.png                  # Background image
-│       ├── logo.png                # Game logo
-│       └── star.png                # Star decoration
-│
-├── src/
-│   ├── game/
-│   │   ├── scenes/
-│   │   │   ├── Boot.js             # Initial boot scene
-│   │   │   ├── Preloader.js        # Asset loading scene
-│   │   │   ├── MainMenu.js         # Start screen with player name input
-│   │   │   ├── Overworld.js        # Main gameplay scene (tile-based movement)
-│   │   │   ├── Game.js             # Unused legacy scene
-│   │   │   └── GameOver.js         # Unused legacy scene
-│   │   ├── EventBus.js             # Event communication between Phaser and Vue
-│   │   └── main.js                 # Phaser game configuration
-│   │
-│   ├── components/
-│   │   ├── BattleScreen.vue        # Quiz battle interface
-│   │   ├── CollectionScreen.vue    # Guest collection UI
-│   │   ├── EncounterDialog.vue     # Pre-battle encounter dialog
-│   │   └── ShareModal.vue          # Stats sharing modal with preview card
-│   │
-│   ├── App.vue                     # Main Vue application
-│   ├── PhaserGame.vue              # Phaser game container
-│   └── main.js                     # Vue app entry point
-│
-├── package.json
-├── vite.config.js
-└── HANDOFF.md                      # This file
-```
+**Game Version:** v1.0
+**Last Updated:** January 23, 2026
 
 ---
 
-## Core Game Features
+## Quick Start for New Developers
 
-### 1. Start Screen (MainMenu.js)
-**Location:** `src/game/scenes/MainMenu.js`
-
-**Features:**
-- Animated starfield background (static stars with varying opacity)
-- Gold decorative border frame
-- Player name input (HTML input element overlaid on canvas)
-- Character sprite previews (Elena + Main character)
-- Responsive button design
-- Stores player name and passes to Overworld scene
-
-**Key Implementation Details:**
-- Canvas size: 960x640 pixels
-- Input field positioned at y: 460, dynamically calculated based on canvas position
-- Player name sent via scene data: `this.scene.start('Overworld', { playerName: this.playerName })`
-- Name also broadcast via EventBus for Vue components
-
-**Font Sizes:**
-- Title: 64px
-- Tagline: 18px
-- Info text: 13px
-- Button: 18px
-- Name label: 12px
-- Input: 14px
-
----
-
-### 2. Overworld (Overworld.js)
-**Location:** `src/game/scenes/Overworld.js`
-
-**Features:**
-- Tile-based grid movement (32x32 pixel tiles)
-- Directional character sprites (4 directions: front, back, left, right)
-- Collision detection with world layer
-- NPC positioning and interaction
-- Minimap in bottom-right corner (200x200px)
-- Interaction prompt system ("Click SPACE to fight")
-- Collection hotkey (C key)
-
-**Technical Details:**
-
-**Player Movement:**
-- Grid-based movement with 200ms delay between moves
-- Smooth tween animations (150ms duration)
-- WASD + Arrow key controls
-- Direction changes update sprite texture instantly
-
-**Character Sprites:**
-```javascript
-// Sprite mapping
-'main-front'  // Down arrow / S key
-'main-back'   // Up arrow / W key
-'main-right'  // Left arrow / A key (swapped in code)
-'main-left'   // Right arrow / D key (swapped in code)
-```
-
-**Camera System:**
-- Main camera zoom: 1.3x
-- Smooth camera follow: lerp factor 0.09
-- Minimap zoom: 0.15x
-- Minimap follow: lerp factor 0.1
-
-**NPC System:**
-```javascript
-const guestData = [
-    { id: '1', name: 'Elena Verna', x: 10, y: 8, direction: 'down' },
-    { id: '2', name: 'Shreyas Doshi', x: 15, y: 12, direction: 'right' },
-    { id: '3', name: 'Lenny Rachitsky', x: 5, y: 6, direction: 'left' }
-];
-```
-
-**Interaction System:**
-- Range: 3 tiles (Manhattan distance)
-- Trigger: SPACE or ENTER key
-- Emits: `EventBus.emit('start-battle', { guestId, guestName })`
-
----
-
-### 3. Battle System (BattleScreen.vue)
-**Location:** `src/components/BattleScreen.vue`
-
-**Features:**
-- Pokemon-style battle UI with:
-  - Guest info box (top left)
-  - Player info box (bottom right)
-  - HP bars with color coding (green > 50%, yellow > 20%, red ≤ 20%)
-  - Question display with multiple choice
-  - Answer feedback with explanations
-  - Battle transition animation (1.5s swirling effect)
-  - Victory/defeat animations
-
-**Battle Flow:**
-1. Transition animation plays (1.5s)
-2. Question displays with 4 choices
-3. Player selects answer
-4. Feedback shows (correct/wrong + explanation)
-5. HP updates (correct: -20 guest HP, wrong: -20 player HP)
-6. Repeat for 5 questions or until HP = 0
-7. Victory/defeat screen with animations
-
-**Victory Animations:**
-- 5 stars bursting outward
-- Spinning trophy badge
-- Pulsing title
-- Glowing continue button
-
-**Defeat Animations:**
-- Broken heart icon scaling in
-- Shake effect on title
-- Fade-in defeat box
-
-**Events Emitted:**
-- `answer-submitted(isCorrect)` - Sent to App.vue for XP/HP tracking
-- `guest-captured(guestId)` - Marks guest as captured
-- `close` - Closes battle screen
-
----
-
-### 4. Level & XP System (App.vue)
-**Location:** `src/App.vue`
-
-**Progression Mechanics:**
-
-**XP Rewards:**
-- Correct answer: 10 XP
-- Wrong answer: 0 XP (but -10 HP)
-- Battle victory (guest captured): 50 XP
-
-**Level Up Formula:**
-```javascript
-const getXPForLevel = (level) => {
-    return Math.floor(100 * Math.pow(1.5, level - 1));
-};
-
-// XP Requirements:
-// Level 1 → 2: 100 XP
-// Level 2 → 3: 150 XP
-// Level 3 → 4: 225 XP
-// Level 4 → 5: 337 XP
-// (Exponential growth continues...)
-```
-
-**Level Up Rewards:**
-- +20 Max HP
-- Full HP restore
-- Alert notification with new stats
-
-**HP System:**
-- Starting HP: 100
-- Starting Max HP: 100
-- Wrong answer penalty: -10 HP
-- HP tracked separately from battle HP (App.vue maintains persistent HP)
-
----
-
-### 5. Stats Display & UI (App.vue)
-**Location:** `src/App.vue` (lines 181-207)
-
-**Stats Bar (Always Visible):**
-- **Level Progress:** Shows current level, XP bar, and XP needed for next level
-- **HP Bar:** Green gradient bar with current/max HP display
-- **Captured Count:** Shows guests captured vs total guests
-
-**Action Buttons:**
-- **📚 Collection:** Opens collection screen (blue border, hover glow)
-- **📤 Share Stats:** Opens share modal (purple border, hover glow)
-
-**Layout:**
-```
-┌─────────────────────────────────────────────────────────┐
-│  [Stats Bar]    [Game Canvas]    [Action Buttons]       │
-│  - Level/XP     (960x640px)      - Collection           │
-│  - HP Bar                         - Share Stats         │
-│  - Captured                                             │
-└─────────────────────────────────────────────────────────┘
-│                  [Controls Info Bar]                     │
-└─────────────────────────────────────────────────────────┘
-```
-
-**Responsive Breakpoints:**
-- < 1300px: Stack vertically (stats top, game middle, buttons bottom)
-- < 1024px: Reduce font sizes
-- < 768px: Further size reductions
-
----
-
-### 6. Share System (ShareModal.vue)
-**Location:** `src/components/ShareModal.vue`
-
-**Features:**
-- Beautiful trainer card preview with:
-  - Player avatar (first letter of name in circle)
-  - Level and stats grid (HP, XP, Accuracy, Battles)
-  - Right/wrong answer breakdown
-  - Captured guests with sprites
-  - Pokemon-style gradient background
-
-**Share Methods:**
-
-1. **📤 Share Button:**
-   - Uses native share API (mobile) if available
-   - Falls back to clipboard copy
-   - Formats as text with emojis
-
-2. **📋 Copy Stats Button:**
-   - Quick copy of condensed stats
-   - Format: "Level X • X/X Captured • X% Accuracy"
-
-**Share Text Format:**
-```
-🎮 PokéLenny Trainer Card 🎮
-
-👤 Trainer: [Name]
-⭐ Level: [Level]
-💚 HP: [HP]/[MaxHP]
-
-📊 Stats:
-🏆 Battles Won: [Count]
-🎯 Accuracy: [Percentage]%
-✅ Correct Answers: [Count]
-❌ Wrong Answers: [Count]
-👥 Guests Captured: [Count]/[Total]
-
-🌟 Captured Guests:
-  • [Guest 1]
-  • [Guest 2]
-  ...
-
-Play PokéLenny and catch your favorite Lenny's Podcast guests!
-```
-
----
-
-### 7. Collection Screen (CollectionScreen.vue)
-**Location:** `src/components/CollectionScreen.vue`
-
-**Features:**
-- Grid display of all guests
-- Captured/uncaptured visual states
-- Guest details: name, difficulty, episode
-- Filter/sort capabilities (to be implemented)
-
----
-
-## Technical Implementation Details
-
-### Event Communication (EventBus.js)
-
-**Phaser → Vue Events:**
-```javascript
-EventBus.emit('current-scene-ready', scene)  // Scene loaded
-EventBus.emit('start-battle', { guestId, guestName })  // Battle initiated
-EventBus.emit('open-collection')  // Collection requested
-EventBus.emit('player-name-set', name)  // Player name set
-```
-
-**Vue → Phaser Events:**
-```javascript
-EventBus.emit('battle-rejected')  // Player declined battle
-```
-
-### Asset Loading (Preloader.js)
-
-**Critical Assets:**
-```javascript
-// Tilesets
-this.load.image('tiles', 'tuxmon-sample-32px-extruded.png');
-this.load.tilemapTiledJSON('map', 'tuxemon-town.json');
-
-// Character sprites (all 4 directions)
-this.load.image('main-front', 'main-front.png');
-this.load.image('main-back', 'main-back.png');
-this.load.image('main-left', 'main-left.png');
-this.load.image('main-right', 'main-right.png');
-
-// NPC sprites
-this.load.image('elena-front', 'elena-front.png');
-this.load.image('elena-side', 'elena-side.png');
-```
-
-**Note on Extruded Tileset:**
-- Uses extruded version to prevent texture bleeding at tile edges
-- Original tileset: 512x512px, 16x16 tiles, 32px tile size
-- Extruded adds 1px margin around each tile
-
----
-
-### Phaser Configuration (src/game/main.js)
-
-```javascript
-const config = {
-    type: Phaser.AUTO,
-    width: 960,
-    height: 640,
-    parent: 'game-container',
-    backgroundColor: '#000000',
-    pixelArt: true,  // Important: prevents texture smoothing
-    scene: [
-        Boot,
-        Preloader,
-        MainMenu,
-        Overworld,
-        Game,
-        GameOver
-    ]
-};
-```
-
----
-
-## Data Structures
-
-### Player Stats Object
-```javascript
-{
-  level: 1,
-  xp: 0,
-  hp: 100,
-  maxHp: 100,
-  rightAnswers: 0,
-  wrongAnswers: 0,
-  totalBattles: 0
-}
-```
-
-### Guest Collection Item
-```javascript
-{
-  id: "1",
-  name: "Elena Verna",
-  sprite: "👩",  // Fallback emoji if no sprite
-  difficulty: "Medium",
-  episode: "Growth Strategy",
-  captured: false
-}
-```
-
-### Battle Question Format
-```javascript
-{
-  id: 1,
-  type: "mcq",  // or "tf" for true/false
-  prompt: "Question text here?",
-  choices: ["Option A", "Option B", "Option C", "Option D"],
-  correctAnswer: 1,  // Index of correct answer (0-based)
-  explanation: "Explanation of the correct answer."
-}
-```
-
----
-
-## Styling & Design System
-
-### Color Palette
-- **Primary Gold:** `#FFD700` (borders, highlights, titles)
-- **Background Gradient:** `linear-gradient(135deg, #667eea 0%, #764ba2 100%)`
-- **HP Bar Green:** `linear-gradient(90deg, #4ade80, #22c55e)`
-- **XP Bar Blue:** `linear-gradient(90deg, #60a5fa, #3b82f6)`
-- **Dark Overlay:** `rgba(0, 0, 0, 0.85)`
-
-### Typography
-- **Primary Font:** 'Press Start 2P', monospace (pixel art style)
-- **Font Loading:** Via Google Fonts CDN
-
-### Button States
-```css
-.action-btn {
-  /* Normal */
-  background: rgba(0, 0, 0, 0.85);
-  border: 3px solid #FFD700;
-
-  /* Hover */
-  transform: translateY(-2px);
-  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.3);
-
-  /* Active */
-  transform: translateY(2px);
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
-}
-```
-
----
-
-## Key Formulas & Calculations
-
-### Manhattan Distance (NPC Interaction)
-```javascript
-const distance = Math.abs(npc.tileX - player.tileX) +
-                Math.abs(npc.tileY - player.tileY);
-// Interaction range: distance <= 3
-```
-
-### HP Bar Percentage
-```javascript
-const hpPercent = (currentHP / maxHP) * 100;
-```
-
-### Accuracy Calculation
-```javascript
-const total = rightAnswers + wrongAnswers;
-const accuracy = total > 0 ? Math.round((rightAnswers / total) * 100) : 0;
-```
-
----
-
-## File Changes Log
-
-### Added Files:
-1. `/src/components/ShareModal.vue` - Complete share card system
-2. `/public/assets/main-front.png` - Player front sprite
-3. `/public/assets/main-back.png` - Player back sprite
-4. `/public/assets/main-left.png` - Player left sprite
-5. `/public/assets/main-right.png` - Player right sprite
-6. `/HANDOFF.md` - This documentation
-
-### Modified Files:
-
-**src/game/scenes/MainMenu.js:**
-- Added player name input system (HTML overlay)
-- Removed all animations (title float, button pulse, star twinkle)
-- Increased font sizes for better visibility
-- Added character sprite previews
-- Improved layout spacing
-
-**src/game/scenes/Overworld.js:**
-- Added `init()` method to receive player name from MainMenu
-- Implemented directional sprite system (4-way movement)
-- Added minimap with gold border and label
-- Reduced player scale from 0.25 to 0.15
-- Reduced camera zoom from 2x to 1.3x
-- Implemented interaction prompt system (3-tile range)
-- Added EventBus listeners for battle rejection and player name
-
-**src/game/scenes/Preloader.js:**
-- Updated to load all 4 directional character sprites
-- Changed 'main-character' to 'main-front', 'main-back', 'main-left', 'main-right'
-
-**src/components/BattleScreen.vue:**
-- Added battle transition animation (1.5s swirling effect)
-- Added victory/defeat animations (stars, trophy, broken heart)
-- Added `answer-submitted` event emission for XP tracking
-- Implemented Pokemon-style HP bars with color coding
-
-**src/App.vue:**
-- Added complete XP and leveling system
-- Added player stats tracking (level, XP, HP, answers)
-- Added stats bar UI (level, HP, captured count)
-- Added action buttons (Collection, Share Stats)
-- Added handleAnswerResult() for XP/HP management
-- Added gainXP() and levelUp() functions
-- Added ShareModal integration
-- Implemented player name storage and passing
-
-**src/game/main.js:**
-- Changed canvas size from 640x480 to 960x640
-
----
-
-## Known Issues & Limitations
-
-### Current Limitations:
-1. **Static Battle Data:** Questions are hardcoded in App.vue, not loaded dynamically
-2. **No Save System:** Progress resets on page reload
-3. **Limited NPCs:** Only 3 NPCs implemented (Elena, Shreyas, Lenny)
-4. **No NPC Sprites:** Shreyas and Lenny use placeholder rectangles
-5. **No Walking Animation:** Character sprites are static (no frame animation)
-6. **Single Map:** Only one map (tuxemon-town) implemented
-7. **No Music/SFX:** No audio implementation
-
-### Sprite Direction Mapping Issue:
-The code swaps left/right sprite assignments because the original images were uploaded with reversed naming:
-```javascript
-// In movePlayer():
-dx < 0  → setTexture('main-right')  // Moving left shows right sprite
-dx > 0  → setTexture('main-left')   // Moving right shows left sprite
-```
-This was fixed by physically swapping the files in the assets folder.
-
----
-
-## Development Setup
-
-### Prerequisites:
 ```bash
-node >= 16.x
-npm >= 8.x
-```
-
-### Installation:
-```bash
-cd /Users/benmiro/Documents/PokeLenny/pokelenny-phaser
-npm install
-```
-
-### Development Server:
-```bash
-npm run dev
-# Runs on http://localhost:8080
-```
-
-### Build for Production:
-```bash
-npm run build
-# Output in dist/
-```
-
----
-
-## Future Improvements & TODOs
-
-### High Priority:
-1. **Save System:** LocalStorage or backend integration for progress persistence
-2. **Dynamic Question Loading:** Load questions from API or JSON files
-3. **More NPCs:** Add remaining podcast guests with proper sprites
-4. **Walking Animation:** Implement frame-by-frame walking cycles
-5. **Audio:** Add background music and sound effects
-
-### Medium Priority:
-6. **Multiple Maps:** Create new areas to explore
-7. **Items System:** Potions, power-ups, etc.
-8. **Difficulty Scaling:** Adjust question difficulty based on player level
-9. **Leaderboard:** Compare stats with other players
-10. **Mobile Optimization:** Touch controls and responsive design
-
-### Low Priority:
-11. **Particle Effects:** Battle effects, level up sparkles
-12. **Cutscenes:** Story introduction and NPC dialogues
-13. **Achievements:** Unlock badges for milestones
-14. **Trading System:** Share captured guests (future multiplayer)
-15. **Dark Mode:** Alternative color scheme
-
----
-
-## Testing Checklist
-
-### Core Functionality:
-- [ ] Player can enter name on start screen
-- [ ] Player name appears in share modal
-- [ ] Character sprite changes based on movement direction
-- [ ] Minimap follows player correctly
-- [ ] NPC interaction prompt appears within 3-tile range
-- [ ] Battle starts when pressing SPACE near NPC
-- [ ] Questions display correctly with 4 choices
-- [ ] Correct answers award +10 XP and damage guest
-- [ ] Wrong answers deduct -10 HP and damage player
-- [ ] Battle ends at 0 HP or 5 questions
-- [ ] Victory animation plays on win
-- [ ] Defeat animation plays on loss
-- [ ] Guest marked as captured after victory
-- [ ] XP bar updates and levels up correctly
-- [ ] HP bar updates and changes color based on %
-- [ ] Collection screen shows captured guests
-- [ ] Share modal displays correct stats
-- [ ] Share button copies to clipboard or uses native share
-
-### Visual Testing:
-- [ ] All sprites load correctly (no broken images)
-- [ ] Text is readable at all screen sizes
-- [ ] Buttons have proper hover effects
-- [ ] Animations play smoothly (no stuttering)
-- [ ] Layout fits within 100vh on desktop
-- [ ] Minimap border and label visible
-- [ ] HP bars show correct colors (green/yellow/red)
-
-### Edge Cases:
-- [ ] Empty name defaults to "Player"
-- [ ] Can't walk through walls or NPCs
-- [ ] Can't interact with already-captured NPCs
-- [ ] Level up at exactly required XP
-- [ ] HP can't go below 0
-- [ ] Collection button works without any captures
-
----
-
-## Contact & Handoff Notes
-
-**Original Developer:** Claude (AI Assistant)
-**Handoff Date:** January 20, 2026
-**Project Status:** Functional MVP with core gameplay loop complete
-
-**Critical Files to Review First:**
-1. `src/App.vue` - Central game state management
-2. `src/game/scenes/Overworld.js` - Main gameplay scene
-3. `src/components/BattleScreen.vue` - Battle UI and logic
-
-**Quick Start for New Developer:**
-```bash
-# 1. Clone/navigate to project
+# 1. Navigate to project
 cd /Users/benmiro/Documents/PokeLenny/pokelenny-phaser
 
 # 2. Install dependencies
@@ -659,72 +28,1722 @@ npm install
 # 3. Start dev server
 npm run dev
 
-# 4. Open browser to http://localhost:8080
+# 4. Open browser to http://localhost:5173
 # 5. Enter a name and start playing!
 ```
 
-**Important Notes:**
-- All assets must be in `public/assets/` folder
-- Phaser loads assets relative to `public/assets/` via `this.load.setPath('assets')`
-- EventBus is crucial for Phaser ↔ Vue communication
-- Player stats are managed in Vue (App.vue), not Phaser scenes
-- Hard refresh (Cmd+Shift+R) required when changing image assets
+**First Files to Review:**
+1. `src/App.vue` - Central game state management
+2. `src/game/scenes/Overworld.js` - Main gameplay scene
+3. `src/components/BattleScreen.vue` - Battle UI and logic
+4. `src/game/GuestData.js` - Guest data management
+5. `public/assets/guest_data.json` - All guest data and questions
 
 ---
 
-## Architecture Diagram
+## Project Structure
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                         Vue App (App.vue)                    │
-│  - Game State Management                                     │
-│  - Player Stats (Level, XP, HP)                             │
-│  - Collection Data                                           │
-│  - Event Handling                                            │
-└────────────────────────┬────────────────────────────────────┘
-                         │
-                    EventBus
-                         │
-    ┌────────────────────┼────────────────────┐
-    │                    │                    │
-    ▼                    ▼                    ▼
-┌─────────┐      ┌──────────────┐     ┌─────────────┐
-│ Phaser  │      │ BattleScreen │     │ ShareModal  │
-│ Scenes  │      │   (Vue)      │     │   (Vue)     │
-└─────────┘      └──────────────┘     └─────────────┘
-    │
-    ├─ Boot
-    ├─ Preloader (loads assets)
-    ├─ MainMenu (player name input)
-    └─ Overworld (main gameplay)
+pokelenny-phaser/
+├── public/
+│   ├── assets/
+│   │   ├── main-front.png              # Player character (front)
+│   │   ├── main-back.png               # Player character (back)
+│   │   ├── main-left.png               # Player character (left)
+│   │   ├── main-right.png              # Player character (right)
+│   │   ├── elena-front.png             # Elena Verna sprite
+│   │   ├── elena-side.png              # Elena Verna sprite
+│   │   ├── avatars/                    # Guest avatar images
+│   │   │   └── [GuestName]_pixel_art.png
+│   │   ├── tuxemon-town.json           # Tilemap data
+│   │   ├── tuxmon-sample-32px-extruded.png  # Tileset
+│   │   ├── guest_data.json             # All guest info & questions
+│   │   ├── bg.png                      # Background image
+│   │   ├── logo.png                    # Game logo
+│   │   ├── star.png                    # Star decoration
+│   │   ├── overworld-music.mp3         # Main game music
+│   │   ├── battle-music.mp3            # Battle music
+│   │   └── victory-fanfare.mp3         # Victory sound
+│   └── favicon.png                     # Site favicon
+│
+├── src/
+│   ├── game/
+│   │   ├── scenes/
+│   │   │   ├── Boot.js                 # Initial boot scene
+│   │   │   ├── Preloader.js            # Asset loading scene
+│   │   │   ├── MainMenu.js             # Start screen
+│   │   │   └── Overworld.js            # Main gameplay scene
+│   │   ├── EventBus.js                 # Phaser ↔ Vue communication
+│   │   ├── GameState.js                # Global game state
+│   │   ├── GuestData.js                # Guest data manager
+│   │   └── main.js                     # Phaser configuration
+│   │
+│   ├── components/
+│   │   ├── BattleScreen.vue            # Quiz battle interface
+│   │   ├── BattleResult.vue            # Battle end screen
+│   │   ├── CollectionScreen.vue        # Guest collection UI
+│   │   ├── EncounterDialog.vue         # Pre-battle dialog
+│   │   ├── GameOver.vue                # Game over modal
+│   │   ├── LeaderboardPanel.vue        # Leaderboard modal
+│   │   ├── ShareModal.vue              # Stats sharing modal
+│   │   └── TutorialModal.vue           # First-time tutorial
+│   │
+│   ├── App.vue                         # Main Vue application
+│   ├── PhaserGame.vue                  # Phaser game container
+│   └── main.js                         # Vue app entry point
+│
+├── package.json
+├── vite.config.js
+├── HANDOFF.md                          # This file
+└── README.md
+```
+
+---
+
+## Complete Game Flow
+
+### 1. **Boot & Preloading** (Boot.js → Preloader.js)
+- Initialize Phaser game engine
+- Load all assets (sprites, tilemaps, audio, guest data)
+- Parse guest_data.json and load guest avatars dynamically
+- Transition to MainMenu
+
+### 2. **Main Menu** (MainMenu.js)
+- Player enters their name (HTML input overlay)
+- Name validation and storage
+- Character sprite preview
+- Start button transitions to Overworld
+
+### 3. **First-Time Tutorial** (TutorialModal.vue)
+- Shows automatically after name entry (first play only)
+- 4-step instruction guide:
+  1. Explore the world (WASD/Arrow keys)
+  2. Battle & Answer trivia
+  3. Level up & progress
+  4. Build your collection
+- Stored in localStorage to prevent repeat display
+
+### 4. **Overworld Exploration** (Overworld.js)
+- Tile-based grid movement (32x32 tiles)
+- Player name displays below character
+- Minimap in bottom-right corner
+- 50 podcast guest NPCs dynamically spawned
+- Proximity detection for encounters
+
+### 5. **Encounter Dialog** (EncounterDialog.vue)
+- Pokemon-style textbox appears when near NPC
+- Typewriter effect with random encounter messages
+- SPACE to accept battle
+- Walk away to decline
+
+### 6. **Battle System** (BattleScreen.vue)
+- Transition animation (1.5s swirl effect)
+- 5 multiple-choice trivia questions
+- HP bars for player and guest
+- Correct answer: +10 XP, -20 guest HP
+- Wrong answer: -10 player HP, -20 guest HP
+- Battle ends at 0 HP or 5 questions
+
+### 7. **Battle Result** (BattleResult.vue)
+- **Victory:** Star burst animation, trophy, XP award
+- **Defeat:** Broken heart, game over possibility
+- Guest captured on victory
+- Returns to overworld
+
+### 8. **Level Progression**
+- XP requirements scale exponentially
+- Level up rewards: +20 Max HP, full HP restore
+- New level spawns next batch of 10 NPCs
+- Higher level guests = harder questions
+
+### 9. **Game Over** (GameOver.vue)
+- Triggered when player HP reaches 0
+- Shows final stats
+- Options: Restart game or Return to menu
+
+### 10. **Collection & Sharing**
+- **Collection Screen:** View all captured guests (grid layout)
+- **Leaderboard:** Top 50 players with pagination
+- **Share Modal:** Horizontal trainer card for social sharing
+
+---
+
+## Core Systems
+
+### Guest Data Management (GuestData.js)
+
+**Purpose:** Central manager for all guest data, questions, and avatar loading
+
+**Key Features:**
+- Loads `guest_data.json` containing 50 guests
+- Dynamically loads guest avatar images
+- Provides questions filtered by difficulty
+- Tracks guest capture status
+
+**API:**
+```javascript
+// Get all selected guests (50 guests from JSON)
+const guests = guestDataManager.getSelectedGuests();
+
+// Get questions for a specific guest
+const questions = guestDataManager.getQuestionsForGuest(guestId);
+
+// Get guest by ID
+const guest = guestDataManager.getGuestById(guestId);
+
+// Check if loaded
+const isReady = guestDataManager.isLoaded();
+```
+
+**Guest Data Structure:**
+```javascript
+{
+  "id": "elena_verna",
+  "name": "Elena Verna",
+  "episode": "Growth Strategy Master",
+  "difficulty": "Medium",
+  "avatarKey": "elena_verna_avatar",
+  "questions": [
+    {
+      "id": 1,
+      "type": "mcq",
+      "prompt": "What is Elena's top retention tip?",
+      "choices": ["A", "B", "C", "D"],
+      "correctAnswer": 2,
+      "explanation": "Elena emphasizes..."
+    }
+  ]
+}
+```
+
+---
+
+### Dynamic NPC Spawning System
+
+**Location:** `Overworld.js` lines 351-481
+
+**How It Works:**
+1. Game starts with Level 1, spawns first 10 guests
+2. Player captures guests through battles
+3. On level up, `spawn-next-level` event triggers
+4. Next 10 guests spawn at random valid positions
+5. Continues until all 50 guests are spawned
+
+**Spawning Algorithm:**
+- Validates tile is walkable (no collision)
+- Checks minimum spacing from other NPCs (2 tiles)
+- First guest (Elena) spawns near player starting position
+- Others spawn randomly across the map
+- Maximum 1000 attempts per NPC to find valid position
+
+**Code:**
+```javascript
+// Listen for level up
+EventBus.on('spawn-next-level', (data) => {
+  this.currentLevel = data.level;
+  this.clearAllNPCs();
+  this.spawnNPCsForLevel(data.enemiesCount);
+});
+
+// Spawn NPCs
+spawnNPCsForLevel(count) {
+  const selectedGuests = guestDataManager.getSelectedGuests();
+  const startIndex = this.spawnedGuestIndices.length;
+  const guestsToSpawn = selectedGuests.slice(startIndex, startIndex + count);
+  // Position and create NPC sprites...
+}
+```
+
+---
+
+### Audio System
+
+**Location:** `Overworld.js` (lines 138-291)
+
+**Audio Files:**
+- `overworld-music.mp3` - Main exploration theme (loops)
+- `battle-music.mp3` - Battle background music (loops)
+- `victory-fanfare.mp3` - Victory celebration (one-shot)
+
+**Audio Flow:**
+1. **Overworld:** Plays looping overworld music
+2. **Battle Start:** Pauses overworld, plays battle music
+3. **Battle Victory:** Stops battle music, plays victory fanfare
+4. **Battle End:** Resumes overworld music
+5. **Mute Control:** Global mute toggle in App.vue
+
+**Events:**
+```javascript
+// Vue → Phaser
+EventBus.on('play-battle-music', ...)
+EventBus.on('stop-battle-music', ...)
+EventBus.on('play-victory-sound', ...)
+EventBus.on('toggle-mute', (isMuted) => ...)
+```
+
+**Mute State:**
+- Persisted in localStorage (`pokelenny-mute-state`)
+- Applied on boot
+- Button in action buttons bar
+
+---
+
+### Level & XP System
+
+**Location:** `App.vue` (lines 90-175)
+
+**XP Awards:**
+- Correct answer: +10 XP
+- Wrong answer: 0 XP
+- Battle victory (guest captured): +50 XP
+
+**Level Formula:**
+```javascript
+const getXPForLevel = (level) => {
+  return Math.floor(100 * Math.pow(1.5, level - 1));
+};
+
+// XP Requirements:
+// Level 1 → 2: 100 XP
+// Level 2 → 3: 150 XP
+// Level 3 → 4: 225 XP
+// Level 4 → 5: 337 XP
+// Level 5 → 6: 506 XP
+```
+
+**Level Up Process:**
+```javascript
+function levelUp() {
+  playerStats.level++;
+  playerStats.maxHp += 20;
+  playerStats.hp = playerStats.maxHp; // Full restore
+
+  // Calculate new enemies to spawn
+  const enemiesForLevel = Math.min(10, totalGuests - capturedGuests);
+
+  // Emit event to spawn next batch
+  EventBus.emit('spawn-next-level', {
+    level: playerStats.level,
+    enemiesCount: enemiesForLevel
+  });
+
+  // Show level up notification
+  alert(`Level Up! You are now Level ${playerStats.level}\n...`);
+}
+```
+
+**HP System:**
+- Starting HP: 100
+- Starting Max HP: 100
+- Wrong answer penalty: -10 HP
+- Level up: +20 Max HP
+- HP <= 0 triggers Game Over
+
+---
+
+### Player Stats UI
+
+**Location:** `App.vue` (lines 495-511)
+
+**Stats Bar Components:**
+```html
+<!-- Level & XP Progress -->
+<div class="stat-item level-stat">
+  <div class="stat-label">Level</div>
+  <div class="stat-value">{{ playerStats.level }}</div>
+  <div class="xp-bar">
+    <div class="xp-fill" :style="{ width: xpPercentage + '%' }"></div>
+  </div>
+  <div class="xp-text">{{ playerStats.xp }} / {{ xpForNextLevel }} XP</div>
+</div>
+
+<!-- HP Bar -->
+<div class="stat-item hp-stat">
+  <div class="stat-label">HP</div>
+  <div class="hp-bar">
+    <div class="hp-fill" :style="{ width: hpPercentage + '%' }"></div>
+  </div>
+  <div class="hp-text">{{ playerStats.hp }} / {{ playerStats.maxHp }}</div>
+</div>
+
+<!-- Captured Count -->
+<div class="stat-item captured-stat">
+  <div class="stat-label">Captured</div>
+  <div class="stat-value">{{ capturedCount }} / {{ totalGuests }}</div>
+</div>
+```
+
+**Action Buttons:**
+- 📚 Collection - Opens collection screen
+- 🏆 Leaderboard - Opens leaderboard modal
+- 📤 Share Stats - Opens share modal
+- 🔊/🔇 Mute - Toggles audio
+
+---
+
+### Tutorial System (TutorialModal.vue)
+
+**Trigger:** First play after name entry
+
+**Storage:** `localStorage.getItem('pokelenny-tutorial-seen')`
+
+**Content:**
+1. **Explore the World** - Movement controls
+2. **Battle & Answer** - Combat mechanics
+3. **Level Up & Progress** - XP system explanation
+4. **Build Your Collection** - Collection screen (C key)
+
+**Design:**
+- Full-screen overlay with purple gradient background
+- Gold border and Press Start 2P font
+- Animated bounce icon
+- Click anywhere to dismiss
+- "Let's Go!" button
+
+---
+
+### Leaderboard System (LeaderboardPanel.vue)
+
+**Access:** Button click from action buttons
+
+**Features:**
+- Modal overlay design
+- Top 50 players with pagination (10 per page)
+- Medal icons for top 3 (🥇🥈🥉)
+- Player stats display:
+  - Level
+  - Max HP
+  - Captured/Total guests
+  - Accuracy percentage
+- Refresh button (prepared for backend API)
+- Current player highlighting
+- Close button (✕)
+
+**Mock Data Structure:**
+```javascript
+{
+  id: 1,
+  name: 'Lenny',
+  level: 50,
+  maxHp: 500,
+  captured: 45,
+  total: 50,
+  accuracy: 98,
+  isCurrentPlayer: false
+}
+```
+
+**Pagination Logic:**
+```javascript
+const playersPerPage = 10;
+const totalPages = computed(() =>
+  Math.ceil(leaderboardData.value.length / playersPerPage)
+);
+
+const currentPagePlayers = computed(() => {
+  const start = (currentPage.value - 1) * playersPerPage;
+  const end = start + playersPerPage;
+  return leaderboardData.value.slice(start, end);
+});
+
+function getRank(index) {
+  return (currentPage.value - 1) * playersPerPage + index + 1;
+}
+```
+
+**Backend Integration TODO:**
+- Line 86: Replace mock data with API call
+- Line 149: Implement `fetchLeaderboard()` function
+- Connect to Firebase or REST API
+
+---
+
+### Share System (ShareModal.vue)
+
+**Layout:** Horizontal trainer card (2-column grid)
+
+**Left Column:**
+- Player avatar (first letter in circle)
+- Player name and level
+- Stats grid:
+  - Max HP
+  - Total XP
+  - Accuracy
+  - Battles Won
+- Answer breakdown (✅ Correct / ❌ Wrong)
+
+**Right Column:**
+- "Captured Guests" section
+- 4-column grid of guest avatars
+- Placeholder slots for uncaptured
+
+**Share Methods:**
+
+1. **LinkedIn Share:**
+```javascript
+function shareOnLinkedIn() {
+  const shareText = `Just played PokéLenny - a fun game where you catch Lenny's Podcast guests and answer trivia!
+
+My Stats:
+🎮 Trainer: ${props.playerName}
+⭐ Level ${props.stats.level}
+🏆 ${props.stats.totalBattles} Battles Won
+🎯 ${props.accuracy}% Accuracy
+👥 ${props.capturedCount}/${props.totalGuests} Guests Captured
+
+Check it out and test your knowledge of Lenny's Podcast!
+
+https://pokelenny.com`;
+
+  const linkedInUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(shareText)}`;
+  window.open(linkedInUrl, '_blank');
+}
+```
+
+2. **Twitter/X Share:** Standard Web Share API or clipboard fallback
+
+3. **Copy Stats:** Quick copy of condensed stats
+
+---
+
+### Collection System (CollectionScreen.vue)
+
+**Access:** Click "📚 Collection" button or press C key
+
+**Layout:**
+- Grid display of all 50 guests
+- Captured guests: Full color with checkmark
+- Uncaptured: Grayscale with "???"
+- Guest card shows:
+  - Avatar image
+  - Name
+  - Episode title
+  - Difficulty badge
+
+**Filters (TODO):**
+- By difficulty (Easy/Medium/Hard)
+- By capture status (All/Captured/Uncaptured)
+- By episode
+
+---
+
+### Encounter Dialog System (EncounterDialog.vue)
+
+**Trigger:** Player within 2 tiles of NPC
+
+**Design:** Pokemon-style white textbox with black border
+
+**Features:**
+- NPC avatar thumbnail (40x40px)
+- NPC name header
+- Random encounter message:
+  - "wants to battle!"
+  - "challenges you!"
+  - "is ready to fight!"
+  - "spotted you!"
+  - etc.
+- Typewriter effect (40ms per character)
+- Blinking cursor during typing
+- Animated continue arrow (▼)
+- Instructions: "SPACE to battle • Walk away to cancel"
+
+**Position:** Fixed inside game canvas at bottom
+
+**Events:**
+- Shows on `show-encounter-dialog`
+- Hides on `hide-encounter-dialog`
+- Accepts on SPACE/ENTER key
+- Auto-hides when player walks away
+
+---
+
+### Battle Screen (BattleScreen.vue)
+
+**Position:** Absolutely positioned at top: 45% of viewport
+
+**Layout:**
+```
+┌─────────────────────────────────────────────┐
+│  [Guest Info Box]           [Turn Counter]  │
+│  Name: Elena Verna          Question 3/5    │
+│  HP: ████████░░ 80/100                      │
+│                                             │
+│  ┌───────────────────────────────────────┐ │
+│  │  Question Text Here?                  │ │
+│  └───────────────────────────────────────┘ │
+│                                             │
+│  [A] Choice 1              [B] Choice 2    │
+│  [C] Choice 3              [D] Choice 4    │
+│                                             │
+│  [Player Info Box]                          │
+│  Name: Your Name           HP: ████░░ 60/100│
+└─────────────────────────────────────────────┘
+```
+
+**HP Bar Colors:**
+- Green: > 50% HP
+- Yellow: 20-50% HP
+- Red: < 20% HP
+
+**Battle Transition:**
+- 1.5s swirling animation
+- Shrinking circle effect
+- Purple/pink gradient background
+
+**Answer Feedback:**
+- ✅ Correct: Green background, explanation shown
+- ❌ Wrong: Red background, explanation shown
+- 2-second display before next question
+
+**Victory Animation:**
+- 5 stars burst outward from center
+- Spinning trophy badge (360° rotation)
+- Pulsing "Victory!" title
+- Glowing "Continue" button
+- +50 XP award message
+
+**Defeat Animation:**
+- Broken heart icon (💔) scaling in
+- Shake effect on "Defeat" title
+- Red fade-in background
+- "Try Again" button
+
+---
+
+### Game Over System (GameOver.vue)
+
+**Trigger:** Player HP reaches 0 in battle
+
+**Display:**
+- Full-screen overlay
+- Final stats summary:
+  - Level reached
+  - Guests captured
+  - Total battles
+  - Accuracy
+- Animated broken heart background
+- Shake effect on title
+
+**Actions:**
+- **Restart Game:** Resets all progress, returns to overworld
+- **Return to Menu:** Goes back to main menu (name entry)
+
+**Restart Process:**
+```javascript
+EventBus.emit('restart-game');
+// Resets in Overworld.js:
+// - currentLevel = 1
+// - spawnedGuestIndices = []
+// - Clears all NPCs
+// - Spawns fresh level 1 NPCs
+// - Resets player position
+```
+
+---
+
+## Player Character System
+
+### Sprite Display
+**Location:** `Overworld.js` (lines 335-361)
+
+**Character Sprites:**
+- `main-front.png` - Facing down (default)
+- `main-back.png` - Facing up
+- `main-left.png` - Facing right (moving right)
+- `main-right.png` - Facing left (moving left)
+- Scale: 0.15x (smaller to match zoom)
+- Depth: 10 (renders above NPCs at depth 5)
+
+**Player Name Display:**
+- Positioned 35px below sprite
+- Font: Press Start 2P, 10px
+- Color: Gold (#FFD700)
+- Black stroke (3px thickness)
+- Follows player smoothly with tweens
+- Updates dynamically if name changes
+
+**Movement System:**
+- Grid-based: 32x32 pixel tiles
+- Move delay: 200ms between moves
+- Tween duration: 150ms (smooth glide)
+- Controls: WASD + Arrow keys + Mobile touch
+- Direction changes sprite texture instantly
+
+---
+
+## Mobile Controls
+
+**Location:** `Overworld.js` (lines 741-852)
+
+**Visibility:** Touch devices or screen width ≤ 1024px
+
+**D-Pad Layout:**
+```
+     ▲
+   ◀ A ▶
+     ▼
+```
+
+**Controls:**
+- 4 directional buttons (60px circles)
+- Center "A" button for interactions (green)
+- Bottom-left corner positioning
+- Pointerdown: Gold highlight
+- Pointerup/out: Returns to normal
+- Hidden during battles
+
+**Mobile Direction Logic:**
+```javascript
+if (this.mobileDirection) {
+  dx = 0;
+  dy = 0;
+  if (this.mobileDirection === 'up') dy = -1;
+  else if (this.mobileDirection === 'down') dy = 1;
+  else if (this.mobileDirection === 'left') dx = -1;
+  else if (this.mobileDirection === 'right') dx = 1;
+}
+```
+
+---
+
+## Event System (EventBus.js)
+
+**Purpose:** Communication bridge between Phaser and Vue
+
+### Phaser → Vue Events
+
+```javascript
+// Scene Management
+EventBus.emit('current-scene-ready', scene);
+
+// Battle Flow
+EventBus.emit('start-battle', { guestId, guestName });
+EventBus.emit('battle-starting');
+EventBus.emit('battle-ended');
+EventBus.emit('battle-rejected');
+
+// Encounter System
+EventBus.emit('show-encounter-dialog', { id, name, sprite, episode });
+EventBus.emit('hide-encounter-dialog');
+
+// Player Actions
+EventBus.emit('player-name-set', name);
+EventBus.emit('open-collection');
+
+// Game State
+EventBus.emit('spawn-next-level', { level, enemiesCount });
+EventBus.emit('remove-npc', guestId);
+EventBus.emit('restart-game');
+EventBus.emit('return-to-menu');
+
+// Assets
+EventBus.emit('guests-loaded', guests);
+```
+
+### Vue → Phaser Events
+
+```javascript
+// Audio Control
+EventBus.emit('play-battle-music');
+EventBus.emit('stop-battle-music');
+EventBus.emit('play-victory-sound');
+EventBus.emit('toggle-mute', isMuted);
+
+// Battle Flow
+EventBus.emit('battle-rejected');
+EventBus.emit('battle-ended');
+```
+
+---
+
+## Responsive Design
+
+### Breakpoints
+
+**Desktop (> 1600px):**
+- Horizontal layout: Stats | Game | Buttons
+- Full canvas size: 960x640px
+- All features visible
+
+**Tablet (1024px - 1600px):**
+- Vertical stack layout
+- Canvas centered
+- Stats bar on top
+- Action buttons below game
+
+**Mobile (< 1024px):**
+- Touch controls enabled
+- Font sizes reduced
+- Canvas scales to fit
+- Modals adjust to 95% width
+
+### Media Queries
+
+```css
+/* Tablet */
+@media (max-width: 1600px) {
+  .game-wrapper {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .leaderboard-title { font-size: 10px; }
+  .player-name { font-size: 8px; }
+  .stat { font-size: 6px; }
+}
+
+@media (max-width: 600px) {
+  .tutorial-title { font-size: 16px; }
+  .instruction-text h3 { font-size: 10px; }
+  .start-button { font-size: 12px; }
+}
+```
+
+---
+
+## Asset Management
+
+### Preloader System (Preloader.js)
+
+**Loading Sequence:**
+```javascript
+// 1. Set asset path
+this.load.setPath('assets');
+
+// 2. Load tilemap & tileset
+this.load.image('tiles', 'tuxmon-sample-32px-extruded.png');
+this.load.tilemapTiledJSON('map', 'tuxemon-town.json');
+
+// 3. Load player sprites (4 directions)
+this.load.image('main-front', 'main-front.png');
+this.load.image('main-back', 'main-back.png');
+this.load.image('main-left', 'main-left.png');
+this.load.image('main-right', 'main-right.png');
+
+// 4. Load UI assets
+this.load.image('bg', 'bg.png');
+this.load.image('logo', 'logo.png');
+this.load.image('star', 'star.png');
+
+// 5. Load audio
+this.load.audio('overworld-music', 'overworld-music.mp3');
+this.load.audio('battle-music', 'battle-music.mp3');
+this.load.audio('victory-fanfare', 'victory-fanfare.mp3');
+
+// 6. Load guest data JSON
+this.load.json('guestData', 'guest_data.json');
+
+// 7. Load Elena's special sprites
+this.load.image('elena-front', 'elena-front.png');
+this.load.image('elena-side', 'elena-side.png');
+```
+
+**Dynamic Guest Avatar Loading:**
+```javascript
+// After guest data loads
+const guestData = this.cache.json.get('guestData');
+guestData.guests.forEach(guest => {
+  const avatarPath = `avatars/${guest.name}_pixel_art.png`;
+  this.load.image(guest.avatarKey, avatarPath);
+});
+
+// Start loading
+this.load.start();
+```
+
+**Progress Bar:**
+- Shows loading percentage
+- Gold (#FFD700) fill color
+- Positioned center screen
+
+---
+
+## Styling & Design System
+
+### Color Palette
+
+```css
+/* Primary Colors */
+--gold: #FFD700;           /* Borders, highlights, titles */
+--purple-start: #667eea;   /* Gradient start */
+--purple-end: #764ba2;     /* Gradient end */
+
+/* HP Colors */
+--hp-green: #4ade80;       /* > 50% HP */
+--hp-yellow: #fbbf24;      /* 20-50% HP */
+--hp-red: #ef4444;         /* < 20% HP */
+
+/* XP Colors */
+--xp-blue-start: #60a5fa;
+--xp-blue-end: #3b82f6;
+
+/* Backgrounds */
+--dark-overlay: rgba(0, 0, 0, 0.85);
+--dark-panel: rgba(0, 0, 0, 0.95);
+
+/* Accent Colors */
+--green: #4CAF50;          /* Success, action buttons */
+--red: #ff4560;            /* Danger, close buttons */
+```
+
+### Typography
+
+**Primary Font:**
+```css
+font-family: 'Press Start 2P', monospace, sans-serif;
+```
+
+**Font Sizes:**
+- Main Title: 64px (MainMenu)
+- Modal Titles: 20px
+- Section Headers: 14-16px
+- Body Text: 10-12px
+- Small Text: 7-9px
+- Stats: 8-10px
+
+**Font Loading:**
+```html
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+```
+
+### Button States
+
+```css
+.action-btn {
+  /* Default */
+  background: rgba(0, 0, 0, 0.85);
+  border: 3px solid #FFD700;
+  border-radius: 8px;
+  padding: 12px 20px;
+
+  /* Hover */
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+  background: rgba(255, 215, 0, 0.1);
+
+  /* Active */
+  transform: translateY(0);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
+}
+```
+
+### Animations
+
+**Fade In:**
+```css
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+```
+
+**Slide Up:**
+```css
+@keyframes slideUp {
+  from {
+    transform: translateY(50px) scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+```
+
+**Bounce:**
+```css
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+```
+
+**Spin:**
+```css
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+```
+
+---
+
+## Key Algorithms
+
+### Manhattan Distance (Interaction Range)
+```javascript
+const distance = Math.abs(npc.tileX - player.tileX) +
+                 Math.abs(npc.tileY - player.tileY);
+
+// Interaction range: distance <= 2 tiles
+if (distance <= 2) {
+  // Show encounter dialog
+}
+```
+
+### HP Bar Percentage
+```javascript
+const hpPercent = (currentHP / maxHP) * 100;
+
+// Color coding
+if (hpPercent > 50) color = 'green';
+else if (hpPercent > 20) color = 'yellow';
+else color = 'red';
+```
+
+### Accuracy Calculation
+```javascript
+const total = rightAnswers + wrongAnswers;
+const accuracy = total > 0
+  ? Math.round((rightAnswers / total) * 100)
+  : 0;
+```
+
+### XP Progress Percentage
+```javascript
+const xpForNextLevel = getXPForLevel(playerStats.level + 1);
+const xpForCurrentLevel = getXPForLevel(playerStats.level);
+const xpInCurrentLevel = playerStats.xp - xpForCurrentLevel;
+const xpNeededForLevel = xpForNextLevel - xpForCurrentLevel;
+const xpPercentage = (xpInCurrentLevel / xpNeededForLevel) * 100;
+```
+
+### Valid NPC Position Check
+```javascript
+function isValidPosition(x, y, existingPositions) {
+  // Check bounds (2 tile margin)
+  if (x < 2 || x >= mapWidth - 2 || y < 2 || y >= mapHeight - 2) {
+    return false;
+  }
+
+  // Check tile is walkable
+  const tile = worldLayer.getTileAt(x, y);
+  if (!tile || tile.collides) {
+    return false;
+  }
+
+  // Check spacing from existing NPCs (minimum 2 tiles)
+  for (const pos of existingPositions) {
+    const distance = Math.abs(pos.x - x) + Math.abs(pos.y - y);
+    if (distance < 2) {
+      return false;
+    }
+  }
+
+  return true;
+}
+```
+
+---
+
+## Configuration Files
+
+### Phaser Config (src/game/main.js)
+
+```javascript
+const config = {
+  type: Phaser.AUTO,
+  width: 960,
+  height: 640,
+  parent: 'game-container',
+  backgroundColor: '#028af8',
+  pixelArt: true,  // Critical for crisp pixel art
+  scene: [Boot, Preloader, MainMenu, Overworld]
+};
+
+export default new Phaser.Game(config);
+```
+
+### Vite Config (vite.config.js)
+
+```javascript
+import { defineConfig } from 'vite';
+import vue from '@vitejs/plugin-vue';
+
+export default defineConfig({
+  plugins: [vue()],
+  base: './',
+  server: {
+    port: 5173
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          phaser: ['phaser']
+        }
+      }
+    }
+  }
+});
+```
+
+---
+
+## Data Structures
+
+### Player Stats Object
+```javascript
+const playerStats = ref({
+  level: 1,
+  xp: 0,
+  hp: 100,
+  maxHp: 100,
+  rightAnswers: 0,
+  wrongAnswers: 0,
+  totalBattles: 0
+});
+```
+
+### Guest Object (from guest_data.json)
+```javascript
+{
+  "id": "elena_verna",
+  "name": "Elena Verna",
+  "episode": "Growth Strategy Master",
+  "difficulty": "Medium",
+  "avatarKey": "elena_verna_avatar",
+  "questions": [
+    {
+      "id": 1,
+      "type": "mcq",
+      "prompt": "What is Elena's core growth philosophy?",
+      "choices": [
+        "Growth at all costs",
+        "Retention comes before acquisition",
+        "Viral loops are everything",
+        "Focus only on paid acquisition"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Elena emphasizes that retention must come before acquisition for sustainable growth."
+    }
+  ]
+}
+```
+
+### NPC Object (in Overworld.js)
+```javascript
+const npc = {
+  id: guestId,
+  name: guestName,
+  tileX: x,
+  tileY: y,
+  direction: 'down',
+  sprite: spriteObject,
+  challenged: false,
+  defeated: false,
+  episode: guest.episode,
+  difficulty: guest.difficulty
+};
+```
+
+### Battle State (BattleScreen.vue)
+```javascript
+const battleState = ref({
+  stage: 'transition', // 'transition', 'question', 'feedback', 'victory', 'defeat'
+  currentQuestion: 0,
+  totalQuestions: 5,
+  playerHP: 100,
+  playerMaxHP: 100,
+  guestHP: 100,
+  guestMaxHP: 100,
+  selectedAnswer: null,
+  isCorrect: false,
+  feedback: ''
+});
+```
+
+---
+
+## Performance Considerations
+
+### Asset Optimization
+- Use extruded tileset to prevent bleeding
+- Compress images (PNG-8 when possible)
+- Lazy load guest avatars after initial boot
+- Cache audio files in browser
+
+### Rendering Optimization
+- Set `pixelArt: true` in Phaser config
+- Use sprite depths to control render order
+- Limit concurrent tweens
+- Disable animations during battles
+
+### Memory Management
+- Destroy removed NPC sprites
+- Clear event listeners on component unmount
+- Use computed properties in Vue for derived state
+- Reuse audio objects (don't recreate)
+
+### Code Splitting
+- Phaser library in separate chunk
+- Lazy load modals only when needed
+- Guest data loads after boot
+
+---
+
+## Testing Checklist
+
+### Core Functionality
+- [x] Player can enter name on start screen
+- [x] Tutorial shows on first play only
+- [x] Character sprite changes based on movement direction
+- [x] Player name displays below character
+- [x] Minimap follows player correctly
+- [x] NPC encounter dialog appears within 2-tile range
+- [x] Battle starts when pressing SPACE near NPC
+- [x] Questions display correctly with 4 choices
+- [x] Correct answers award +10 XP and damage guest
+- [x] Wrong answers deduct -10 HP and damage guest
+- [x] Battle ends at 0 HP or 5 questions
+- [x] Victory animation plays on win
+- [x] Defeat animation plays on loss
+- [x] Guest marked as captured after victory
+- [x] Guest removed from map after capture
+- [x] XP bar updates and levels up correctly
+- [x] HP bar updates and changes color based on %
+- [x] Level up spawns next batch of NPCs
+- [x] Game over triggers at 0 HP
+- [x] Collection screen shows captured guests
+- [x] Leaderboard modal opens with pagination
+- [x] Share modal displays correct stats
+- [x] LinkedIn share opens with prepopulated text
+- [x] Audio plays and pauses correctly
+- [x] Mute button toggles all audio
+- [x] Mobile controls appear on touch devices
+
+### Visual Testing
+- [x] All sprites load correctly (no broken images)
+- [x] Text is readable at all screen sizes
+- [x] Buttons have proper hover effects
+- [x] Animations play smoothly (no stuttering)
+- [x] Layout responsive on mobile, tablet, desktop
+- [x] Minimap border and label visible
+- [x] HP bars show correct colors (green/yellow/red)
+- [x] Modal overlays center correctly
+- [x] Encounter dialog positioned inside canvas
+
+### Edge Cases
+- [x] Empty name defaults to "Player"
+- [x] Can't walk through walls or NPCs
+- [x] Can't interact with captured NPCs
+- [x] Level up at exactly required XP
+- [x] HP can't go below 0
+- [x] Collection works with 0 captures
+- [x] Leaderboard pagination handles last page
+- [x] Tutorial doesn't show on subsequent plays
+- [x] Audio resumes after battle
+- [x] Game restarts properly from game over
+
+---
+
+## Known Issues & Limitations
+
+### Current Limitations
+1. **No Save System:** Progress resets on page reload (LocalStorage TODO)
+2. **Mock Leaderboard:** Not connected to backend API
+3. **Static Guest Data:** Loaded from JSON, not dynamic API
+4. **No Walking Animation:** Character sprites are static (no frame cycles)
+5. **Single Map:** Only one tilemap implemented
+6. **Fixed Question Pool:** 5 questions per guest, no randomization beyond order
+7. **No User Authentication:** No login system (Firebase ready)
+
+### Minor Issues
+- Mobile controls may overlap with minimap on very small screens
+- Encounter dialog typewriter can be interrupted by movement
+- Audio context may not start until user interaction (browser policy)
+
+### Future Browser Compatibility
+- Web Audio API required (no IE support)
+- Native Share API fallback to clipboard on desktop
+- Touch events for mobile controls
+
+---
+
+## Future Improvements & Roadmap
+
+### Phase 1: Backend Integration (High Priority)
+- [ ] Firebase Authentication (user accounts)
+- [ ] Firestore for player progress persistence
+- [ ] Real-time leaderboard updates
+- [ ] Cloud Functions for question generation
+- [ ] User profile system
+
+### Phase 2: Enhanced Gameplay (Medium Priority)
+- [ ] Multiple maps with transitions
+- [ ] Items system (HP potions, XP boosts)
+- [ ] Walking animations (4-frame cycles)
+- [ ] Difficulty scaling based on player level
+- [ ] Daily challenges
+- [ ] Achievement system
+- [ ] Guest rarity system (Common/Rare/Legendary)
+
+### Phase 3: Social Features (Medium Priority)
+- [ ] Friend system
+- [ ] Trading captured guests
+- [ ] Battle other players
+- [ ] Guild/team system
+- [ ] Social media integration improvements
+
+### Phase 4: Polish & Optimization (Low Priority)
+- [ ] Particle effects (battle hits, level up sparkles)
+- [ ] Cutscenes and story mode
+- [ ] NPC idle animations
+- [ ] Environmental animations (water, grass)
+- [ ] Sound effects (footsteps, menu clicks)
+- [ ] Background music variations
+- [ ] Dark mode / theme system
+
+### Phase 5: Advanced Features (Future)
+- [ ] Procedurally generated maps
+- [ ] Dynamic question generation (AI)
+- [ ] Voice acting for NPCs
+- [ ] Mini-games between battles
+- [ ] Seasonal events
+- [ ] Battle replays
+- [ ] Spectator mode
+
+---
+
+## Deployment Guide
+
+### Production Build
+
+```bash
+# 1. Build for production
+npm run build
+
+# Output: dist/ folder contains:
+# - index.html
+# - assets/ (bundled JS, CSS)
+# - public/ (images, audio)
+```
+
+### Deployment Checklist
+
+- [ ] Update Firebase config (if using)
+- [ ] Set correct base URL in vite.config.js
+- [ ] Optimize images (compress PNGs)
+- [ ] Test on multiple devices
+- [ ] Verify audio files load
+- [ ] Check CORS for API calls
+- [ ] Enable HTTPS (required for audio)
+- [ ] Configure CDN for assets
+- [ ] Set up analytics
+- [ ] Monitor error logging
+
+### Hosting Options
+
+**Recommended:**
+- **Firebase Hosting** (best for Firebase integration)
+- **Vercel** (easy deployment, great DX)
+- **Netlify** (drag-and-drop deploy)
+
+**Deploy to Firebase:**
+```bash
+# Install Firebase CLI
+npm install -g firebase-tools
+
+# Login
+firebase login
+
+# Initialize
+firebase init hosting
+
+# Deploy
+firebase deploy --only hosting
+```
+
+### Environment Variables
+
+```bash
+# .env.production
+VITE_API_URL=https://api.pokelenny.com
+VITE_FIREBASE_API_KEY=your_api_key
+VITE_FIREBASE_PROJECT_ID=your_project_id
+```
+
+---
+
+## Backend API Specification (TODO)
+
+### Endpoints Needed
+
+**Authentication:**
+```
+POST /api/auth/register
+POST /api/auth/login
+POST /api/auth/logout
+GET  /api/auth/me
+```
+
+**Player Data:**
+```
+GET  /api/player/:id
+POST /api/player/save
+GET  /api/player/:id/progress
+POST /api/player/:id/capture
+```
+
+**Leaderboard:**
+```
+GET  /api/leaderboard?page=1&limit=10
+GET  /api/leaderboard/rank/:playerId
+```
+
+**Guests & Questions:**
+```
+GET  /api/guests
+GET  /api/guests/:id
+GET  /api/guests/:id/questions?difficulty=medium
+POST /api/questions/report (for incorrect questions)
+```
+
+**Stats & Analytics:**
+```
+POST /api/stats/battle-result
+GET  /api/stats/global
+GET  /api/stats/player/:id
+```
+
+### Data Models
+
+**User:**
+```javascript
+{
+  id: String,
+  username: String,
+  email: String,
+  createdAt: Timestamp,
+  lastLogin: Timestamp
+}
+```
+
+**PlayerProgress:**
+```javascript
+{
+  userId: String,
+  level: Number,
+  xp: Number,
+  hp: Number,
+  maxHp: Number,
+  capturedGuests: Array<String>,
+  rightAnswers: Number,
+  wrongAnswers: Number,
+  totalBattles: Number,
+  updatedAt: Timestamp
+}
+```
+
+**LeaderboardEntry:**
+```javascript
+{
+  playerId: String,
+  playerName: String,
+  level: Number,
+  maxHp: Number,
+  capturedCount: Number,
+  totalGuests: Number,
+  accuracy: Number,
+  rank: Number,
+  updatedAt: Timestamp
+}
+```
+
+---
+
+## Firebase Integration Guide
+
+### MCP Tools Available
+
+The project has Firebase MCP tools integrated and ready:
+
+```bash
+# Login to Firebase
+firebase_login
+
+# Get current project
+firebase_get_project
+
+# List projects
+firebase_list_projects
+
+# Initialize features
+firebase_init features={...}
+
+# Deploy
+firebase deploy
+```
+
+### Firebase Services to Use
+
+1. **Authentication:** User accounts
+2. **Firestore:** Player progress, leaderboard
+3. **Storage:** User uploaded content (future)
+4. **Cloud Functions:** Server-side logic
+5. **Hosting:** Deploy the game
+
+### Firestore Collections Structure
+
+```
+users/
+  {userId}/
+    profile: { name, createdAt, ... }
+    progress: { level, xp, hp, ... }
+    captured: { guestIds: [...] }
+
+leaderboard/
+  {entryId}: { playerId, rank, stats, ... }
+
+guests/
+  {guestId}: { name, episode, difficulty, ... }
+
+questions/
+  {questionId}: { guestId, prompt, choices, ... }
+```
+
+---
+
+## Troubleshooting Common Issues
+
+### Audio Won't Play
+**Cause:** Browser autoplay policy blocks audio until user interaction
+**Fix:** Audio starts after first user click (button, movement)
+
+### Sprites Not Loading
+**Cause:** Incorrect asset path or cache issue
+**Fix:** Hard refresh (Cmd+Shift+R), check console for 404 errors
+
+### TypeScript Errors in IDE
+**Cause:** Phaser types not recognized
+**Fix:** Install `@types/phaser` or add `// @ts-ignore`
+
+### Battle Screen Misaligned
+**Cause:** CSS positioning changed
+**Fix:** Verify `top: 45%` in BattleScreen.vue
+
+### NPCs Spawn Inside Walls
+**Cause:** Collision detection not checking tiles
+**Fix:** Ensure `worldLayer.getTileAt()` validates position
+
+### Leaderboard Doesn't Update
+**Cause:** Using mock data, not connected to backend
+**Fix:** Implement backend API calls (see lines 86, 149 in LeaderboardPanel.vue)
+
+### Name Doesn't Persist
+**Cause:** No LocalStorage or backend save
+**Fix:** Add `localStorage.setItem('playerName', name)` in App.vue
+
+---
+
+## Code Style & Conventions
+
+### Naming Conventions
+
+**Files:**
+- Components: PascalCase (BattleScreen.vue)
+- Scenes: PascalCase (Overworld.js)
+- Utilities: camelCase (gameState.js)
+
+**Variables:**
+- Refs: camelCase (playerStats)
+- Constants: UPPER_SNAKE_CASE (MAX_HP)
+- Functions: camelCase (handleBattle)
+- Components: PascalCase (<BattleScreen />)
+
+**Events:**
+- kebab-case ('start-battle', 'player-name-set')
+
+### Vue Composition API Patterns
+
+```javascript
+// Refs for reactive state
+const playerStats = ref({...});
+
+// Computed for derived state
+const accuracy = computed(() => ...);
+
+// Functions for actions
+function handleBattle() {...}
+
+// Lifecycle hooks
+onMounted(() => {...});
+onUnmounted(() => {...});
+
+// Props
+const props = defineProps({...});
+
+// Emits
+const emit = defineEmits(['close', 'update']);
+```
+
+### Phaser Scene Patterns
+
+```javascript
+export class SceneName extends Scene {
+  constructor() {
+    super('SceneName');
+  }
+
+  init(data) {
+    // Receive data from previous scene
+  }
+
+  preload() {
+    // Load assets (usually in Preloader)
+  }
+
+  create() {
+    // Initialize scene
+  }
+
+  update(time, delta) {
+    // Game loop
+  }
+}
+```
+
+### Event Handling
+
+```javascript
+// Listen to events
+EventBus.on('event-name', (data) => {...});
+
+// Emit events
+EventBus.emit('event-name', data);
+
+// Clean up on unmount
+onUnmounted(() => {
+  EventBus.off('event-name');
+});
+```
+
+---
+
+## Git Commit History
+
+### Recent Major Commits
+
+```
+79a1354 - Convert leaderboard to modal and display player name below character
+03d8718 - Add leaderboard panel to show top 50 players with competition stats
+0ab2bfc - Add first-time tutorial modal to explain game mechanics
+4c0f89d - Move battle screen and encounter dialog up to match game window position
+59d7ee2 - Revert to Press Start 2P font
+681b8ca - Add LinkedIn share button to ShareModal with horizontal layout
+5a3b2e1 - Add audio system (overworld, battle, victory music)
+2c1f4de - Implement dynamic NPC spawning with level progression
+1d8e9ab - Add game over system with restart functionality
+9f4c6ba - Integrate GuestData manager with 50 guests
+...
+```
+
+---
+
+## Contact & Support
+
+**Project Owner:** Ben Miro
+**Development AI:** Claude (Anthropic)
+**Project Repository:** (Add GitHub link)
+**Live Demo:** (Add deployed URL)
+
+**For Questions:**
+- Check inline code comments first
+- Review this HANDOFF.md
+- Check `public/assets/guest_data.json` for data structure
+- Console logs in Overworld.js show NPC spawn debugging
+
+**Critical Files for New Developers:**
+1. `src/App.vue` - Game state orchestration
+2. `src/game/scenes/Overworld.js` - Core gameplay
+3. `src/components/BattleScreen.vue` - Battle mechanics
+4. `src/game/GuestData.js` - Data management
+5. `public/assets/guest_data.json` - Content database
+
+---
+
+## Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                   Vue App (App.vue)                     │
+│  • Global State (Stats, HP, XP, Captured)              │
+│  • Event Orchestration                                  │
+│  • Modal Management                                     │
+│  • Audio Control                                        │
+└────────────────────┬────────────────────────────────────┘
+                     │
+                EventBus
+                     │
+    ┌────────────────┼────────────────────┐
+    │                │                    │
+    ▼                ▼                    ▼
+┌──────────┐  ┌──────────────┐  ┌────────────────┐
+│ Phaser   │  │ BattleScreen │  │ UI Components  │
+│ Scenes   │  │   (Vue)      │  │ (Vue Modals)   │
+└──────────┘  └──────────────┘  └────────────────┘
+    │              │                     │
+    ├─ Boot        ├─ Questions         ├─ Tutorial
+    ├─ Preloader   ├─ Feedback          ├─ Leaderboard
+    ├─ MainMenu    ├─ Victory/Defeat    ├─ Collection
+    └─ Overworld   └─ HP/XP Display     ├─ ShareModal
+         │                               └─ GameOver
+         ├─ Player
+         ├─ NPCs (50 guests)
+         ├─ Minimap
+         └─ Mobile Controls
+
+┌─────────────────────────────────────────────────────────┐
+│                  Data Layer                             │
+│  • GuestData.js (manager)                               │
+│  • guest_data.json (50 guests, questions)              │
+│  • GameState.js (global flags)                          │
+│  • LocalStorage (tutorial seen, mute state)            │
+└─────────────────────────────────────────────────────────┘
 ```
 
 ---
 
 ## Version History
 
-**v0.5 (Current)** - January 20, 2026
-- Added directional character sprites
-- Implemented XP and leveling system
-- Added share modal with trainer card
+**v1.0 (Current)** - January 23, 2026
+- ✅ Complete game loop with 50 guests
+- ✅ Tutorial modal for first-time players
+- ✅ Leaderboard system with pagination
+- ✅ Player name display below character
+- ✅ Audio system (music + SFX)
+- ✅ Game over and restart functionality
+- ✅ Dynamic NPC spawning with level progression
+- ✅ LinkedIn sharing with horizontal trainer card
+- ✅ Mobile touch controls
+- ✅ Responsive design for all devices
+
+**v0.5** - January 20, 2026
+- Directional character sprites
+- XP and leveling system
+- Share modal with trainer card
 - Improved start screen layout
-- Removed all animations per design requirements
 
-**v0.4**
-- Added battle animations (transition, victory, defeat)
-- Implemented stats bar and action buttons
+**v0.4** - January 18, 2026
+- Battle animations (transition, victory, defeat)
+- Stats bar and action buttons
+- Encounter dialog system
 
-**v0.3**
-- Added minimap functionality
-- Implemented NPC interaction system
-- Created battle screen UI
+**v0.3** - January 15, 2026
+- Minimap functionality
+- NPC interaction system
+- Battle screen UI
 
-**v0.2**
-- Basic overworld with tile-based movement
+**v0.2** - January 12, 2026
+- Tile-based overworld movement
 - Collision detection
 - Camera system
 
-**v0.1**
+**v0.1** - January 10, 2026
 - Initial Phaser + Vue setup
 - Asset loading system
 
@@ -732,9 +1751,14 @@ npm run dev
 
 ## License & Credits
 
-**Game Assets:**
-- Tuxemon tileset: Open source (Tuxemon project)
-- Character sprites: Custom created
+**Game Design:** PokéLenny Team
+**Development:** Claude AI + Ben Miro
+**Podcast Content:** Lenny's Podcast (Lenny Rachitsky)
+
+**Assets:**
+- Tuxemon Tileset: Open source (Tuxemon project)
+- Character Sprites: Custom created
+- Guest Avatars: Custom pixel art
 - Font: Press Start 2P by Google Fonts (SIL Open Font License)
 
 **Libraries:**
@@ -746,4 +1770,9 @@ npm run dev
 
 **End of Handoff Documentation**
 
-For questions or clarifications, refer to inline code comments or create detailed documentation tickets.
+This document contains everything a new developer needs to understand, maintain, and extend PokéLenny. For specific implementation details, refer to inline code comments and the files mentioned throughout this document.
+
+**Last Updated:** January 23, 2026
+**Status:** Production-ready MVP with full core gameplay loop
+
+Good luck, and happy coding! 🎮
