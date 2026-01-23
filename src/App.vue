@@ -806,6 +806,16 @@ body {
   flex-shrink: 0;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   border: 4px solid #FFD700;
+  width: min(960px, 95vw);
+  aspect-ratio: 3 / 2;
+  max-width: 960px;
+  background: #000;
+}
+
+#game-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
 }
 
 .action-buttons {
@@ -993,6 +1003,10 @@ body {
     padding: 15px;
   }
 
+  #game-container {
+    width: min(95vw, 900px);
+  }
+
   .game-title {
     font-size: 28px;
   }
@@ -1033,6 +1047,11 @@ body {
   #app {
     gap: 10px;
     padding: 10px;
+  }
+
+  #game-container {
+    width: 96vw;
+    border-width: 3px;
   }
 
   .game-title {
