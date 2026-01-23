@@ -13,7 +13,10 @@
           :alt="npcData.name"
           class="npc-avatar-small"
         />
-        <span class="name-text">{{ npcData.name }}</span>
+        <div class="npc-info">
+          <span class="name-text">{{ npcData.name }}</span>
+          <span class="title-text" v-if="guestTitle">{{ guestTitle }}</span>
+        </div>
       </div>
 
       <!-- Message content with typewriter effect -->
@@ -38,7 +41,8 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { getGuestTitle } from '../game/GuestTitles.js';
 
 const props = defineProps({
   isActive: Boolean,
@@ -49,6 +53,12 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['accept', 'reject']);
+
+// Get guest title
+const guestTitle = computed(() => {
+  if (!props.npcData?.name) return '';
+  return getGuestTitle(props.npcData.name);
+});
 
 // Random encounter messages
 const encounterMessages = [
@@ -210,11 +220,24 @@ onUnmounted(() => {
   background: #f0f0f0;
 }
 
+.npc-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .name-text {
   font-size: 16px;
   color: #000;
   text-transform: uppercase;
   letter-spacing: 1px;
+}
+
+.title-text {
+  font-size: 10px;
+  color: #666;
+  font-weight: normal;
+  letter-spacing: 0.5px;
 }
 
 /* Message content */
