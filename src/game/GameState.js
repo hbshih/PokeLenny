@@ -137,8 +137,9 @@ export class GameState {
                 this.data.battleStats.perfectBattles++;
             }
 
-            // Add score
-            this.data.currentScore += result.score;
+            // Add XP (fallback to score for older callers)
+            const xpGained = result.xpGained ?? result.score ?? 0;
+            this.data.currentScore += xpGained;
         } else {
             this.data.battleStats.losses++;
         }

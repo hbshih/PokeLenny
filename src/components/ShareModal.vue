@@ -26,22 +26,22 @@
             <!-- Stats Grid -->
             <div class="stats-grid">
               <div class="stat-card">
-                <div class="stat-icon">💚</div>
+                <Icon class="stat-icon" :icon="heart" />
                 <div class="stat-label">HP</div>
                 <div class="stat-value">{{ stats.hp }}/{{ stats.maxHp }}</div>
               </div>
               <div class="stat-card">
-                <div class="stat-icon">⭐</div>
+                <Icon class="stat-icon" :icon="zap" />
                 <div class="stat-label">XP</div>
                 <div class="stat-value">{{ stats.xp }}</div>
               </div>
               <div class="stat-card">
-                <div class="stat-icon">🎯</div>
+                <Icon class="stat-icon" :icon="bullseye" />
                 <div class="stat-label">Accuracy</div>
                 <div class="stat-value">{{ accuracy }}%</div>
               </div>
               <div class="stat-card">
-                <div class="stat-icon">🏆</div>
+                <Icon class="stat-icon" :icon="trophy" />
                 <div class="stat-label">Battles</div>
                 <div class="stat-value">{{ stats.totalBattles }}</div>
               </div>
@@ -50,12 +50,12 @@
             <!-- Answer Stats -->
             <div class="answer-stats">
               <div class="answer-stat correct">
-                <span class="answer-icon">✅</span>
+                <Icon class="answer-icon" :icon="check" />
                 <span class="answer-count">{{ stats.rightAnswers }}</span>
                 <span class="answer-label">Correct</span>
               </div>
               <div class="answer-stat incorrect">
-                <span class="answer-icon">❌</span>
+                <Icon class="answer-icon" :icon="close" />
                 <span class="answer-count">{{ stats.wrongAnswers }}</span>
                 <span class="answer-label">Wrong</span>
               </div>
@@ -74,10 +74,12 @@
                 >
                   <div class="guest-sprite">
                     <img
+                      v-if="!isGuestImageFailed(guest)"
                       :src="getGuestAvatarPath(guest)"
                       :alt="guest.name"
-                      @error="handleImageError"
+                      @error="handleImageError(guest)"
                     />
+                    <Icon v-else class="guest-fallback-icon" :icon="user" />
                   </div>
                   <p class="guest-name">{{ guest.name }}</p>
                 </div>
@@ -104,10 +106,12 @@
           Share on LinkedIn
         </button>
         <button class="action-btn share-btn" @click="shareCard">
-          📤 Share
+          <Icon class="action-icon" :icon="upload" />
+          Share
         </button>
         <button class="action-btn copy-btn" @click="copyStats">
-          📋 Copy Stats
+          <Icon class="action-icon" :icon="copy" />
+          Copy Stats
         </button>
       </div>
     </div>
@@ -115,7 +119,17 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
+import { Icon } from '@iconify/vue';
+import heart from '@iconify/icons-pixelarticons/heart';
+import zap from '@iconify/icons-pixelarticons/zap';
+import bullseye from '@iconify/icons-pixelarticons/bullseye';
+import trophy from '@iconify/icons-pixelarticons/trophy';
+import check from '@iconify/icons-pixelarticons/check';
+import close from '@iconify/icons-pixelarticons/close';
+import user from '@iconify/icons-pixelarticons/user';
+import upload from '@iconify/icons-pixelarticons/upload';
+import copy from '@iconify/icons-pixelarticons/copy';
 
 const props = defineProps({
   isActive: Boolean,
@@ -128,6 +142,8 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['close']);
+
+const failedGuestIds = ref(new Set());
 
 const capturedGuests = computed(() => {
   return props.collection.filter(g => g.captured);
@@ -145,10 +161,15 @@ function getGuestAvatarPath(guest) {
   return `/assets/avatars/${guest.name}_pixel_art.png`;
 }
 
-function handleImageError(event) {
-  // Fallback to a default avatar if image fails to load
-  event.target.style.display = 'none';
-  event.target.parentElement.textContent = '👤';
+function handleImageError(guest) {
+  if (!guest?.id) return;
+  const next = new Set(failedGuestIds.value);
+  next.add(guest.id);
+  failedGuestIds.value = next;
+}
+
+function isGuestImageFailed(guest) {
+  return failedGuestIds.value.has(guest.id);
 }
 
 function closeModal() {
@@ -159,11 +180,11 @@ function shareOnLinkedIn() {
   const shareText = `Just played PokéLenny - a fun game where you catch Lenny's Podcast guests and answer trivia!
 
 My Stats:
-🎮 Trainer: ${props.playerName}
-⭐ Level ${props.stats.level}
-🏆 ${props.stats.totalBattles} Battles Won
-🎯 ${props.accuracy}% Accuracy
-👥 ${props.capturedCount}/${props.totalGuests} Guests Captured
+Trainer: ${props.playerName}
+Level ${props.stats.level}
+${props.stats.totalBattles} Battles Won
+${props.accuracy}% Accuracy
+${props.capturedCount}/${props.totalGuests} Guests Captured
 
 ${capturedGuests.value.length > 0 ? 'Captured Guests: ' + capturedGuests.value.slice(0, 5).map(g => g.name).join(', ') + (capturedGuests.value.length > 5 ? '...' : '') : ''}
 
@@ -177,20 +198,20 @@ https://pokelenny.com`;
 }
 
 function shareCard() {
-  const shareText = `🎮 PokéLenny Trainer Card 🎮
+  const shareText = `PokéLenny Trainer Card
 
-👤 Trainer: ${props.playerName}
-⭐ Level: ${props.stats.level}
-💚 HP: ${props.stats.hp}/${props.stats.maxHp}
+Trainer: ${props.playerName}
+Level: ${props.stats.level}
+HP: ${props.stats.hp}/${props.stats.maxHp}
 
-📊 Stats:
-🏆 Battles Won: ${props.stats.totalBattles}
-🎯 Accuracy: ${props.accuracy}%
-✅ Correct Answers: ${props.stats.rightAnswers}
-❌ Wrong Answers: ${props.stats.wrongAnswers}
-👥 Guests Captured: ${props.capturedCount}/${props.totalGuests}
+Stats:
+Battles Won: ${props.stats.totalBattles}
+Accuracy: ${props.accuracy}%
+Correct Answers: ${props.stats.rightAnswers}
+Wrong Answers: ${props.stats.wrongAnswers}
+Guests Captured: ${props.capturedCount}/${props.totalGuests}
 
-${capturedGuests.value.length > 0 ? '🌟 Captured Guests:\n' + capturedGuests.value.map(g => `  • ${g.name}`).join('\n') : ''}
+${capturedGuests.value.length > 0 ? 'Captured Guests:\n' + capturedGuests.value.map(g => `  • ${g.name}`).join('\n') : ''}
 
 Play PokéLenny and catch your favorite Lenny's Podcast guests!`;
 
@@ -207,13 +228,13 @@ Play PokéLenny and catch your favorite Lenny's Podcast guests!`;
 }
 
 function copyStats() {
-  const statsText = `🎮 ${props.playerName}'s PokéLenny Stats 🎮\n\nLevel ${props.stats.level} • ${props.capturedCount}/${props.totalGuests} Captured • ${props.accuracy}% Accuracy`;
+  const statsText = `${props.playerName}'s PokéLenny Stats\n\nLevel ${props.stats.level} • ${props.capturedCount}/${props.totalGuests} Captured • ${props.accuracy}% Accuracy`;
   copyToClipboard(statsText);
 }
 
 function copyToClipboard(text) {
   navigator.clipboard.writeText(text).then(() => {
-    alert('Stats copied to clipboard! 📋');
+    alert('Stats copied to clipboard!');
   }).catch(() => {
     alert(text);
   });
@@ -389,8 +410,10 @@ function copyToClipboard(text) {
 }
 
 .stat-icon {
-  font-size: 24px;
+  width: 22px;
+  height: 22px;
   margin-bottom: 6px;
+  color: #FFD700;
 }
 
 .stat-label {
@@ -430,8 +453,12 @@ function copyToClipboard(text) {
 
 .answer-icon {
   display: block;
-  font-size: 24px;
+  width: 22px;
+  height: 22px;
   margin-bottom: 6px;
+  margin-left: auto;
+  margin-right: auto;
+  color: #FFD700;
 }
 
 .answer-count {
@@ -543,6 +570,22 @@ function copyToClipboard(text) {
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.action-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.guest-fallback-icon {
+  width: 20px;
+  height: 20px;
+  color: #FFD700;
 }
 
 .action-btn:hover {

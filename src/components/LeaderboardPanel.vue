@@ -2,9 +2,12 @@
   <div v-if="isActive" class="leaderboard-overlay" @click="handleClose">
     <div class="leaderboard-panel" @click.stop>
       <div class="leaderboard-header">
-      <h3 class="leaderboard-title">🏆 Leaderboard</h3>
+      <h3 class="leaderboard-title">
+        <Icon class="title-icon" :icon="trophy" />
+        Leaderboard
+      </h3>
       <button class="refresh-btn" @click="handleRefresh" :disabled="loading">
-        {{ loading ? '⏳' : '🔄' }}
+        <Icon :class="['refresh-icon', { spinning: loading }]" :icon="loading ? loader : reload" />
       </button>
     </div>
 
@@ -17,18 +20,24 @@
           :class="{ 'current-player': player.isCurrentPlayer }"
         >
           <div class="rank">
-            <span v-if="getRank(index) === 1" class="medal gold">🥇</span>
-            <span v-else-if="getRank(index) === 2" class="medal silver">🥈</span>
-            <span v-else-if="getRank(index) === 3" class="medal bronze">🥉</span>
+            <span v-if="getRank(index) === 1" class="medal gold">
+              <Icon class="medal-icon" :icon="trophy" />
+            </span>
+            <span v-else-if="getRank(index) === 2" class="medal silver">
+              <Icon class="medal-icon" :icon="trophy" />
+            </span>
+            <span v-else-if="getRank(index) === 3" class="medal bronze">
+              <Icon class="medal-icon" :icon="trophy" />
+            </span>
             <span v-else class="rank-number">#{{ getRank(index) }}</span>
           </div>
           <div class="player-info">
             <div class="player-name">{{ player.name }}</div>
             <div class="player-stats">
               <span class="stat">Lv.{{ player.level }}</span>
-              <span class="stat">💚 {{ player.maxHp }}</span>
-              <span class="stat">👥 {{ player.captured }}/{{ player.total }}</span>
-              <span class="stat">🎯 {{ player.accuracy }}%</span>
+              <span class="stat"><Icon class="stat-icon" :icon="heart" /> {{ player.maxHp }}</span>
+              <span class="stat"><Icon class="stat-icon" :icon="users" /> {{ player.captured }}/{{ player.total }}</span>
+              <span class="stat"><Icon class="stat-icon" :icon="bullseye" /> {{ player.accuracy }}%</span>
             </div>
           </div>
         </div>
@@ -40,7 +49,7 @@
           @click="prevPage"
           :disabled="currentPage === 1"
         >
-          ◀
+          <Icon class="page-icon" :icon="arrowLeft" />
         </button>
         <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
         <button
@@ -48,13 +57,15 @@
           @click="nextPage"
           :disabled="currentPage === totalPages"
         >
-          ▶
+          <Icon class="page-icon" :icon="arrowRight" />
         </button>
       </div>
     </div>
 
     <div class="loading-state" v-else>
-      <div class="loading-spinner">⏳</div>
+      <div class="loading-spinner">
+        <Icon class="loading-icon" :icon="loader" />
+      </div>
       <p>Loading leaderboard...</p>
     </div>
 
@@ -65,6 +76,15 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
+import { Icon } from '@iconify/vue';
+import trophy from '@iconify/icons-pixelarticons/trophy';
+import reload from '@iconify/icons-pixelarticons/reload';
+import loader from '@iconify/icons-pixelarticons/loader';
+import heart from '@iconify/icons-pixelarticons/heart';
+import users from '@iconify/icons-pixelarticons/users';
+import bullseye from '@iconify/icons-pixelarticons/bullseye';
+import arrowLeft from '@iconify/icons-pixelarticons/arrow-left';
+import arrowRight from '@iconify/icons-pixelarticons/arrow-right';
 import { leaderboardService } from '../services/supabase-leaderboard.js';
 
 const props = defineProps({
@@ -218,11 +238,57 @@ onMounted(() => {
   border-bottom: 2px solid rgba(255, 215, 0, 0.3);
 }
 
+.title-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  vertical-align: -2px;
+}
+
+.refresh-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.refresh-icon.spinning {
+  animation: spin 1s linear infinite;
+}
+
+.medal-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.stat-icon {
+  width: 12px;
+  height: 12px;
+  margin-right: 4px;
+  vertical-align: -2px;
+}
+
+.page-icon {
+  width: 12px;
+  height: 12px;
+}
+
+.loading-icon {
+  width: 20px;
+  height: 20px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .leaderboard-title {
   font-size: 12px;
   color: #FFD700;
   margin: 0;
   text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
 }
 
 .refresh-btn {
@@ -234,6 +300,9 @@ onMounted(() => {
   cursor: pointer;
   transition: all 0.2s ease;
   color: #FFD700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .refresh-btn:hover:not(:disabled) {
@@ -308,7 +377,21 @@ onMounted(() => {
 }
 
 .medal {
-  font-size: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.medal.gold {
+  color: #FFD700;
+}
+
+.medal.silver {
+  color: #C0C0C0;
+}
+
+.medal.bronze {
+  color: #CD7F32;
 }
 
 .rank-number {
@@ -343,6 +426,9 @@ onMounted(() => {
   background: rgba(0, 0, 0, 0.4);
   padding: 2px 6px;
   border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .pagination {
@@ -364,6 +450,9 @@ onMounted(() => {
   cursor: pointer;
   font-family: 'Press Start 2P', monospace, sans-serif;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .page-btn:hover:not(:disabled) {

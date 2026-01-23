@@ -26,8 +26,8 @@
           <span class="stat-value">{{ accuracy }}%</span>
         </div>
         <div v-if="won" class="stat-row highlight">
-          <span class="stat-label">Score Earned:</span>
-          <span class="stat-value score">+{{ stats.score }}</span>
+          <span class="stat-label">XP Increased:</span>
+          <span class="stat-value xp">+{{ stats.xpGained }}</span>
         </div>
         <div v-if="stats.perfectBattle" class="perfect-badge">
           ⭐ PERFECT BATTLE! ⭐
@@ -74,7 +74,7 @@ const props = defineProps({
       totalQuestions: 0,
       correctAnswers: 0,
       wrongAnswers: 0,
-      score: 0,
+      xpGained: 0,
       perfectBattle: false
     })
   }
@@ -306,7 +306,7 @@ function continueGame() {
   color: #FF6B6B;
 }
 
-.stat-value.score {
+.stat-value.xp {
   color: #FFD700;
   font-size: 18px;
 }

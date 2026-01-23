@@ -7,7 +7,7 @@
       </div>
 
       <!-- Trophy Icon -->
-      <div class="trophy-icon">🏆</div>
+      <Icon class="trophy-icon" :icon="trophy" />
 
       <!-- Level Complete Message -->
       <h1 class="level-title">Level {{ currentLevel }} Complete!</h1>
@@ -41,7 +41,10 @@
       <!-- Continue Button -->
       <button class="continue-button" @click="handleContinue">
         <span v-if="hasMoreLevels">Continue to Level {{ currentLevel + 1 }}</span>
-        <span v-else>🎉 Game Complete! 🎉</span>
+        <span v-else>
+          <Icon class="btn-icon" :icon="trophy" />
+          Game Complete!
+        </span>
       </button>
 
       <!-- Progress Info -->
@@ -49,13 +52,17 @@
         {{ remainingGuests }} more guests to discover!
       </p>
       <p class="progress-info" v-else>
-        You've met all {{ totalGuests }} guests from Lenny's Podcast! 🎙️
+        You've met all {{ totalGuests }} guests from Lenny's Podcast!
+        <Icon class="inline-icon" :icon="radioOn" />
       </p>
     </div>
   </div>
 </template>
 
 <script setup>
+import { Icon } from '@iconify/vue';
+import trophy from '@iconify/icons-pixelarticons/trophy';
+import radioOn from '@iconify/icons-pixelarticons/radio-on';
 import { computed } from 'vue';
 
 const props = defineProps({
@@ -209,10 +216,26 @@ function handleContinue() {
 
 /* Trophy Icon */
 .trophy-icon {
-  font-size: 80px;
+  width: 80px;
+  height: 80px;
   margin-bottom: 24px;
   animation: bounce 1s ease-in-out infinite;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+  color: #FFD700;
+}
+
+.btn-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  vertical-align: -2px;
+}
+
+.inline-icon {
+  width: 14px;
+  height: 14px;
+  margin-left: 6px;
+  vertical-align: -2px;
 }
 
 @keyframes bounce {
@@ -359,6 +382,10 @@ function handleContinue() {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .continue-button:hover {

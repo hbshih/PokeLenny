@@ -1,5 +1,13 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { Icon } from '@iconify/vue';
+import bookOpen from '@iconify/icons-pixelarticons/book-open';
+import trophy from '@iconify/icons-pixelarticons/trophy';
+import upload from '@iconify/icons-pixelarticons/upload';
+import volume from '@iconify/icons-pixelarticons/volume';
+import volumeX from '@iconify/icons-pixelarticons/volume-x';
+import keyboard from '@iconify/icons-pixelarticons/keyboard';
+import message from '@iconify/icons-pixelarticons/message';
 import PhaserGame from './PhaserGame.vue';
 import BattleScreen from './components/BattleScreen.vue';
 import CollectionScreen from './components/CollectionScreen.vue';
@@ -43,7 +51,8 @@ const playerStats = ref({
 
 // XP needed for each level (exponential growth)
 const getXPForLevel = (level) => {
-  return Math.floor(100 * Math.pow(1.5, level - 1));
+  // Level 2 requires 100 XP, then grows exponentially
+  return Math.floor(100 * Math.pow(1.5, level - 2));
 };
 
 // Current XP needed for next level
@@ -54,7 +63,7 @@ const battleData = ref({
   guest: {
     id: "1",
     name: "Shreyas Doshi",
-    sprite: "👤",
+    sprite: null,
     hp: 100,
     episode: "Product Management Excellence",
     difficulty: "Hard"
@@ -93,27 +102,6 @@ const battleData = ref({
       ],
       correctAnswer: 3,
       explanation: "The balance depends heavily on whether you're in discovery, growth, or maturity phase."
-    },
-    {
-      id: 4,
-      type: "mcq",
-      prompt: "Which metric matters most for SaaS products?",
-      choices: [
-        "Monthly Active Users",
-        "Revenue per customer",
-        "Net retention rate",
-        "Churn rate"
-      ],
-      correctAnswer: 2,
-      explanation: "Net retention rate shows both growth and customer satisfaction combined."
-    },
-    {
-      id: 5,
-      type: "tf",
-      prompt: "Good PMs should spend 80% of their time with customers.",
-      choices: ["True", "False"],
-      correctAnswer: 1,
-      explanation: "While customer contact is important, PMs need to balance strategy, team coordination, and execution."
     }
   ]
 });
@@ -174,9 +162,15 @@ function handleAcceptBattle() {
     const guest = collection.value.find(g => g.id === encounterNPC.value.id);
     console.log('Found guest for battle:', guest);
     if (guest) {
-      // Random 1-3 questions per battle
-      const questionCount = Math.floor(Math.random() * 3) + 1; // 1, 2, or 3
+      // Always 3 questions per battle
+      const questionCount = 3;
       const questions = guestDataManager.getRandomQuestions(guest.id, questionCount);
+      if (questions.length > 0 && questions.length < questionCount) {
+        while (questions.length < questionCount) {
+          const fallback = questions[Math.floor(Math.random() * questions.length)];
+          questions.push(fallback);
+        }
+      }
       console.log(`Questions loaded for battle (${questionCount} questions):`, questions);
 
       if (questions && questions.length > 0) {
@@ -209,12 +203,14 @@ function handleRejectBattle() {
   EventBus.emit('battle-rejected');
 }
 
-function handleGuestCaptured(guestId) {
+function handleGuestCaptured(payload) {
+  const guestId = typeof payload === 'object' ? payload.guestId : payload;
+  const xpGained = typeof payload === 'object' ? payload.xpGained : 10;
   const guest = collection.value.find(g => g.id === guestId);
   if (guest) {
     guest.captured = true;
     // Award XP for capturing a guest (battle win)
-    gainXP(50);
+    gainXP(xpGained);
     playerStats.value.totalBattles++;
 
     // Track level progress
@@ -279,14 +275,13 @@ function handleLevelContinue() {
     });
   } else {
     // Game complete!
-    alert('🎉 Congratulations! You\'ve met all the guests from Lenny\'s Podcast! 🎙️');
+    alert('Congratulations! You\'ve met all the guests from Lenny\'s Podcast!');
   }
 }
 
 function handleAnswerResult(isCorrect) {
   if (isCorrect) {
     playerStats.value.rightAnswers++;
-    gainXP(10); // 10 XP per correct answer
   } else {
     playerStats.value.wrongAnswers++;
   }
@@ -334,9 +329,14 @@ function handleGameRestart() {
 }
 
 function gainXP(amount) {
-  // Still track XP for stats display, but don't level up from it
   playerStats.value.xp += amount;
-  // XP-based leveling disabled - using level-based progression instead
+
+  // Level up when XP meets/exceeds threshold
+  while (playerStats.value.xp >= getXPForLevel(playerStats.value.level + 1)) {
+    playerStats.value.level++;
+    playerStats.value.maxHp += 20;
+    playerStats.value.hp = playerStats.value.maxHp;
+  }
 }
 
 function handleShareStats() {
@@ -448,9 +448,15 @@ onMounted(() => {
       const guest = collection.value.find(g => g.id === data.guestId);
       console.log('Found guest for battle:', guest);
       if (guest) {
-        // Random 1-3 questions per battle
-        const questionCount = Math.floor(Math.random() * 3) + 1;
+        // Always 3 questions per battle
+        const questionCount = 3;
         const questions = guestDataManager.getRandomQuestions(data.guestId, questionCount);
+        if (questions.length > 0 && questions.length < questionCount) {
+          while (questions.length < questionCount) {
+            const fallback = questions[Math.floor(Math.random() * questions.length)];
+            questions.push(fallback);
+          }
+        }
         console.log(`Questions loaded for battle (${questionCount} questions):`, questions);
         if (questions && questions.length > 0) {
           // Create new battle data object (better reactivity)
@@ -531,16 +537,20 @@ onUnmounted(() => {
 
       <div class="action-buttons">
         <button class="action-btn collection-btn" @click="handleOpenCollection">
-          📚 Collection
+          <Icon class="btn-icon" :icon="bookOpen" />
+          Collection
         </button>
         <button class="action-btn leaderboard-btn" @click="handleOpenLeaderboard">
-          🏆 Leaderboard
+          <Icon class="btn-icon" :icon="trophy" />
+          Leaderboard
         </button>
         <button class="action-btn share-btn" @click="handleShareStats">
-          📤 Share Stats
+          <Icon class="btn-icon" :icon="upload" />
+          Share Stats
         </button>
         <button class="action-btn mute-btn" @click="toggleMute" :title="isMuted ? 'Unmute' : 'Mute'">
-          {{ isMuted ? '🔇 Unmute' : '🔊 Mute' }}
+          <Icon class="btn-icon" :icon="isMuted ? volumeX : volume" />
+          {{ isMuted ? 'Unmute' : 'Mute' }}
         </button>
       </div>
     </div>
@@ -550,9 +560,18 @@ onUnmounted(() => {
         <div class="footer-column controls-column">
           <div class="controls-title">How to Play:</div>
           <div class="controls-list">
-            <div class="control-item">🎮 Arrow Keys or WASD to move</div>
-            <div class="control-item">💬 Walk near guests to battle</div>
-            <div class="control-item">📚 Press C to view collection</div>
+            <div class="control-item">
+              <Icon class="control-icon" :icon="keyboard" />
+              Arrow Keys or WASD to move
+            </div>
+            <div class="control-item">
+              <Icon class="control-icon" :icon="message" />
+              Walk near guests to battle
+            </div>
+            <div class="control-item">
+              <Icon class="control-icon" :icon="bookOpen" />
+              Press C to view collection
+            </div>
           </div>
         </div>
         <div class="footer-column credits-column">
@@ -804,6 +823,24 @@ body {
   transition: all 0.2s ease;
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.3);
   text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+.btn-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.control-icon {
+  width: 14px;
+  height: 14px;
+  margin-right: 8px;
+  flex-shrink: 0;
+  color: #FFD700;
 }
 
 .action-btn:hover {
@@ -895,6 +932,8 @@ body {
   font-size: 9px;
   color: #fff;
   line-height: 1.6;
+  display: flex;
+  align-items: center;
 }
 
 .credits-column {

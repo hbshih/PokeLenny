@@ -17,7 +17,10 @@
         <!-- Opponent HP Bar (floats above) -->
         <div class="hp-display opponent-hp">
           <div class="hp-header">
-            <span class="name-text">{{ battleData.guest.name }}</span>
+            <div class="guest-info">
+              <span class="name-text">{{ battleData.guest.name }}</span>
+              <span class="guest-title">{{ guestTitle }}</span>
+            </div>
             <span class="level-badge">Lv{{ Math.floor(Math.random() * 20) + 30 }}</span>
           </div>
           <div class="hp-bar-container">
@@ -37,7 +40,7 @@
             class="sprite-image opponent-avatar"
           />
           <div v-else class="sprite-placeholder">
-            <span class="sprite-emoji">{{ battleData.guest.sprite || '👤' }}</span>
+            <Icon class="sprite-icon" :icon="user" />
           </div>
         </div>
       </div>
@@ -108,7 +111,7 @@
           </div>
           <p class="explain-text">{{ currentQuestion.explanation }}</p>
           <div class="continue-bar">
-            <span class="key">ENTER</span> {{ currentQuestionIndex < 4 ? 'Next' : 'Finish' }} ▼
+            <span class="key">ENTER</span> {{ currentQuestionIndex < (battleStats.totalQuestions - 1) ? 'Next' : 'Finish' }} ▼
           </div>
         </div>
       </div>
@@ -128,9 +131,12 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { Icon } from '@iconify/vue';
+import user from '@iconify/icons-pixelarticons/user';
 import BattleResult from './BattleResult.vue';
 import gameState from '../game/GameState.js';
 import { EventBus } from '../game/EventBus';
+import { getGuestTitle } from '../game/GuestTitles.js';
 
 const props = defineProps({
   isActive: Boolean,
@@ -160,7 +166,7 @@ const battleStats = ref({
   totalQuestions: 0,
   correctAnswers: 0,
   wrongAnswers: 0,
-  score: 0,
+  xpGained: 0,
   perfectBattle: false
 });
 
@@ -377,6 +383,11 @@ const guestAvatarPath = computed(() => {
   return `/assets/avatars/${guestName}_pixel_art.png`;
 });
 
+const guestTitle = computed(() => {
+  if (!props.battleData?.guest?.name) return '';
+  return getGuestTitle(props.battleData.guest.name);
+});
+
 function resetBattle() {
   guestHP.value = 100;
   playerHP.value = props.playerStats?.hp || 100;
@@ -394,7 +405,7 @@ function resetBattle() {
     totalQuestions: totalQs,
     correctAnswers: 0,
     wrongAnswers: 0,
-    score: 0,
+    xpGained: 0,
     perfectBattle: false
   };
 
@@ -411,7 +422,6 @@ function selectAnswer(index) {
   // Track battle stats (totalQuestions is already set in resetBattle, don't increment it)
   if (isCorrect.value) {
     battleStats.value.correctAnswers++;
-    battleStats.value.score += 20; // 20 points per correct answer
   } else {
     battleStats.value.wrongAnswers++;
   }
@@ -463,9 +473,11 @@ function endBattle(won) {
   // Check for perfect battle (no wrong answers)
   battleStats.value.perfectBattle = won && battleStats.value.wrongAnswers === 0;
 
-  // Add bonus points for perfect battle
-  if (battleStats.value.perfectBattle) {
-    battleStats.value.score += 50; // 50 bonus points for perfect battle
+  // XP reward (only on victory)
+  if (won) {
+    battleStats.value.xpGained = battleStats.value.perfectBattle ? 20 : 10;
+  } else {
+    battleStats.value.xpGained = 0;
   }
 
   // Play victory or defeat sound
@@ -481,11 +493,14 @@ function endBattle(won) {
       totalQuestions: battleStats.value.totalQuestions,
       correctAnswers: battleStats.value.correctAnswers,
       wrongAnswers: battleStats.value.wrongAnswers,
-      score: battleStats.value.score
+      xpGained: battleStats.value.xpGained
     });
 
     if (won) {
-      emit('guest-captured', props.battleData.guest.id);
+      emit('guest-captured', {
+        guestId: props.battleData.guest.id,
+        xpGained: battleStats.value.xpGained
+      });
     }
   }
 }
@@ -626,8 +641,8 @@ function handleContinue() {
 /* === OPPONENT AREA (Top Right) === */
 .opponent-area {
   position: absolute;
-  top: 40px;
-  right: 200px;
+  top: 0px;
+  right: 180px;
   pointer-events: auto;
 }
 
@@ -663,8 +678,10 @@ function handleContinue() {
   backdrop-filter: blur(4px);
 }
 
-.sprite-emoji {
-  font-size: 80px;
+.sprite-icon {
+  width: 80px;
+  height: 80px;
+  color: #fff;
 }
 
 @keyframes floatIn {
@@ -681,8 +698,8 @@ function handleContinue() {
 /* === PLAYER AREA (Bottom Left) === */
 .player-area {
   position: absolute;
-  bottom: 280px;
-  left: 100px;
+  bottom: 200px;
+  left: 180px;
   pointer-events: auto;
 }
 
@@ -724,14 +741,14 @@ function handleContinue() {
 
 .opponent-hp {
   position: absolute;
-  top: 0;
-  left: -320px;
+  top: 20px;
+  left: -280px;
 }
 
 .player-hp {
   position: absolute;
-  bottom: 0;
-  left: 0;
+  bottom: 80px;
+  left: 160px;
 }
 
 @keyframes slideDown {
@@ -752,12 +769,25 @@ function handleContinue() {
   margin-bottom: 10px;
 }
 
+.guest-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .name-text {
   font-size: 16px;
   color: #000;
   text-transform: uppercase;
   letter-spacing: 1px;
   font-weight: bold;
+}
+
+.guest-title {
+  font-size: 10px;
+  color: #666;
+  font-weight: normal;
+  letter-spacing: 0.5px;
 }
 
 .level-badge {
@@ -785,9 +815,8 @@ function handleContinue() {
 
 .hp-bar-track {
   flex: 1;
-  height: 12px;
+  height: 20px;
   background: #e0e0e0;
-  border: 2px solid #000;
   border-radius: 6px;
   overflow: hidden;
   position: relative;
@@ -1090,7 +1119,7 @@ function handleContinue() {
 @media (max-width: 800px) {
   .opponent-area {
     right: 150px;
-    top: 30px;
+    top: 50px;
   }
 
   .player-area {

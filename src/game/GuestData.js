@@ -38,7 +38,7 @@ class GuestDataManager {
         episode: episode.title,
         questions: episode.questions,
         avatarKey: this.generateAvatarKey(guestName),
-        sprite: '🎙️', // Default sprite emoji
+        sprite: null, // Default sprite icon handled in UI
         difficulty: this.calculateDifficulty(episode.questions.length),
         captured: false
       };
@@ -92,10 +92,70 @@ class GuestDataManager {
       return 'elena-front.png';
     }
 
+    // Handle collaboration episodes - use first person's avatar
+    const collaborationMappings = {
+      'Keith Coleman & Jay Baxter': 'Keith Coleman',
+      'Jake Knapp + John Zeratsky': 'John Zeratsky',
+      'Melissa Perri + Denise Tilles': 'Melissa Perri',
+      'Hamel Husain & Shreya Shankar': 'Hamel Husain & Shreya Shankar', // This one exists
+      'Aishwarya Naresh Reganti + Kiriti Badam': null, // No avatar
+      'Sriram and Aarthi': 'Sriram and Aarthi' // This one exists
+    };
+
+    // Handle special episodes/variations
+    const specialMappings = {
+      'Shreyas Doshi Live': 'Shreyas Doshi',
+      'Yuhki Yamashata': null, // Typo - no avatar exists
+      'Melissa': 'Melissa Perri', // Use Melissa Perri for standalone "Melissa"
+      'EOY Review': null,
+      'Interview Q Compilation': null,
+      'Teaser_2021': null,
+      'Failure': 'Failure', // This one exists
+      // Missing avatars
+      'Dr. Fei Fei Li': null,
+      'Gia Laudi': null,
+      'Chip Conley': null,
+      'Cam Adams': null,
+      'Benjamin Mann': null,
+      'Alex Hardimen': null,
+      'Phyl Terry': null,
+      'Jeanne Grosser': null,
+      'Jess Lachs': null,
+      'Jason M Lemkin': null,
+      'Mike Maples Jr': null
+    };
+
+    // Check collaboration mappings first
+    for (const [collab, replacement] of Object.entries(collaborationMappings)) {
+      if (guestName.includes(collab)) {
+        if (replacement === null) {
+          return null; // No avatar available
+        }
+        const cleanName = this.cleanGuestName(replacement);
+        return `avatars/${cleanName}_pixel_art.png`;
+      }
+    }
+
+    // Check special mappings
+    for (const [special, replacement] of Object.entries(specialMappings)) {
+      if (guestName === special || guestName.includes(special)) {
+        if (replacement === null) {
+          return null; // No avatar available
+        }
+        const cleanName = this.cleanGuestName(replacement);
+        return `avatars/${cleanName}_pixel_art.png`;
+      }
+    }
+
     // Clean the name first (remove version numbers, etc.)
     const cleanName = this.cleanGuestName(guestName);
-    // Convert "Ada Chen Rekhi" to "Ada Chen Rekhi_pixel_art.png"
-    return `avatars/${cleanName}_pixel_art.png`;
+
+    // URL-encode the filename to handle special characters like ö, ü, etc.
+    // This ensures files like "Gustav Söderström" load correctly
+    const fileName = `${cleanName}_pixel_art.png`;
+    const encodedFileName = encodeURIComponent(fileName);
+
+    return `avatars/${encodedFileName}`;
   }
 
   /**
@@ -135,6 +195,23 @@ class GuestDataManager {
       'Jackie Bavaro',
       'Hubert Palan'
     ];
+  }
+
+  /**
+   * Select ALL guests without any filtering (for fixed stage system)
+   * @returns {Array} Array of all guests
+   */
+  selectAllGuestsForFixedStages() {
+    if (this.allGuests.length === 0) {
+      console.error('No guests loaded. Call loadQuestionsData first.');
+      return [];
+    }
+
+    // Simply use all guests as-is, maintaining their original IDs and order
+    this.selectedGuests = this.allGuests.map(guest => ({ ...guest }));
+
+    console.log(`Selected all ${this.selectedGuests.length} guests for fixed stage system`);
+    return this.selectedGuests;
   }
 
   /**
@@ -206,11 +283,13 @@ class GuestDataManager {
    * @returns {Array} Array of {key, path} objects for Phaser loader
    */
   getAvatarsToLoad() {
-    return this.selectedGuests.map(guest => ({
-      key: guest.avatarKey,
-      path: this.generateAvatarPath(guest.name),
-      guestName: guest.name
-    }));
+    return this.selectedGuests
+      .map(guest => ({
+        key: guest.avatarKey,
+        path: this.generateAvatarPath(guest.name),
+        guestName: guest.name
+      }))
+      .filter(avatar => avatar.path !== null); // Skip guests without avatars
   }
 
   /**
@@ -254,6 +333,14 @@ class GuestDataManager {
    */
   getGuest(guestId) {
     return this.selectedGuests.find(g => g.id === guestId);
+  }
+
+  /**
+   * Get all loaded guests (all 283 from questions.json)
+   * @returns {Array} Array of all guest objects
+   */
+  getAllGuests() {
+    return this.allGuests;
   }
 
   /**

@@ -7,7 +7,7 @@
       </div>
 
       <!-- Game Over Icon -->
-      <div class="game-over-icon">💔</div>
+      <Icon class="game-over-icon" :icon="heart" />
 
       <!-- Game Over Message -->
       <h1 class="game-over-title">Game Over</h1>
@@ -30,17 +30,25 @@
       </div>
 
       <!-- Encouragement Message -->
-      <p class="encouragement">Don't give up! Try again and meet more guests! 🎙️</p>
+      <p class="encouragement">
+        Don't give up! Try again and meet more guests!
+        <Icon class="inline-icon" :icon="radioOn" />
+      </p>
 
       <!-- Restart Button -->
       <button class="restart-button" @click="handleRestart">
-        🔄 Try Again
+        <Icon class="btn-icon" :icon="reload" />
+        Try Again
       </button>
     </div>
   </div>
 </template>
 
 <script setup>
+import { Icon } from '@iconify/vue';
+import heart from '@iconify/icons-pixelarticons/heart';
+import radioOn from '@iconify/icons-pixelarticons/radio-on';
+import reload from '@iconify/icons-pixelarticons/reload';
 const props = defineProps({
   show: {
     type: Boolean,
@@ -93,16 +101,19 @@ function handleRestart() {
 
 .game-over-modal {
   position: relative;
-  background: linear-gradient(135deg, #4a1c40 0%, #2c1810 100%);
-  border-radius: 24px;
-  padding: 48px 40px;
-  max-width: 500px;
+  background: rgba(0, 0, 0, 0.85);
+  border-radius: 8px;
+  padding: 36px 32px;
+  max-width: 520px;
   width: 90%;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border: 3px solid #FFD700;
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.4);
   animation: slideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   overflow: hidden;
   color: white;
   text-align: center;
+  font-family: 'Press Start 2P', monospace;
 }
 
 @keyframes slideUp {
@@ -177,10 +188,12 @@ function handleRestart() {
 
 /* Game Over Icon */
 .game-over-icon {
-  font-size: 80px;
-  margin-bottom: 24px;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
   animation: heartbeat 1.5s ease-in-out infinite;
-  filter: drop-shadow(0 4px 8px rgba(233, 69, 96, 0.5));
+  filter: drop-shadow(0 4px 8px rgba(255, 107, 107, 0.5));
+  color: #ff6b6b;
 }
 
 @keyframes heartbeat {
@@ -197,19 +210,21 @@ function handleRestart() {
 
 /* Text Styles */
 .game-over-title {
-  font-size: 36px;
-  font-weight: 800;
-  margin: 0 0 12px 0;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-  letter-spacing: -0.5px;
-  color: #ff6b6b;
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 10px 0;
+  text-shadow:
+    3px 3px 0 rgba(0, 0, 0, 0.8),
+    0 0 10px rgba(255, 215, 0, 0.35);
+  letter-spacing: 2px;
+  color: #FFD700;
+  text-transform: uppercase;
 }
 
 .game-over-subtitle {
-  font-size: 18px;
-  margin: 0 0 32px 0;
+  font-size: 10px;
+  margin: 0 0 24px 0;
   opacity: 0.9;
-  font-weight: 500;
 }
 
 /* Stats Grid (matching LevelComplete) */
@@ -221,76 +236,96 @@ function handleRestart() {
 }
 
 .stat-item {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
-  padding: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 8px;
+  padding: 14px 12px;
+  border: 2px solid rgba(255, 215, 0, 0.4);
 }
 
 .stat-value {
-  font-size: 28px;
-  font-weight: 800;
-  color: #ffd700;
-  margin-bottom: 8px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 6px;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.6);
 }
 
 .stat-label {
-  font-size: 12px;
-  opacity: 0.8;
-  font-weight: 500;
-  line-height: 1.4;
+  font-size: 7px;
+  opacity: 0.85;
+  line-height: 1.5;
+  color: #FFD700;
+  text-transform: uppercase;
 }
 
 /* Encouragement */
 .encouragement {
-  font-size: 16px;
-  margin: 24px 0 32px 0;
+  font-size: 9px;
+  margin: 20px 0 24px 0;
   opacity: 0.9;
-  font-weight: 500;
-  color: #a8dadc;
+  color: #fff;
+}
+
+.inline-icon {
+  width: 14px;
+  height: 14px;
+  margin-left: 6px;
+  vertical-align: -2px;
+  color: #FFD700;
+}
+
+.btn-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
 
 /* Restart Button */
 .restart-button {
   width: 100%;
-  padding: 18px 32px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-size: 18px;
+  font-family: 'Press Start 2P', monospace, sans-serif;
+  padding: 14px 16px;
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  border: 3px solid #FFD700;
+  border-radius: 8px;
+  font-size: 11px;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.3);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .restart-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-  background: linear-gradient(135deg, #7c8ff2 0%, #8a5eb8 100%);
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.3);
+  background: rgba(20, 20, 20, 0.9);
 }
 
 .restart-button:active {
   transform: translateY(0);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
 }
 
 /* Mobile Responsive */
 @media (max-width: 600px) {
   .game-over-modal {
-    padding: 32px 24px;
+    padding: 28px 20px;
   }
 
   .game-over-title {
-    font-size: 28px;
+    font-size: 18px;
   }
 
   .game-over-subtitle {
-    font-size: 16px;
+    font-size: 9px;
   }
 
   .game-over-icon {
@@ -303,20 +338,20 @@ function handleRestart() {
   }
 
   .stat-value {
-    font-size: 22px;
+    font-size: 14px;
   }
 
   .stat-label {
-    font-size: 10px;
+    font-size: 6px;
   }
 
   .restart-button {
-    font-size: 16px;
-    padding: 16px 24px;
+    font-size: 10px;
+    padding: 12px 16px;
   }
 
   .encouragement {
-    font-size: 14px;
+    font-size: 8px;
   }
 }
 </style>

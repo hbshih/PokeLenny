@@ -3,7 +3,7 @@
     <div class="tutorial-modal" @click.stop>
       <div class="tutorial-header">
         <h2 class="tutorial-title">Welcome to PokéLenny!</h2>
-        <div class="tutorial-icon">🎮</div>
+        <Icon class="tutorial-icon" :icon="gamepad" />
       </div>
 
       <div class="tutorial-content">
@@ -41,7 +41,8 @@
       </div>
 
       <button class="start-button" @click="handleClose">
-        🎯 Let's Go!
+        <Icon class="btn-icon" :icon="bullseye" />
+        Let's Go!
       </button>
 
       <p class="skip-hint">Click anywhere to skip</p>
@@ -50,6 +51,9 @@
 </template>
 
 <script setup>
+import { Icon } from '@iconify/vue';
+import gamepad from '@iconify/icons-pixelarticons/gamepad';
+import bullseye from '@iconify/icons-pixelarticons/bullseye';
 const props = defineProps({
   show: {
     type: Boolean,
@@ -126,8 +130,17 @@ function handleClose() {
 }
 
 .tutorial-icon {
-  font-size: 48px;
+  width: 48px;
+  height: 48px;
   animation: bounce 2s ease-in-out infinite;
+  color: #FFD700;
+}
+
+.btn-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  vertical-align: -2px;
 }
 
 @keyframes bounce {
@@ -204,6 +217,10 @@ function handleClose() {
   transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
   text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .start-button:hover {
