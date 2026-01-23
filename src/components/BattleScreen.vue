@@ -167,6 +167,7 @@ const battleStats = ref({
   correctAnswers: 0,
   wrongAnswers: 0,
   xpGained: 0,
+  hpGained: 0,
   perfectBattle: false
 });
 
@@ -416,6 +417,7 @@ function resetBattle() {
     correctAnswers: 0,
     wrongAnswers: 0,
     xpGained: 0,
+    hpGained: 0,
     perfectBattle: false
   };
 
@@ -497,6 +499,20 @@ function endBattle(won) {
     battleStats.value.xpGained = battleStats.value.perfectBattle ? 20 : 10;
   } else {
     battleStats.value.xpGained = 0;
+  }
+
+  // HP bonus for perfect battle
+  if (battleStats.value.perfectBattle) {
+    const hpBonus = 20;
+    const newHP = Math.min(playerMaxHP.value, playerHP.value + hpBonus);
+    const actualHpGained = newHP - playerHP.value;
+
+    if (actualHpGained > 0) {
+      playerHP.value = newHP;
+      battleStats.value.hpGained = actualHpGained;
+      // Emit HP change to sync with global stats
+      emit('hp-changed', newHP);
+    }
   }
 
   // Play victory or defeat sound

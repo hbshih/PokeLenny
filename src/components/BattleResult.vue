@@ -29,6 +29,10 @@
           <span class="stat-label">XP Increased:</span>
           <span class="stat-value xp">+{{ stats.xpGained }}</span>
         </div>
+        <div v-if="stats.hpGained > 0" class="stat-row highlight-hp">
+          <span class="stat-label">HP Recovered:</span>
+          <span class="stat-value hp">+{{ stats.hpGained }}</span>
+        </div>
         <div v-if="stats.perfectBattle" class="perfect-badge">
           ⭐ PERFECT BATTLE! ⭐
         </div>
@@ -75,6 +79,7 @@ const props = defineProps({
       correctAnswers: 0,
       wrongAnswers: 0,
       xpGained: 0,
+      hpGained: 0,
       perfectBattle: false
     })
   }
@@ -282,6 +287,14 @@ function continueGame() {
 .stat-row.highlight {
   background: rgba(76, 175, 80, 0.2);
   padding: 15px;
+  margin: 10px -10px 0 -10px;
+  border-radius: 8px;
+  border-bottom: none;
+}
+
+.stat-row.highlight-hp {
+  background: rgba(231, 76, 60, 0.2);
+  padding: 15px;
   margin: 10px -10px -10px -10px;
   border-radius: 0 0 8px 8px;
   border-bottom: none;
@@ -308,6 +321,11 @@ function continueGame() {
 
 .stat-value.xp {
   color: #FFD700;
+  font-size: 18px;
+}
+
+.stat-value.hp {
+  color: #FF6B6B;
   font-size: 18px;
 }
 
