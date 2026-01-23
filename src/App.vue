@@ -327,8 +327,8 @@ function handleGameRestart() {
     guest.captured = false;
   });
 
-  // Restart game in overworld
-  EventBus.emit('restart-game');
+  // Return to main menu
+  EventBus.emit('return-to-menu');
 }
 
 function gainXP(amount) {

@@ -50,6 +50,13 @@ export class Overworld extends Scene
 
     create ()
     {
+        // Reset scene state on (re)entry to avoid stale NPC data
+        this.npcs = [];
+        this.nearestNPC = null;
+        this.battleNPC = null;
+        this.spawnedGuestIndices = [];
+        this.currentLevel = 1;
+
         // Clean up any DOM elements from previous scenes
         const existingInput = document.getElementById('player-name-input');
         if (existingInput) {
