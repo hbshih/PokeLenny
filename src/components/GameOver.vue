@@ -35,11 +35,17 @@
         <Icon class="inline-icon" :icon="radioOn" />
       </p>
 
-      <!-- Restart Button -->
-      <button class="restart-button" @click="handleRestart">
-        <Icon class="btn-icon" :icon="reload" />
-        Try Again
-      </button>
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button class="share-button primary" @click="handleShare">
+          <Icon class="btn-icon" :icon="share" />
+          Share Results
+        </button>
+        <button class="restart-button secondary" @click="handleRestart">
+          <Icon class="btn-icon" :icon="reload" />
+          Try Again
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -49,6 +55,7 @@ import { Icon } from '@iconify/vue';
 import heart from '@iconify/icons-pixelarticons/heart';
 import radioOn from '@iconify/icons-pixelarticons/radio-on';
 import reload from '@iconify/icons-pixelarticons/reload';
+import share from '@iconify/icons-pixelarticons/upload';
 const props = defineProps({
   show: {
     type: Boolean,
@@ -68,10 +75,14 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['restart']);
+const emit = defineEmits(['restart', 'share']);
 
 function handleRestart() {
   emit('restart');
+}
+
+function handleShare() {
+  emit('share');
 }
 </script>
 
@@ -314,6 +325,59 @@ function handleRestart() {
   box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
 }
 
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.share-button {
+  width: 100%;
+  font-family: 'Press Start 2P', monospace, sans-serif;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  border: 3px solid #60a5fa;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.share-button.primary {
+  border-color: #FFD700;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.3), 0 0 16px rgba(255, 215, 0, 0.35);
+}
+
+.share-button.primary:hover {
+  border-color: #FFD700;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.3), 0 0 22px rgba(255, 215, 0, 0.45);
+}
+
+.restart-button.secondary {
+  border-color: #60a5fa;
+}
+
+.share-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.3);
+  background: rgba(20, 20, 20, 0.9);
+}
+
+.share-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
+}
+
 /* Mobile Responsive */
 @media (max-width: 600px) {
   .game-over-modal {
@@ -346,6 +410,11 @@ function handleRestart() {
   }
 
   .restart-button {
+    font-size: 10px;
+    padding: 12px 16px;
+  }
+
+  .share-button {
     font-size: 10px;
     padding: 12px 16px;
   }

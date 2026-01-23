@@ -4,7 +4,7 @@
       <!-- Result Header -->
       <div class="result-header">
         <h1 class="result-title">{{ won ? 'VICTORY!' : 'DEFEAT' }}</h1>
-        <div class="result-subtitle">{{ won ? 'You defeated' : 'You lost to' }} {{ guestName }}!</div>
+        <div class="result-subtitle">{{ won ? 'You captured' : 'You lost to' }} {{ guestName }}!</div>
       </div>
 
       <!-- Stats Display -->

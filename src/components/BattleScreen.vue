@@ -440,8 +440,17 @@ function selectAnswer(index) {
   emit('answer-submitted', isCorrect.value);
 
   setTimeout(() => {
+    const totalQuestions = battleStats.value.totalQuestions || 1;
+    const guestMax = props.battleData?.guest?.hp || 100;
+    const playerMax = playerMaxHP.value || 100;
+    const guestDmgPerQ = guestMax / totalQuestions;
+
     if (isCorrect.value) {
-      guestHP.value = Math.max(0, guestHP.value - 20);
+      const nextGuestHP = Math.max(
+        0,
+        guestMax - battleStats.value.correctAnswers * guestDmgPerQ
+      );
+      guestHP.value = nextGuestHP;
     } else {
       const newHP = Math.max(0, playerHP.value - 20);
       playerHP.value = newHP;

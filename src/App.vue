@@ -650,6 +650,7 @@ onUnmounted(() => {
       :questionsAnswered="totalQuestionsAnswered"
       :accuracy="accuracy"
       @restart="handleGameRestart"
+      @share="handleShareStats"
     />
 
     <TutorialModal

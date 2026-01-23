@@ -3,7 +3,8 @@
     <div class="share-modal" @click.stop>
       <button class="close-btn" @click="closeModal">×</button>
 
-      <div class="share-card">
+      <div ref="shareCardRef" class="share-card">
+        <button class="card-close-btn export-exclude" @click="closeModal">×</button>
         <!-- Header -->
         <div class="card-header">
           <h2 class="card-title">PokéLenny</h2>
@@ -120,6 +121,7 @@
 
 <script setup>
 import { computed, ref } from 'vue';
+import html2canvas from 'html2canvas';
 import { Icon } from '@iconify/vue';
 import heart from '@iconify/icons-pixelarticons/heart';
 import zap from '@iconify/icons-pixelarticons/zap';
@@ -143,6 +145,7 @@ const props = defineProps({
 
 const emit = defineEmits(['close']);
 
+const shareCardRef = ref(null);
 const failedGuestIds = ref(new Set());
 
 const capturedGuests = computed(() => {
@@ -177,23 +180,30 @@ function closeModal() {
 }
 
 function shareOnLinkedIn() {
-  const shareText = `Just played PokéLenny - a fun game where you catch Lenny's Podcast guests and answer trivia!
+  const rawName = (props.playerName || 'Player').toString();
+  const safeName = rawName.replace(/[^a-zA-Z0-9 _-]/g, '').trim() || 'Player';
+  const safeGuestNames = capturedGuests.value
+    .slice(0, 5)
+    .map((g) => (g.name || '').toString().replace(/[^a-zA-Z0-9 _-]/g, '').trim())
+    .filter(Boolean);
 
-My Stats:
-Trainer: ${props.playerName}
-Level ${props.stats.level}
-${props.stats.totalBattles} Battles Won
-${props.accuracy}% Accuracy
-${props.capturedCount}/${props.totalGuests} Guests Captured
+  const guestsLine = safeGuestNames.length > 0
+    ? '👥 Captured Guests: ' + safeGuestNames.join(', ') + (capturedGuests.value.length > 5 ? '...' : '')
+    : '';
 
-${capturedGuests.value.length > 0 ? 'Captured Guests: ' + capturedGuests.value.slice(0, 5).map(g => g.name).join(', ') + (capturedGuests.value.length > 5 ? '...' : '') : ''}
+  const shareText = `🎮 PokeLenny Trainer Card
+Just played a fun trivia RPG inspired by Lenny's Podcast.
+📊 My Stats
+• 👤 Trainer: ${safeName}
+• ⭐ Level: ${props.stats.level}
+• 🏆 Battles Won: ${props.stats.totalBattles}
+ • 🎯 Accuracy: ${props.accuracy} percent
+ • 🧩 Guests Captured: ${props.capturedCount}/${props.totalGuests}
+${guestsLine ? '\n' + guestsLine : ''}
+ Try it: pokelenny.com`;
 
-Check it out and test your knowledge of Lenny's Podcast!
-
-https://pokelenny.com`;
-
-  const linkedInUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(shareText)}`;
-
+  const encodedText = encodeURIComponent(shareText);
+  const linkedInUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${encodedText}`;
   window.open(linkedInUrl, '_blank', 'width=700,height=700');
 }
 
@@ -230,6 +240,36 @@ Play PokéLenny and catch your favorite Lenny's Podcast guests!`;
 function copyStats() {
   const statsText = `${props.playerName}'s PokéLenny Stats\n\nLevel ${props.stats.level} • ${props.capturedCount}/${props.totalGuests} Captured • ${props.accuracy}% Accuracy`;
   copyToClipboard(statsText);
+}
+
+async function downloadCard() {
+  const card = shareCardRef.value;
+  if (!card) return;
+
+  const excluded = card.querySelectorAll('.export-exclude');
+  const previousDisplay = [];
+  excluded.forEach((el) => {
+    previousDisplay.push([el, el.style.display]);
+    el.style.display = 'none';
+  });
+
+  try {
+    const canvas = await html2canvas(card, {
+      backgroundColor: null,
+      scale: 2,
+      useCORS: true
+    });
+    const link = document.createElement('a');
+    link.download = `pokelenny-${props.playerName || 'player'}-card.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  } catch (error) {
+    console.warn('Failed to export share card:', error);
+  } finally {
+    previousDisplay.forEach(([el, display]) => {
+      el.style.display = display;
+    });
+  }
 }
 
 function copyToClipboard(text) {
@@ -306,12 +346,36 @@ function copyToClipboard(text) {
 }
 
 .share-card {
+  position: relative;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: 4px solid #FFD700;
   border-radius: 16px;
   padding: 24px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   font-family: 'Press Start 2P', monospace, sans-serif;
+}
+
+.card-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 2px solid rgba(255, 215, 0, 0.8);
+  background: rgba(0, 0, 0, 0.6);
+  color: #FFD700;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.card-close-btn:hover {
+  transform: scale(1.05);
+  background: rgba(0, 0, 0, 0.8);
 }
 
 .card-header {
