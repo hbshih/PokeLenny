@@ -1,9 +1,7 @@
 <template>
-  <!-- Battle Transition - Simple Fade -->
+  <!-- Battle Transition - Pokemon Swirl -->
   <div v-if="showTransition" class="battle-transition">
-    <div class="transition-content">
-      <div class="battle-announcement">BATTLE!</div>
-    </div>
+    <div class="swirl-mask"></div>
   </div>
 
   <div class="battle-screen" v-if="isActive && !showTransition">
@@ -430,7 +428,7 @@ function handleContinue() {
 </script>
 
 <style scoped>
-/* Simple Battle Transition */
+/* Pokemon Swirl Transition */
 .battle-transition {
   position: absolute;
   top: 45%;
@@ -441,62 +439,40 @@ function handleContinue() {
   max-height: 90vh;
   background: #000;
   z-index: 10000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   border: 4px solid #FFD700;
   box-shadow: 0 0 40px rgba(255, 215, 0, 0.6), 0 8px 32px rgba(0, 0, 0, 0.8);
-  animation: transitionFade 1.2s ease-in-out;
+  overflow: hidden;
 }
 
-@keyframes transitionFade {
-  0% {
-    opacity: 0;
-    background: #fff;
-  }
-  15% {
-    opacity: 1;
-    background: #fff;
-  }
-  50% {
-    background: #000;
-  }
-  100% {
-    opacity: 1;
-    background: #000;
-  }
-}
-
-.transition-content {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.swirl-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
+  background: #000;
+  animation: swirlWipe 1.2s steps(30) forwards;
+
+  /* Create spiral pattern using conic gradient */
+  background-image: repeating-conic-gradient(
+    from 0deg at 50% 50%,
+    #000 0deg,
+    #000 2deg,
+    transparent 2deg,
+    transparent 4deg
+  );
+  background-size: 200% 200%;
+  background-position: center;
 }
 
-.battle-announcement {
-  font-family: 'Press Start 2P', monospace, sans-serif;
-  font-size: 48px;
-  color: #FFD700;
-  text-shadow:
-    4px 4px 0 #000,
-    -2px -2px 0 #000,
-    2px -2px 0 #000,
-    -2px 2px 0 #000,
-    0 0 20px rgba(255, 215, 0, 0.8);
-  animation: battlePulse 1.2s ease-in-out;
-  letter-spacing: 8px;
-}
-
-@keyframes battlePulse {
-  0%, 100% {
-    opacity: 0;
-    transform: scale(0.8);
+@keyframes swirlWipe {
+  0% {
+    clip-path: circle(0% at 50% 50%);
+    transform: rotate(0deg) scale(1);
   }
-  50% {
-    opacity: 1;
-    transform: scale(1.1);
+  100% {
+    clip-path: circle(150% at 50% 50%);
+    transform: rotate(720deg) scale(2);
   }
 }
 
@@ -1125,11 +1101,6 @@ function handleContinue() {
     font-size: 90%;
   }
 
-  .battle-announcement {
-    font-size: 32px;
-    letter-spacing: 6px;
-  }
-
   .battle-layout-horizontal {
     flex-direction: column;
     gap: 10px;
@@ -1182,11 +1153,6 @@ function handleContinue() {
 @media (max-width: 480px) {
   .battle-screen {
     font-size: 85%;
-  }
-
-  .battle-announcement {
-    font-size: 24px;
-    letter-spacing: 4px;
   }
 
   .q-text {
