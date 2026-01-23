@@ -484,14 +484,14 @@ export class Overworld extends Scene
                         y * 32 + 16,
                         avatarKey
                     );
-                    sprite.setDisplaySize(64, 64);
+                    sprite.setDisplaySize(72, 72);
                 } else {
                     console.warn(`Avatar not found for ${guestName}, using fallback`);
                     const colors = [0xFF69B4, 0x87CEEB, 0x98D982, 0xFFD700, 0xFF6B6B, 0x9B59B6];
                     sprite = this.add.rectangle(
                         x * 32 + 16,
                         y * 32 + 16,
-                        32, 32,
+                        36, 36,
                         colors[npcCount % colors.length]
                     );
                     sprite.setStrokeStyle(2, 0x000000);
