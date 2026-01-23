@@ -302,6 +302,9 @@ function handleHPChanged(newHP) {
 function handleGameRestart() {
   // Reset all game state
   showGameOver.value = false;
+  showBattle.value = false;
+  showEncounter.value = false;
+  encounterNPC.value = null;
 
   // Reset player stats
   playerStats.value = {
@@ -324,8 +327,8 @@ function handleGameRestart() {
     guest.captured = false;
   });
 
-  // Return to main menu
-  EventBus.emit('return-to-menu');
+  // Restart game in overworld
+  EventBus.emit('restart-game');
 }
 
 function gainXP(amount) {

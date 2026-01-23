@@ -156,7 +156,7 @@ onUnmounted(() => {
   transform: translateX(-50%);
   width: 880px; /* Match game canvas width minus padding */
   max-width: 880px;
-  z-index: 1500;
+  z-index: 800;
   animation: dialogSlideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
