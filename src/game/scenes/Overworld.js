@@ -2,6 +2,7 @@ import { EventBus } from '../EventBus';
 import { Scene } from 'phaser';
 import gameState from '../GameState';
 import guestDataManager from '../GuestData';
+import { getStageOpponents } from '../StageConfig';
 
 export class Overworld extends Scene
 {
@@ -369,24 +370,40 @@ export class Overworld extends Scene
 
     spawnNPCsForLevel(count)
     {
-        // Get selected guests from GuestDataManager
-        const selectedGuests = guestDataManager.getSelectedGuests();
-        if (selectedGuests.length === 0) {
+        // Get fixed opponents for this stage
+        const stageOpponents = getStageOpponents(this.currentLevel);
+        if (!stageOpponents || stageOpponents.length === 0) {
+            console.log('No opponents defined for this stage!');
+            return;
+        }
+
+        // Get all available guests from GuestDataManager
+        const allGuests = guestDataManager.getSelectedGuests();
+        if (allGuests.length === 0) {
             console.error('No guests loaded! NPCs will not be created.');
             return;
         }
 
-        // Calculate which guests to spawn for this level
-        const startIndex = this.spawnedGuestIndices.length;
-        const endIndex = Math.min(startIndex + count, selectedGuests.length);
-        const guestsToSpawn = selectedGuests.slice(startIndex, endIndex);
+        console.log(`Total guests loaded: ${allGuests.length}`);
+        console.log('Sample guest names:', allGuests.slice(0, 10).map(g => g.name));
+
+        // Match stage opponents with guest data
+        const guestsToSpawn = [];
+        for (const opponentName of stageOpponents) {
+            const guest = allGuests.find(g => g.name === opponentName);
+            if (guest) {
+                guestsToSpawn.push(guest);
+            } else {
+                console.warn(`Opponent "${opponentName}" not found in guest data`);
+            }
+        }
 
         if (guestsToSpawn.length === 0) {
-            console.log('All guests have been spawned!');
+            console.error('No matching guests found for this stage!');
             return;
         }
 
-        console.log(`Spawning ${guestsToSpawn.length} NPCs for level ${this.currentLevel}`);
+        console.log(`Spawning ${guestsToSpawn.length} NPCs for Stage ${this.currentLevel}:`, stageOpponents);
 
         const mapWidth = this.map.width;
         const mapHeight = this.map.height;
@@ -475,7 +492,7 @@ export class Overworld extends Scene
                         x * 32 + 16,
                         y * 32 + 16,
                         32, 32,
-                        colors[(startIndex + npcCount) % colors.length]
+                        colors[npcCount % colors.length]
                     );
                     sprite.setStrokeStyle(2, 0x000000);
                 }
@@ -485,7 +502,6 @@ export class Overworld extends Scene
                 npc.defeated = false;
                 this.npcs.push(npc);
                 npcPositions.push({ x, y });
-                this.spawnedGuestIndices.push(startIndex + npcCount);
                 npcCount++;
 
                 console.log(`✓ Placed NPC ${npcCount}/${guestsToSpawn.length}: ${guestName} at (${x}, ${y})`);

@@ -86,9 +86,9 @@ export class Preloader extends Scene
 
         console.log('Questions data loaded:', questionsData.episodes ? questionsData.episodes.length : 0, 'episodes');
 
-        // Process questions and select 30 random guests (20 top + 10 random)
+        // Process questions and select ALL guests for fixed stage system
         guestDataManager.loadQuestionsData(questionsData);
-        guestDataManager.selectRandomGuests(30);
+        guestDataManager.selectAllGuestsForFixedStages(); // Load all 283 guests
 
         // Load avatar images for selected guests
         const avatarsToLoad = guestDataManager.getAvatarsToLoad();

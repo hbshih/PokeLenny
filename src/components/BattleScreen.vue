@@ -641,13 +641,13 @@ function handleContinue() {
 /* === OPPONENT AREA (Top Right) === */
 .opponent-area {
   position: absolute;
-  top: 0px;
-  right: 180px;
+  top: -10px;
+  right: 165px;
   pointer-events: auto;
 }
 
 .opponent-sprite {
-  margin-top: 70px;
+  margin-top: 50px;
   animation: floatIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
 }
 
@@ -659,8 +659,8 @@ function handleContinue() {
 }
 
 .opponent-avatar {
-  width: 150px;
-  height: 150px;
+  width: 170px;
+  height: 170px;
   object-fit: contain;
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges;
@@ -668,8 +668,8 @@ function handleContinue() {
 }
 
 .sprite-placeholder {
-  width: 140px;
-  height: 140px;
+  width: 160px;
+  height: 160px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -698,7 +698,7 @@ function handleContinue() {
 /* === PLAYER AREA (Bottom Left) === */
 .player-area {
   position: absolute;
-  bottom: 200px;
+  bottom: 160px;
   left: 180px;
   pointer-events: auto;
 }
@@ -709,8 +709,8 @@ function handleContinue() {
 }
 
 .player-back {
-  width: 140px;
-  height: 140px;
+  width: 165px;
+  height: 165px;
   filter: drop-shadow(4px 4px 8px rgba(0, 0, 0, 0.4));
 }
 
@@ -1118,13 +1118,13 @@ function handleContinue() {
 
 @media (max-width: 800px) {
   .opponent-area {
-    right: 150px;
-    top: 50px;
+    right: 140px;
+    top: 20px;
   }
 
   .player-area {
     left: 80px;
-    bottom: 270px;
+    bottom: 230px;
   }
 
   .sprite-image {
@@ -1133,8 +1133,8 @@ function handleContinue() {
   }
 
   .player-back {
-    width: 80px;
-    height: 80px;
+    width: 100px;
+    height: 100px;
   }
 
   .hp-display {
