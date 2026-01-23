@@ -944,7 +944,7 @@ function handleContinue() {
 
 .q-text {
   flex: 1;
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.6;
   color: #000;
   display: flex;
@@ -978,6 +978,7 @@ function handleContinue() {
   flex-direction: column;
   justify-content: center;
   gap: 6px;
+  padding-right: 12px;
 }
 
 .answer-item {
