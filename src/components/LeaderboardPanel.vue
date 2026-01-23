@@ -64,7 +64,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
+import { leaderboardService } from '../services/supabase-leaderboard.js';
 
 const props = defineProps({
   isActive: {
@@ -82,37 +83,25 @@ const emit = defineEmits(['close', 'refresh']);
 const loading = ref(false);
 const currentPage = ref(1);
 const playersPerPage = 10;
-
-// Mock leaderboard data - TODO: Replace with API call
-const leaderboardData = ref([
-  { id: 1, name: 'Lenny', level: 50, maxHp: 500, captured: 45, total: 50, accuracy: 98 },
-  { id: 2, name: 'ProductMaster', level: 48, maxHp: 480, captured: 42, total: 50, accuracy: 96 },
-  { id: 3, name: 'GrowthHacker', level: 45, maxHp: 450, captured: 40, total: 50, accuracy: 95 },
-  { id: 4, name: 'PMExpert', level: 42, maxHp: 420, captured: 38, total: 50, accuracy: 93 },
-  { id: 5, name: 'StrategyPro', level: 40, maxHp: 400, captured: 35, total: 50, accuracy: 91 },
-  { id: 6, name: 'DataDriven', level: 38, maxHp: 380, captured: 33, total: 50, accuracy: 89 },
-  { id: 7, name: 'UserFirst', level: 35, maxHp: 350, captured: 30, total: 50, accuracy: 87 },
-  { id: 8, name: 'DesignThinker', level: 33, maxHp: 330, captured: 28, total: 50, accuracy: 85 },
-  { id: 9, name: 'TechLead', level: 30, maxHp: 300, captured: 25, total: 50, accuracy: 83 },
-  { id: 10, name: 'Founder', level: 28, maxHp: 280, captured: 23, total: 50, accuracy: 81 },
-  { id: 11, name: 'Innovator', level: 25, maxHp: 250, captured: 20, total: 50, accuracy: 79 },
-  { id: 12, name: 'BuilderBee', level: 23, maxHp: 230, captured: 18, total: 50, accuracy: 77 },
-  { id: 13, name: 'Visionary', level: 20, maxHp: 200, captured: 15, total: 50, accuracy: 75 },
-  { id: 14, name: 'Hustler', level: 18, maxHp: 180, captured: 13, total: 50, accuracy: 73 },
-  { id: 15, name: 'ScaleUp', level: 15, maxHp: 150, captured: 10, total: 50, accuracy: 71 },
-  { id: 16, name: 'StartupGuru', level: 13, maxHp: 130, captured: 8, total: 50, accuracy: 69 },
-  { id: 17, name: 'MVPKing', level: 10, maxHp: 100, captured: 5, total: 50, accuracy: 67 },
-  { id: 18, name: 'AgileNinja', level: 8, maxHp: 80, captured: 4, total: 50, accuracy: 65 },
-  { id: 19, name: 'LeanStartup', level: 5, maxHp: 50, captured: 2, total: 50, accuracy: 63 },
-  { id: 20, name: 'Rookie', level: 3, maxHp: 30, captured: 1, total: 50, accuracy: 61 },
-]);
+const leaderboardData = ref([]);
 
 const totalPages = computed(() => Math.ceil(leaderboardData.value.length / playersPerPage));
 
 const currentPagePlayers = computed(() => {
   const start = (currentPage.value - 1) * playersPerPage;
   const end = start + playersPerPage;
-  return leaderboardData.value.slice(start, end);
+
+  // Map database fields to component fields and mark current player
+  return leaderboardData.value.slice(start, end).map(player => ({
+    id: player.id,
+    name: player.player_name,
+    level: player.level,
+    maxHp: player.max_hp,
+    captured: player.captured,
+    total: player.total,
+    accuracy: player.accuracy,
+    isCurrentPlayer: player.player_name === props.currentPlayer.name
+  }));
 });
 
 function getRank(index) {
@@ -135,19 +124,36 @@ function handleClose() {
   emit('close');
 }
 
-function handleRefresh() {
+async function fetchLeaderboard() {
   loading.value = true;
-  emit('refresh');
-
-  // Simulate API call
-  setTimeout(() => {
+  try {
+    const data = await leaderboardService.getLeaderboard();
+    leaderboardData.value = data;
+  } catch (error) {
+    console.error('Failed to fetch leaderboard:', error);
+    // Keep existing data on error
+  } finally {
     loading.value = false;
-  }, 1000);
+  }
 }
 
+async function handleRefresh() {
+  await fetchLeaderboard();
+  emit('refresh');
+}
+
+// Fetch leaderboard when modal opens
+watch(() => props.isActive, (isActive) => {
+  if (isActive && leaderboardData.value.length === 0) {
+    fetchLeaderboard();
+  }
+});
+
 onMounted(() => {
-  // TODO: Fetch leaderboard from backend API
-  // fetchLeaderboard();
+  // Fetch on mount if modal is already active
+  if (props.isActive) {
+    fetchLeaderboard();
+  }
 });
 </script>
 

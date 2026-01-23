@@ -11,6 +11,7 @@ import TutorialModal from './components/TutorialModal.vue';
 import LeaderboardPanel from './components/LeaderboardPanel.vue';
 import { EventBus } from './game/EventBus';
 import guestDataManager from './game/GuestData';
+import { leaderboardService } from './services/supabase-leaderboard.js';
 
 // Game state
 const phaserRef = ref();
@@ -222,10 +223,30 @@ function handleGuestCaptured(guestId) {
     // Notify Overworld to remove this NPC
     EventBus.emit('remove-npc', guestId);
 
+    // Save score to global leaderboard (async, non-blocking)
+    saveScoreToLeaderboard();
+
     // Check if level is complete (defeated 10 enemies)
     if (currentLevelEnemiesDefeated.value >= enemiesPerLevel) {
       checkLevelCompletion();
     }
+  }
+}
+
+async function saveScoreToLeaderboard() {
+  try {
+    await leaderboardService.saveScore({
+      name: playerName.value,
+      level: playerStats.value.level,
+      maxHp: playerStats.value.maxHp,
+      captured: capturedCount.value,
+      total: totalGuests.value,
+      accuracy: accuracy.value
+    });
+    console.log('✓ Score saved to leaderboard');
+  } catch (error) {
+    console.warn('Failed to save score to leaderboard:', error);
+    // Don't block gameplay if leaderboard fails
   }
 }
 
