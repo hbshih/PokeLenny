@@ -814,6 +814,7 @@ function handleContinue() {
   display: flex;
   align-items: center;
   gap: 8px;
+  border: none;
 }
 
 .hp-label-small {
