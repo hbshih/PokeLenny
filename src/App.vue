@@ -422,9 +422,22 @@ function updateViewportFlags() {
   isPortrait.value = h > w;
 }
 
+const handleDebugKeys = (event) => {
+  const key = event.key;
+  if (key === ']' || key === '}') {
+    const nextLevel = playerStats.value.level + 1;
+    const targetXp = getUnlockXP(nextLevel);
+    if (playerStats.value.xp < targetXp) {
+      gainXP(targetXp - playerStats.value.xp);
+    }
+  }
+};
+
 onMounted(() => {
   updateViewportFlags();
   window.addEventListener('resize', updateViewportFlags);
+
+  window.addEventListener('keydown', handleDebugKeys);
 
   EventBus.on('current-scene-ready', (scene) => {
     currentSceneName.value = scene?.scene?.key || '';
@@ -533,6 +546,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('resize', updateViewportFlags);
+  window.removeEventListener('keydown', handleDebugKeys);
   EventBus.off('guests-loaded');
   EventBus.off('show-encounter-dialog');
   EventBus.off('hide-encounter-dialog');

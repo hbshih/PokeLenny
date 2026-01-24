@@ -47,7 +47,7 @@ Also update **gamification rules** to fully match `SIMPLE_GAMIFICATION.md` (XP s
 - [x] Use the **large map file** (`pokelenny-large-map.json`).
 - [x] Treat the large map as **stacked copies** of the current map (vertical).
   - If not already stacked, generate/edit the large map so it contains **N vertical segments**.
-- [ ] Decide segment height in tiles (e.g., `mapHeight` from the base map).
+- [x] Decide segment height in tiles (40 tiles per segment).
 
 ### 2) Overworld transitions
 - [x] Allow **south edge** movement into the next segment.
@@ -61,16 +61,14 @@ Also update **gamification rules** to fully match `SIMPLE_GAMIFICATION.md` (XP s
 ### 4) NPC spawning by segment
 - [x] Spawn **only the 10 NPCs for the current level/segment** in that segment’s tile range.
 - [x] When entering a segment, load/spawn its NPCs.
-- [ ] When leaving, either:
-  - despawn that segment’s NPCs (performance), or
-  - keep them alive but don’t show outside viewport.
+- [x] When leaving, despawn that segment’s NPCs (clear and respawn on entry).
 
 ### 5) Player positioning on transition
 - [x] When moving south, place the player at the **top edge** of the next segment.
 - [x] When moving north, place at the **bottom edge** of the previous segment.
 
 ### 6) UI / UX
-- [ ] Update mini‑map or HUD (if present) to show **current segment / map level**.
+- [x] Update mini‑map or HUD (if present) to show **current segment / map level**.
 - [x] Add a subtle **“Area locked”** message when trying to enter a locked segment.
 
 ### 7) Testing
@@ -88,6 +86,7 @@ Also update **gamification rules** to fully match `SIMPLE_GAMIFICATION.md` (XP s
 
 **Files touched:**
 - `src/game/scenes/Overworld.js`
+- `src/game/GuestData.js`
 
 **Changes applied:**
 1) **Segmented world bounds**
@@ -109,6 +108,16 @@ Also update **gamification rules** to fully match `SIMPLE_GAMIFICATION.md` (XP s
 4) **Unlock tracking**
    - `unlockedLevel` updated by `spawn-next-level`
    - `currentSegment` drives which opponents are spawned
+
+5) **HUD**
+   - Added top-left “Map X / Y” label to show current segment and unlocked count
+
+6) **Guest filtering / avatar mapping**
+   - Excluded non‑people episodes from guest list (EOY Review, Interview Q Compilation, Teaser_2021)
+   - Normalized avatar mappings for updated filenames (e.g., Yuhki Yamashita, Alex Hardiman)
+
+7) **Debug controls**
+   - Added `]` key to instantly grant enough XP to unlock the next level
 
 **Note on avatars:** You’ve added new avatar assets (see message list). If any still show fallbacks, we can run a quick mismatch report and align naming.
 

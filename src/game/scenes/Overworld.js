@@ -133,6 +133,7 @@ export class Overworld extends Scene
         this.minimap.startFollow(this.player.sprite, false, 0.1, 0.1);
 
         this.updateSegmentView();
+        this.createSegmentLabel();
 
         // Add styled border to minimap
         this.minimapBorder = this.add.graphics();
@@ -693,6 +694,7 @@ export class Overworld extends Scene
                 this.player.tileY = segmentStartY - 2;
                 this.player.tileX = newX;
                 this.snapPlayerToTile();
+                this.updateSegmentLabel();
             } else {
                 this.showLockedMessage();
             }
@@ -709,6 +711,7 @@ export class Overworld extends Scene
                 this.player.tileY = segmentEndY + 1;
                 this.player.tileX = newX;
                 this.snapPlayerToTile();
+                this.updateSegmentLabel();
             } else {
                 this.showLockedMessage();
             }
@@ -815,6 +818,30 @@ export class Overworld extends Scene
         if (this.minimap) {
             this.minimap.setBounds(0, 0, widthPx, heightPx);
         }
+
+        this.updateSegmentLabel();
+    }
+
+    createSegmentLabel ()
+    {
+        this.segmentLabel = this.add.text(12, 12, '', {
+            fontSize: '10px',
+            fontFamily: 'Press Start 2P, monospace',
+            color: '#FFD700',
+            stroke: '#000000',
+            strokeThickness: 3
+        });
+        this.segmentLabel.setScrollFactor(0);
+        this.segmentLabel.setDepth(2000);
+        this.updateSegmentLabel();
+    }
+
+    updateSegmentLabel ()
+    {
+        if (!this.segmentLabel) return;
+        const current = this.currentSegment + 1;
+        const unlocked = Math.min(this.unlockedLevel, this.totalSegments);
+        this.segmentLabel.setText(`Map ${current} / ${unlocked}`);
     }
 
     snapPlayerToTile ()

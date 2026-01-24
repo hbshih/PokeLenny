@@ -25,6 +25,16 @@ class GuestDataManager {
     questionsData.episodes.forEach((episode, index) => {
       const guestName = episode.guest || episode.title;
 
+      const excludedEpisodes = new Set([
+        'EOY Review',
+        'Interview Q Compilation',
+        'Teaser_2021'
+      ]);
+      if (excludedEpisodes.has(guestName)) {
+        console.warn(`Skipping non-person episode: ${guestName}`);
+        return;
+      }
+
       // Check if guest has questions
       if (!episode.questions || episode.questions.length === 0) {
         console.warn(`Guest ${guestName} has no questions, skipping`);
@@ -108,14 +118,7 @@ class GuestDataManager {
       'Shreyas Doshi Live': 'Shreyas Doshi',
       'Yuhki Yamashata': 'Yuhki Yamashita',
       'Melissa': 'Melissa Perri', // Use Melissa Perri for standalone "Melissa"
-      'EOY Review': null,
-      'Interview Q Compilation': null,
-      'Teaser_2021': null,
       'Failure': 'Failure', // This one exists
-      // Non-people/compilations (exclude)
-      'EOY Review': null,
-      'Interview Q Compilation': null,
-      'Teaser_2021': null,
       // Missing avatars
       'Dr. Fei Fei Li': 'Dr. Fei-Fei Li',
       'Gia Laudi': 'Georgiana Laudi',
