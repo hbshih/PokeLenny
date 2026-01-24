@@ -546,4 +546,207 @@ function prevPage() {
     font-size: 8px;
   }
 }
+
+/* Small height devices - landscape phones */
+@media (max-height: 600px) and (orientation: landscape) {
+  .collection-header {
+    padding: 12px 16px;
+  }
+
+  .collection-title {
+    font-size: 14px;
+  }
+
+  .collection-progress {
+    font-size: 10px;
+  }
+
+  .close-btn {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+
+  .pagination-controls {
+    padding: 8px 16px;
+  }
+
+  .page-info {
+    font-size: 9px;
+    min-width: 100px;
+  }
+
+  .page-btn {
+    font-size: 8px;
+    padding: 6px 10px;
+  }
+
+  .collection-grid {
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .guest-card {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .guest-card-sprite {
+    width: 60px;
+    height: 60px;
+    font-size: 28px;
+  }
+
+  .collection-avatar {
+    width: 56px;
+    height: 56px;
+  }
+
+  .guest-card-name {
+    font-size: 8px;
+    line-height: 1.3;
+  }
+
+  .guest-card-number {
+    font-size: 7px;
+  }
+
+  .guest-detail {
+    padding: 20px;
+    max-width: 350px;
+  }
+
+  .detail-sprite {
+    width: 90px;
+    height: 90px;
+    margin-bottom: 12px;
+  }
+
+  .detail-avatar {
+    width: 80px;
+    height: 80px;
+  }
+
+  .detail-name {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+
+  .detail-number {
+    font-size: 10px;
+    margin-bottom: 16px;
+  }
+
+  .detail-row {
+    font-size: 9px;
+    margin-bottom: 8px;
+  }
+}
+
+/* Extra small height devices */
+@media (max-height: 500px) and (orientation: landscape) {
+  .collection-header {
+    padding: 8px 12px;
+  }
+
+  .collection-title {
+    font-size: 12px;
+  }
+
+  .collection-progress {
+    font-size: 8px;
+  }
+
+  .close-btn {
+    font-size: 10px;
+    padding: 5px 8px;
+  }
+
+  .pagination-controls {
+    padding: 6px 12px;
+  }
+
+  .page-info {
+    font-size: 8px;
+    min-width: 90px;
+  }
+
+  .page-btn {
+    font-size: 7px;
+    padding: 5px 8px;
+  }
+
+  .collection-grid {
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .guest-card {
+    padding: 8px;
+    gap: 6px;
+  }
+
+  .guest-card-sprite {
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+  }
+
+  .collection-avatar {
+    width: 46px;
+    height: 46px;
+  }
+
+  .guest-card-name {
+    font-size: 7px;
+    line-height: 1.2;
+  }
+
+  .guest-card-number {
+    font-size: 6px;
+  }
+
+  .guest-detail {
+    padding: 16px;
+    max-width: 300px;
+  }
+
+  .detail-close-btn {
+    top: 10px;
+    right: 10px;
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+
+  .detail-sprite {
+    width: 70px;
+    height: 70px;
+    margin-bottom: 10px;
+  }
+
+  .detail-avatar {
+    width: 60px;
+    height: 60px;
+  }
+
+  .detail-name {
+    font-size: 12px;
+    margin-bottom: 5px;
+  }
+
+  .detail-number {
+    font-size: 9px;
+    margin-bottom: 12px;
+  }
+
+  .detail-info {
+    padding: 12px;
+  }
+
+  .detail-row {
+    font-size: 8px;
+    margin-bottom: 6px;
+  }
+}
 </style>

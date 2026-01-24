@@ -61,6 +61,12 @@ export class MainMenu extends Scene
             existingInput.remove();
         }
 
+        // Remove mobile input if exists
+        const mobileInput = document.getElementById('mobile-name-input');
+        if (mobileInput) {
+            mobileInput.remove();
+        }
+
         // Stop music
         if (this.music) {
             this.music.stop();
@@ -356,6 +362,11 @@ export class MainMenu extends Scene
 
         inputZone.on('pointerdown', () => {
             this.focusInput();
+            // On mobile, create and focus a hidden HTML input to trigger keyboard
+            const isMobile = this.sys.game.device.input.touch || window.innerWidth <= 1024;
+            if (isMobile) {
+                this.createAndFocusMobileInput();
+            }
         });
 
         // Make entire scene clickable to blur input when clicking outside
@@ -439,6 +450,50 @@ export class MainMenu extends Scene
             inputHeight - 4,
             borderRadius - 2
         );
+    }
+
+    createAndFocusMobileInput ()
+    {
+        // Remove any existing mobile input
+        const existingInput = document.getElementById('mobile-name-input');
+        if (existingInput) {
+            existingInput.remove();
+        }
+
+        // Create hidden input for mobile keyboard
+        const mobileInput = document.createElement('input');
+        mobileInput.id = 'mobile-name-input';
+        mobileInput.type = 'text';
+        mobileInput.value = this.playerName;
+        mobileInput.maxLength = 15;
+        mobileInput.style.position = 'fixed';
+        mobileInput.style.top = '-100px';
+        mobileInput.style.left = '-100px';
+        mobileInput.style.opacity = '0';
+        mobileInput.style.pointerEvents = 'none';
+        document.body.appendChild(mobileInput);
+
+        // Handle input changes
+        mobileInput.addEventListener('input', (e) => {
+            const value = e.target.value.toUpperCase().replace(/[^A-Z0-9 ]/g, '');
+            this.playerName = value;
+            this.updateInputText();
+            mobileInput.value = value;
+        });
+
+        // Handle blur
+        mobileInput.addEventListener('blur', () => {
+            setTimeout(() => {
+                if (document.getElementById('mobile-name-input')) {
+                    document.getElementById('mobile-name-input').remove();
+                }
+            }, 100);
+        });
+
+        // Focus the input to trigger mobile keyboard
+        setTimeout(() => {
+            mobileInput.focus();
+        }, 100);
     }
 
     focusInput ()

@@ -818,16 +818,14 @@ export class Overworld extends Scene
             window.innerWidth <= 1024 ||
             window.innerHeight <= 600;
 
-        const isPortrait = window.innerHeight > window.innerWidth;
-
-        if (!isMobile || isPortrait) {
+        if (!isMobile) {
             return;
         }
 
         // Virtual D-Pad
         const buttonSize = 60;
         const buttonGap = 10;
-        const padding = 120;
+        const padding = 20;
 
         // Position in bottom-left corner
         const startX = padding + buttonSize + 12;

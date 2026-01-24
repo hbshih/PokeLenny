@@ -7,14 +7,18 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables. Check your .env file.');
-  console.error('Required: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY');
+export const isSupabaseEnabled = Boolean(supabaseUrl && supabaseAnonKey);
+
+if (!isSupabaseEnabled) {
+  console.warn('Missing Supabase environment variables. Leaderboard features disabled.');
+  console.warn('Required: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY');
 }
 
-// Create Supabase client
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: false // No auth needed for this game
-  }
-});
+// Create Supabase client when configured
+export const supabase = isSupabaseEnabled
+  ? createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: false // No auth needed for this game
+    }
+  })
+  : null;

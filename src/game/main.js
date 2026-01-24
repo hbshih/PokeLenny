@@ -15,6 +15,10 @@ const config = {
     parent: 'game-container',
     backgroundColor: '#000000',
     pixelArt: true,
+    scale: {
+        mode: Phaser.Scale.NONE,
+        autoCenter: Phaser.Scale.NO_CENTER
+    },
     scene: [
         Boot,
         Preloader,

@@ -1214,8 +1214,8 @@ function handleContinue() {
   }
 }
 
-/* Mobile - Stack vertically */
-@media (max-width: 768px) {
+/* Mobile portrait - Vertical layout */
+@media (max-width: 1024px) {
   .battle-screen {
     font-size: 90%;
     width: 100vw;
@@ -1225,139 +1225,247 @@ function handleContinue() {
     top: 0;
     left: 0;
     transform: none;
+    border: none;
   }
 
   .battle-background {
     background-image: none;
-    background: #000;
+    background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1e 100%);
     transform: none;
   }
 
+  /* Top 40%: Battle arena with both players side by side */
   .battle-arena {
     position: absolute;
     top: 0;
     left: 0;
-    width: 35%;
-    height: 100%;
-    transform: none;
+    width: 100%;
+    height: 40%;
     display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    padding-top: 8px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 12px;
+    gap: 8px;
   }
 
+  /* Opponent area - Left side */
   .opponent-area {
-    right: auto;
-    left: 10px;
-    top: 8px;
+    position: static;
+    flex: 1;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    width: 100%;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
   }
 
-  .player-area {
-    left: 10px;
-    bottom: 12px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    width: 100%;
-  }
-
-  .opponent-sprite,
-  .player-sprite {
+  .opponent-sprite {
     margin: 0;
+    order: 2;
   }
 
   .opponent-avatar {
-    width: 96px;
-    height: 96px;
+    width: 110px;
+    height: 110px;
+  }
+
+  .opponent-hp {
+    position: static;
+    order: 1;
+    margin: 0;
+    width: 100%;
+    max-width: 180px;
+  }
+
+  /* Player area - Right side */
+  .player-area {
+    position: static;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
   }
 
   .player-sprite {
-    display: none;
+    margin: 0;
+    order: 2;
+    display: block;
   }
 
+  .player-back {
+    width: 110px;
+    height: 110px;
+  }
+
+  .player-hp {
+    position: static;
+    order: 1;
+    margin: 0;
+    width: 100%;
+    max-width: 180px;
+  }
+
+  /* HP displays */
+  .hp-display {
+    padding: 8px 10px;
+    width: 100%;
+    font-size: 8px;
+  }
+
+  .name-text {
+    font-size: 11px;
+  }
+
+  .guest-title {
+    font-size: 7px;
+  }
+
+  .level-badge {
+    font-size: 9px;
+    padding: 3px 6px;
+  }
+
+  .hp-bar-track {
+    height: 16px;
+  }
+
+  .hp-numeric {
+    font-size: 10px;
+    margin-top: 4px;
+  }
+
+  /* Bottom 60%: Battle UI with questions and answers */
   .battle-ui-panel {
     position: absolute;
-    right: 12px;
-    top: 12px;
-    bottom: 12px;
-    width: 60%;
-    overflow-y: auto;
-    left: auto;
+    top: 40%;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 60%;
     transform: none;
     animation: none;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pokemon-battle-box {
+    padding: 16px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border-radius: 0;
   }
 
   .battle-layout-horizontal {
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
     min-height: auto;
+    flex: 1;
+    overflow-y: auto;
   }
 
   .question-section {
-    flex: 1;
+    flex: 0 0 auto;
     padding-right: 0;
     border-right: none;
-    padding-bottom: 10px;
+    padding-bottom: 12px;
     border-bottom: 3px solid #e0e0e0;
+  }
+
+  .q-text {
+    font-size: 13px !important;
+    line-height: 1.6;
+  }
+
+  .q-num {
+    font-size: 9px;
+  }
+
+  .diff-badge {
+    font-size: 8px;
+  }
+
+  .controls {
+    font-size: 8px;
+  }
+
+  .key {
+    font-size: 7px;
   }
 
   .answers-section {
     flex: 1;
+    overflow-y: auto;
+    padding-right: 0;
   }
 
-
-  .pokemon-battle-box {
-    padding: 16px;
+  .answer-item {
+    min-height: 40px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
   }
 
-  .q-text {
+  .ans-text {
     font-size: 12px !important;
     line-height: 1.5;
   }
 
-  .ans-text {
-    font-size: 11px !important;
+  .ans-num {
+    font-size: 10px;
   }
 
-  .hp-display {
-    font-size: 9px !important;
-    padding: 8px 10px;
-    width: 90%;
+  /* Feedback display */
+  .feedback-display {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
   }
 
-  .opponent-hp,
-  .player-hp {
-    position: static;
-    margin: 0 0 6px 0;
+  .result-bar {
+    padding: 12px;
+    margin-bottom: 12px;
   }
 
-  .opponent-area .opponent-sprite {
-    order: 1;
+  .result-bar .icon {
+    font-size: 18px;
   }
 
-  .opponent-area .opponent-hp {
-    order: 2;
+  .result-bar .label {
+    font-size: 12px;
   }
 
+  .explain-text {
+    font-size: 11px;
+    line-height: 1.6;
+    padding: 10px;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .continue-bar {
+    font-size: 9px;
+    padding-top: 8px;
+  }
+
+  .continue-bar .key {
+    font-size: 8px;
+  }
+
+  /* Exit button */
   .exit-battle-btn {
-    width: 36px;
-    height: 36px;
-    top: 10px;
-    right: 10px;
+    width: 38px;
+    height: 38px;
+    top: 12px;
+    right: 12px;
+    z-index: 3000;
   }
 
-  .opponent-sprite img, .player-sprite img {
-    max-width: 90%;
-    max-height: 90%;
-  }
-
-  .answer-item {
-    min-height: 36px;
-    padding: 8px 10px;
+  .exit-icon {
+    font-size: 18px;
   }
 }
 
@@ -1366,36 +1474,93 @@ function handleContinue() {
     font-size: 85%;
   }
 
+  .opponent-avatar {
+    width: 90px;
+    height: 90px;
+  }
+
+  .player-back {
+    width: 90px;
+    height: 90px;
+  }
+
+  .hp-display {
+    padding: 6px 8px;
+    font-size: 7px;
+  }
+
+  .name-text {
+    font-size: 10px;
+  }
+
+  .guest-title {
+    font-size: 6px;
+  }
+
+  .level-badge {
+    font-size: 8px;
+    padding: 2px 5px;
+  }
+
+  .hp-bar-track {
+    height: 14px;
+  }
+
+  .hp-numeric {
+    font-size: 9px;
+  }
+
+  .pokemon-battle-box {
+    padding: 12px;
+  }
+
   .q-text {
     font-size: 12px !important;
   }
 
+  .q-num {
+    font-size: 8px;
+  }
+
+  .diff-badge {
+    font-size: 7px;
+  }
+
   .ans-text {
-    font-size: 10px !important;
+    font-size: 11px !important;
   }
 
-  .hp-display {
-    font-size: 9px !important;
-  }
-
-  .exit-battle-btn {
-    width: 32px;
-    height: 32px;
-    top: 8px;
-    right: 8px;
-  }
-
-  .pokemon-battle-box {
-    padding: 8px 10px;
+  .ans-num {
+    font-size: 9px;
   }
 
   .answer-item {
-    padding: 6px 7px;
-    min-height: 24px;
+    padding: 9px 10px;
+    min-height: 36px;
   }
 
-  .battle-layout-horizontal {
-    gap: 8px;
+  .explain-text {
+    font-size: 10px;
+  }
+
+  .result-bar .icon {
+    font-size: 16px;
+  }
+
+  .result-bar .label {
+    font-size: 11px;
+  }
+
+  .exit-battle-btn {
+    width: 34px;
+    height: 34px;
+    top: 10px;
+    right: 10px;
+  }
+
+  .exit-icon {
+    font-size: 16px;
   }
 }
+
 </style>

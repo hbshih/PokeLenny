@@ -40,7 +40,6 @@ const showShareModal = ref(false);
 // Audio control
 const isMuted = ref(false);
 const isMobile = ref(false);
-const isPortrait = ref(false);
 
 // Player stats
 const playerStats = ref({
@@ -390,9 +389,7 @@ function toggleMobileMenu() {
 
 function updateViewportFlags() {
   const w = window.innerWidth;
-  const h = window.innerHeight;
   isMobile.value = w <= 1024 || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
-  isPortrait.value = h > w;
 }
 
 onMounted(() => {
@@ -533,17 +530,10 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div id="app" :class="{ 'mobile-landscape': isMobile && !isPortrait, 'mobile-portrait': isMobile && isPortrait, 'battle-active': showBattle }">
-    <div v-if="isMobile && isPortrait" class="orientation-lock">
-      <div class="orientation-card">
-        <div class="orientation-title">Rotate your device</div>
-        <div class="orientation-text">Play PokéLenny in landscape mode.</div>
-      </div>
-    </div>
-
+  <div id="app" :class="{ 'mobile-view': isMobile, 'battle-active': showBattle }">
     <button
       class="mobile-menu-btn"
-      v-if="isMobile && !isPortrait"
+      v-if="isMobile && currentSceneName === 'Overworld' && !showBattle"
       @click="toggleMobileMenu"
       :aria-expanded="showMobileMenu"
       aria-label="Open menu"
@@ -815,39 +805,6 @@ body {
   overflow: hidden;
   gap: 20px;
   padding: 20px;
-}
-
-.orientation-lock {
-  position: fixed;
-  inset: 0;
-  z-index: 10000;
-  background: rgba(0, 0, 0, 0.95);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-
-.orientation-card {
-  background: rgba(0, 0, 0, 0.85);
-  border: 3px solid #FFD700;
-  border-radius: 12px;
-  padding: 24px;
-  width: min(90vw, 420px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-  font-family: 'Press Start 2P', monospace, sans-serif;
-}
-
-.orientation-title {
-  color: #FFD700;
-  font-size: 14px;
-  margin-bottom: 12px;
-}
-
-.orientation-text {
-  color: #fff;
-  font-size: 10px;
-  line-height: 1.6;
 }
 
 .mobile-menu-btn {
@@ -1375,121 +1332,135 @@ body {
   }
 }
 
-/* Mobile landscape fullscreen layout */
-.mobile-landscape {
-  padding: 0;
-  gap: 0;
+/* Mobile fullscreen layout */
+@media (max-width: 1024px) {
+  .mobile-view {
+    padding: 0;
+    gap: 0;
+  }
+
+  .mobile-view .game-header,
+  .mobile-view .game-footer {
+    display: none;
+  }
+
+  .mobile-view .game-wrapper {
+    position: fixed;
+    inset: 0;
+    padding: 0;
+    margin: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mobile-view #game-container {
+    width: 100%;
+    height: 100%;
+    border: none;
+    box-shadow: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mobile-view #game-container canvas {
+    height: 100% !important;
+    width: auto !important;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  .mobile-view .stats-bar {
+    position: fixed;
+    top: 8px;
+    left: 8px;
+    z-index: 2000;
+    padding: 6px 8px;
+    gap: 4px;
+    min-width: 100px;
+    max-width: 140px;
+    background: rgba(0, 0, 0, 0.85);
+    border-width: 2px;
+    align-items: flex-start;
+    width: auto;
+    overflow: hidden;
+    flex-direction: column;
+  }
+
+  .mobile-view .stats-bar .stat-item {
+    gap: 3px;
+    width: 100%;
+  }
+
+  .mobile-view .stats-bar .stat-label {
+    font-size: 6px;
+  }
+
+  .mobile-view .stats-bar .stat-value,
+  .mobile-view .stats-bar .stat-value-small {
+    font-size: 8px;
+  }
+
+  .mobile-view .stats-bar .xp-bar-container,
+  .mobile-view .stats-bar .stat-value-small,
+  .mobile-view .stats-bar .collection-stat {
+    display: block;
+  }
+
+  .mobile-view .stats-bar .hp-bar-container {
+    height: 8px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .mobile-view .stats-bar .stat-value {
+    line-height: 1.2;
+  }
+
+  .mobile-view .stats-bar .hp-stat .stat-value {
+    font-size: 7px;
+  }
+
+  .mobile-view .stats-bar .xp-bar-container {
+    height: 8px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .mobile-view .stats-bar .stat-value-small {
+    font-size: 7px;
+  }
+
+  .mobile-view .stats-bar .level-stat .stat-value-small {
+    margin-top: 2px;
+  }
+
+  .mobile-view .action-buttons {
+    display: none;
+  }
+
+  .mobile-view.battle-active .mobile-menu-btn {
+    display: none;
+  }
+
+  .mobile-view .game-wrapper .action-buttons {
+    display: none;
+  }
 }
 
-.mobile-landscape .game-header,
-.mobile-landscape .game-footer {
-  display: none;
-}
-
-.mobile-landscape .game-wrapper {
-  position: fixed;
-  inset: 0;
-  padding: 0;
-  margin: 0;
-  width: 100vw;
-  height: 100vh;
-}
-
-.mobile-landscape #game-container {
-  width: 100vw;
-  height: 100vh;
-  border: none;
-  box-shadow: none;
-}
-
-.mobile-landscape #game-container canvas {
-  width: 100% !important;
-  height: 100% !important;
-}
-
-.mobile-landscape .stats-bar {
-  position: fixed;
-  top: 12px;
-  left: 12px;
-  z-index: 2000;
-  padding: 6px;
-  gap: 6px;
-  min-width: 96px;
-  max-width: 140px;
-  background: rgba(0, 0, 0, 0.7);
-  border-width: 2px;
-  align-items: flex-start;
-  width: 140px;
-  overflow: hidden;
-  flex-direction: column;
-}
-
-.mobile-landscape .stats-bar .stat-item {
-  gap: 3px;
-  width: 100%;
-}
-
-.mobile-landscape .stats-bar .stat-label {
-  font-size: 6px;
-}
-
-.mobile-landscape .stats-bar .stat-value,
-.mobile-landscape .stats-bar .stat-value-small {
-  font-size: 8px;
-}
-
-.mobile-landscape .stats-bar .xp-bar-container,
-.mobile-landscape .stats-bar .stat-value-small,
-.mobile-landscape .stats-bar .collection-stat {
-  display: block;
-}
-
-.mobile-landscape .stats-bar .hp-bar-container {
-  height: 8px;
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-}
-
-.mobile-landscape .stats-bar .stat-value {
-  line-height: 1.2;
-}
-
-.mobile-landscape .stats-bar .hp-stat .stat-value {
-  display: none;
-}
-
-.mobile-landscape .stats-bar .xp-bar-container {
-  height: 8px;
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-}
-
-.mobile-landscape .stats-bar .stat-value-small {
-  font-size: 7px;
-}
-
-.mobile-landscape .stats-bar .level-stat .stat-value-small {
-  margin-top: 2px;
-}
-
-.mobile-landscape .action-buttons {
-  display: none;
-}
-
-.mobile-landscape.battle-active .mobile-menu-btn {
-  display: none;
-}
-
-.mobile-landscape .game-wrapper .action-buttons {
-  display: none;
-}
-
-.mobile-portrait .game-header,
-.mobile-portrait .game-wrapper,
-.mobile-portrait .game-footer {
-  display: none;
+/* Keep canvas filling the viewport on mobile */
+@media (max-width: 1024px) {
+  html,
+  body,
+  #app {
+    height: 100%;
+  }
 }
 
 @media (max-width: 1024px) {

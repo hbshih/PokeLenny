@@ -171,6 +171,17 @@ onUnmounted(() => {
   }
 }
 
+@keyframes dialogSlideDown {
+  from {
+    transform: translateX(-50%) translateY(-100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
 /* Classic Pokemon textbox */
 .pokemon-textbox {
   position: relative;
@@ -383,6 +394,225 @@ onUnmounted(() => {
   .key-prompt {
     font-size: 7px;
     padding: 2px 5px;
+  }
+}
+
+/* Small height devices - landscape phones */
+@media (max-height: 600px) and (orientation: landscape) {
+  .pokemon-dialog-container {
+    bottom: 10px;
+    width: 70vw;
+    max-width: 70vw;
+  }
+
+  .pokemon-textbox {
+    padding: 10px 14px;
+    border-width: 4px;
+  }
+
+  .npc-avatar-small {
+    width: 32px;
+    height: 32px;
+  }
+
+  .name-text {
+    font-size: 11px;
+  }
+
+  .title-text {
+    font-size: 8px;
+  }
+
+  .dialog-text {
+    font-size: 10px;
+    line-height: 1.5;
+  }
+
+  .message-content {
+    min-height: 40px;
+    margin-bottom: 8px;
+  }
+
+  .instruction-text {
+    font-size: 7px;
+  }
+
+  .key-prompt {
+    font-size: 6px;
+    padding: 2px 4px;
+  }
+
+  .continue-arrow {
+    font-size: 12px;
+  }
+}
+
+/* Extra small height devices */
+@media (max-height: 500px) and (orientation: landscape) {
+  .pokemon-dialog-container {
+    bottom: 8px;
+    width: 65vw;
+  }
+
+  .pokemon-textbox {
+    padding: 8px 12px;
+    border-width: 3px;
+  }
+
+  .npc-avatar-small {
+    width: 28px;
+    height: 28px;
+  }
+
+  .npc-name-header {
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    gap: 8px;
+  }
+
+  .name-text {
+    font-size: 10px;
+  }
+
+  .title-text {
+    font-size: 7px;
+  }
+
+  .dialog-text {
+    font-size: 9px;
+    line-height: 1.4;
+  }
+
+  .message-content {
+    min-height: 32px;
+    margin-bottom: 6px;
+  }
+
+  .dialog-footer {
+    padding-top: 8px;
+  }
+
+  .instruction-text {
+    font-size: 6px;
+  }
+
+  .key-prompt {
+    font-size: 5px;
+    padding: 2px 3px;
+  }
+
+  .continue-arrow {
+    font-size: 10px;
+  }
+
+  .textbox-inner-border {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+  }
+}
+
+/* Mobile portrait mode - dialog appears from top */
+@media (max-width: 1024px) {
+  .pokemon-dialog-container {
+    top: 16px;
+    bottom: auto;
+    left: 16px;
+    right: 16px;
+    width: auto;
+    max-width: none;
+    transform: none;
+    animation: dialogSlideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .pokemon-textbox {
+    padding: 16px 20px;
+    border-width: 5px;
+  }
+
+  .npc-avatar-small {
+    width: 36px;
+    height: 36px;
+  }
+
+  .name-text {
+    font-size: 13px;
+  }
+
+  .title-text {
+    font-size: 9px;
+  }
+
+  .dialog-text {
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .message-content {
+    min-height: 50px;
+  }
+
+  .instruction-text {
+    font-size: 9px;
+  }
+
+  .key-prompt {
+    font-size: 8px;
+    padding: 3px 6px;
+  }
+}
+
+/* Small mobile screens */
+@media (max-width: 480px) {
+  .pokemon-dialog-container {
+    top: 12px;
+    left: 12px;
+    right: 12px;
+  }
+
+  .pokemon-textbox {
+    padding: 12px 16px;
+    border-width: 4px;
+  }
+
+  .npc-avatar-small {
+    width: 32px;
+    height: 32px;
+  }
+
+  .npc-name-header {
+    gap: 10px;
+  }
+
+  .name-text {
+    font-size: 11px;
+  }
+
+  .title-text {
+    font-size: 8px;
+  }
+
+  .dialog-text {
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .message-content {
+    min-height: 45px;
+  }
+
+  .instruction-text {
+    font-size: 8px;
+  }
+
+  .key-prompt {
+    font-size: 7px;
+    padding: 2px 5px;
+  }
+
+  .continue-arrow {
+    font-size: 13px;
   }
 }
 </style>

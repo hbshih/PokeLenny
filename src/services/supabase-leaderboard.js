@@ -1,11 +1,19 @@
 // Supabase leaderboard - global, real-time, free
 // Uses Row Level Security (RLS) for safe public access
 
-import { supabase } from '../lib/supabase.js';
+import { supabase, isSupabaseEnabled } from '../lib/supabase.js';
+
+function ensureSupabase() {
+  if (!isSupabaseEnabled || !supabase) {
+    return false;
+  }
+  return true;
+}
 
 export const leaderboardService = {
   // Get top 50 players
   async getLeaderboard() {
+    if (!ensureSupabase()) return [];
     const { data, error } = await supabase
       .from('leaderboard')
       .select('*')
@@ -19,6 +27,7 @@ export const leaderboardService = {
 
   // Save player score
   async saveScore(playerData) {
+    if (!ensureSupabase()) return null;
     const { data, error } = await supabase
       .from('leaderboard')
       .insert([{
@@ -36,6 +45,7 @@ export const leaderboardService = {
 
   // Get player rank
   async getPlayerRank(playerName) {
+    if (!ensureSupabase()) return null;
     const { data, error } = await supabase
       .from('leaderboard')
       .select('player_name, level, captured')
@@ -50,6 +60,7 @@ export const leaderboardService = {
 
   // Subscribe to real-time updates (optional)
   subscribeToLeaderboard(callback) {
+    if (!ensureSupabase()) return { unsubscribe: () => {} };
     return supabase
       .channel('leaderboard_changes')
       .on('postgres_changes',
