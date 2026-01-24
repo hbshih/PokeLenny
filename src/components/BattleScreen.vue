@@ -609,8 +609,9 @@ function handleContinue() {
   .battle-screen {
     width: 96vw;
     height: calc(96vw * 0.667);
-    max-height: 80vh;
+    max-height: 85vh;
     border: 2px solid #FFD700;
+    top: 50%;
   }
 }
 

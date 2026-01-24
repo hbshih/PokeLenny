@@ -30,6 +30,7 @@ const encounterNPC = ref(null);
 const showGameOver = ref(false);
 const showTutorial = ref(false);
 const showLeaderboard = ref(false);
+const showMobileMenu = ref(false);
 
 // Player data
 const playerName = ref('Player');
@@ -377,6 +378,46 @@ function handleCloseLeaderboard() {
   showLeaderboard.value = false;
 }
 
+function toggleMobileMenu() {
+  showMobileMenu.value = !showMobileMenu.value;
+}
+
+function closeMobileMenu() {
+  showMobileMenu.value = false;
+}
+
+// Mobile touch controls
+const touchDirection = ref(null);
+
+function handleTouchControl(direction) {
+  touchDirection.value = direction;
+  // Emit keyboard event to Phaser
+  const keyMap = {
+    'up': 'ArrowUp',
+    'down': 'ArrowDown',
+    'left': 'ArrowLeft',
+    'right': 'ArrowRight'
+  };
+
+  const event = new KeyboardEvent('keydown', {
+    key: keyMap[direction],
+    code: keyMap[direction],
+    bubbles: true
+  });
+  window.dispatchEvent(event);
+
+  // Release after short delay
+  setTimeout(() => {
+    const upEvent = new KeyboardEvent('keyup', {
+      key: keyMap[direction],
+      code: keyMap[direction],
+      bubbles: true
+    });
+    window.dispatchEvent(upEvent);
+    touchDirection.value = null;
+  }, 150);
+}
+
 onMounted(() => {
   // Listen for guests-loaded event from Preloader
   EventBus.on('guests-loaded', (guests) => {
@@ -509,6 +550,51 @@ onUnmounted(() => {
 
 <template>
   <div id="app">
+    <button class="mobile-menu-btn" @click="toggleMobileMenu" :aria-expanded="showMobileMenu">
+      ☰
+    </button>
+    <div v-if="showMobileMenu" class="mobile-menu-overlay" @click="toggleMobileMenu"></div>
+    <div v-if="showMobileMenu" class="mobile-menu-panel">
+      <div class="mobile-menu-section">
+        <div class="action-buttons mobile-actions">
+          <button class="action-btn collection-btn" @click="handleOpenCollection; closeMobileMenu()">
+            <Icon class="btn-icon" :icon="bookOpen" />
+            Collection
+          </button>
+          <button class="action-btn leaderboard-btn" @click="handleOpenLeaderboard; closeMobileMenu()">
+            <Icon class="btn-icon" :icon="trophy" />
+            Leaderboard
+          </button>
+          <button class="action-btn share-btn" @click="handleShareStats; closeMobileMenu()">
+            <Icon class="btn-icon" :icon="upload" />
+            Share Stats
+          </button>
+          <button class="action-btn mute-btn" @click="toggleMute">
+            <Icon class="btn-icon" :icon="isMuted ? volumeX : volume" />
+            {{ isMuted ? 'Unmute' : 'Mute' }}
+          </button>
+        </div>
+      </div>
+      <div class="mobile-menu-section footer-container mobile-footer">
+        <div class="footer-column controls-column">
+          <div class="controls-title">How to Play:</div>
+          <div class="controls-list">
+            <div class="control-item">
+              <Icon class="control-icon" :icon="keyboard" />
+              Arrow Keys or WASD to move
+            </div>
+            <div class="control-item">
+              <Icon class="control-icon" :icon="message" />
+              Walk near guests to battle
+            </div>
+            <div class="control-item">
+              <Icon class="control-icon" :icon="bookOpen" />
+              Press C to view collection
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="game-header">
       <h1 class="game-title">PokéLenny</h1>
       <p class="game-subtitle">Catch 'Em All!</p>
@@ -538,7 +624,48 @@ onUnmounted(() => {
 
       <PhaserGame ref="phaserRef" />
 
-      <div class="action-buttons">
+      <!-- Mobile Touch Controls -->
+      <div class="mobile-controls">
+        <div class="dpad-container">
+          <button
+            class="dpad-btn dpad-up"
+            @touchstart.prevent="handleTouchControl('up')"
+            @mousedown.prevent="handleTouchControl('up')"
+            :class="{ active: touchDirection === 'up' }"
+          >
+            ▲
+          </button>
+          <div class="dpad-middle">
+            <button
+              class="dpad-btn dpad-left"
+              @touchstart.prevent="handleTouchControl('left')"
+              @mousedown.prevent="handleTouchControl('left')"
+              :class="{ active: touchDirection === 'left' }"
+            >
+              ◀
+            </button>
+            <div class="dpad-center"></div>
+            <button
+              class="dpad-btn dpad-right"
+              @touchstart.prevent="handleTouchControl('right')"
+              @mousedown.prevent="handleTouchControl('right')"
+              :class="{ active: touchDirection === 'right' }"
+            >
+              ▶
+            </button>
+          </div>
+          <button
+            class="dpad-btn dpad-down"
+            @touchstart.prevent="handleTouchControl('down')"
+            @mousedown.prevent="handleTouchControl('down')"
+            :class="{ active: touchDirection === 'down' }"
+          >
+            ▼
+          </button>
+        </div>
+      </div>
+
+      <div class="action-buttons desktop-only">
         <button class="action-btn collection-btn" @click="handleOpenCollection">
           <Icon class="btn-icon" :icon="bookOpen" />
           Collection
@@ -558,11 +685,11 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <div class="game-footer">
-      <div class="footer-container">
-        <div class="footer-column controls-column">
-          <div class="controls-title">How to Play:</div>
-          <div class="controls-list">
+      <div class="game-footer desktop-only">
+        <div class="footer-container">
+          <div class="footer-column controls-column">
+            <div class="controls-title">How to Play:</div>
+            <div class="controls-list">
             <div class="control-item">
               <Icon class="control-icon" :icon="keyboard" />
               Arrow Keys or WASD to move
@@ -706,6 +833,144 @@ body {
   overflow: hidden;
   gap: 20px;
   padding: 20px;
+}
+
+.mobile-menu-btn {
+  display: none;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 5000;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  border: 3px solid #FFD700;
+  background: rgba(0, 0, 0, 0.85);
+  color: #FFD700;
+  font-family: 'Press Start 2P', monospace, sans-serif;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.mobile-menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 4000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.mobile-menu-panel {
+  position: fixed;
+  top: 64px;
+  right: 12px;
+  left: 12px;
+  z-index: 5001;
+  background: rgba(0, 0, 0, 0.95);
+  border: 3px solid #FFD700;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 40px rgba(255, 215, 0, 0.2);
+  animation: slideDown 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mobile-menu-section + .mobile-menu-section {
+  margin-top: 12px;
+}
+
+.mobile-actions {
+  flex-direction: column;
+  min-width: auto;
+}
+
+.mobile-footer {
+  width: 100%;
+  max-width: none;
+  border: none;
+  padding: 12px;
+  grid-template-columns: 1fr;
+}
+
+/* Mobile Touch Controls (D-Pad) */
+.mobile-controls {
+  display: none;
+}
+
+.dpad-container {
+  display: grid;
+  grid-template-rows: auto auto auto;
+  gap: 4px;
+  width: fit-content;
+  margin: 0 auto;
+}
+
+.dpad-middle {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  gap: 4px;
+}
+
+.dpad-btn {
+  width: 60px;
+  height: 60px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 3px solid #FFD700;
+  border-radius: 8px;
+  color: #FFD700;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.1s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  font-family: Arial, sans-serif;
+}
+
+.dpad-btn:active,
+.dpad-btn.active {
+  background: rgba(255, 215, 0, 0.3);
+  border-color: #fff;
+  transform: scale(0.95);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4), inset 0 0 15px rgba(255, 215, 0, 0.5);
+}
+
+.dpad-up {
+  grid-column: 2;
+}
+
+.dpad-down {
+  grid-column: 2;
+}
+
+.dpad-center {
+  width: 60px;
+  height: 60px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  border-radius: 8px;
 }
 
 .game-header {
@@ -1054,6 +1319,18 @@ body {
     border-width: 3px;
   }
 
+  .game-wrapper {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .stats-bar {
+    width: 100%;
+    max-width: 400px;
+    min-width: auto;
+  }
+
   .game-title {
     font-size: 20px;
   }
@@ -1074,6 +1351,56 @@ body {
     font-size: 9px;
     padding: 10px 12px;
   }
+
+  .desktop-only {
+    display: none;
+  }
+
+  .mobile-menu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mobile-controls {
+    display: block;
+    margin-top: 16px;
+    margin-bottom: 16px;
+  }
+
+  .dpad-btn {
+    width: 56px;
+    height: 56px;
+    font-size: 20px;
+  }
+
+  .dpad-center {
+    width: 56px;
+    height: 56px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dpad-btn {
+    width: 50px;
+    height: 50px;
+    font-size: 18px;
+    border-width: 2px;
+  }
+
+  .dpad-center {
+    width: 50px;
+    height: 50px;
+  }
+
+  .game-title {
+    font-size: 18px;
+  }
+
+  .game-subtitle {
+    font-size: 9px;
+  }
+}
 
   .footer-container {
     grid-template-columns: 1fr;
