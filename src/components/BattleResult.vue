@@ -35,7 +35,7 @@
       </div>
 
       <!-- Action Buttons -->
-      <div class="action-buttons">
+      <div class="action-buttons" :class="{ single: won }">
         <button
           v-if="!won"
           class="result-btn retry-btn"
@@ -44,7 +44,8 @@
           @touchstart.stop.prevent="retry"
           type="button"
         >
-          ▶ TRY AGAIN
+          <Icon class="result-btn-icon" :icon="redo" />
+          Try Again
         </button>
         <button
           class="result-btn continue-btn"
@@ -53,8 +54,21 @@
           @touchstart.stop.prevent="continueGame"
           type="button"
         >
-          ▶ {{ won ? 'CONTINUE' : 'RETURN' }}
+          <Icon class="result-btn-icon" :icon="arrowRight" />
+          {{ won ? 'Continue' : 'Return' }}
         </button>
+      </div>
+
+      <div v-if="episodeUrl" class="episode-link-row">
+        <a
+          class="episode-link"
+          :href="episodeUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Icon class="episode-link-icon" :icon="externalLink" />
+          Learn more from the episode
+        </a>
       </div>
 
       <!-- Keyboard hint -->
@@ -67,11 +81,16 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { Icon } from '@iconify/vue';
+import externalLink from '@iconify/icons-pixelarticons/external-link';
+import redo from '@iconify/icons-pixelarticons/redo';
+import arrowRight from '@iconify/icons-pixelarticons/arrow-right';
 
 const props = defineProps({
   isActive: Boolean,
   won: Boolean,
   guestName: String,
+  episodeUrl: String,
   stats: {
     type: Object,
     default: () => ({
@@ -196,6 +215,9 @@ function handleContainerClick(event) {
   padding: 40px;
   max-width: 600px;
   width: 90%;
+  position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
   box-shadow:
     0 0 40px rgba(255, 215, 0, 0.6),
     inset 0 0 20px rgba(0, 0, 0, 0.3);
@@ -211,10 +233,13 @@ function handleContainerClick(event) {
 
 .result-container.defeat {
   border-color: #FF6B6B;
+  background: linear-gradient(160deg, #3b1f2a 0%, #2a0f16 45%, #1f0b12 100%);
   box-shadow:
-    0 0 40px rgba(255, 107, 107, 0.8),
-    inset 0 0 20px rgba(255, 107, 107, 0.1);
+    0 0 45px rgba(255, 107, 107, 0.6),
+    inset 0 0 25px rgba(255, 107, 107, 0.12);
 }
+
+/* Removed dotted inner border for defeat state */
 
 @keyframes slideIn {
   from {
@@ -255,7 +280,7 @@ function handleContainerClick(event) {
   color: #FF6B6B;
   text-shadow:
     3px 3px 0 #000,
-    0 0 20px rgba(255, 107, 107, 0.8);
+    0 0 24px rgba(255, 107, 107, 0.95);
 }
 
 @keyframes pulse {
@@ -277,6 +302,8 @@ function handleContainerClick(event) {
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 30px;
+  position: relative;
+  padding-top: 42px;
 }
 
 .stat-row {
@@ -325,15 +352,53 @@ function handleContainerClick(event) {
 }
 
 .perfect-badge {
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  transform: translateX(-50%);
   text-align: center;
   font-family: 'Press Start 2P', monospace;
-  font-size: 14px;
+  font-size: 12px;
   color: #FFD700;
-  padding: 15px;
-  margin-top: 15px;
-  background: linear-gradient(90deg, rgba(255,215,0,0.1) 0%, rgba(255,215,0,0.3) 50%, rgba(255,215,0,0.1) 100%);
+  padding: 8px 18px;
+  min-width: 85%;
+  background: linear-gradient(90deg, rgba(255,215,0,0.15) 0%, rgba(255,215,0,0.35) 50%, rgba(255,215,0,0.15) 100%);
   border-radius: 8px;
+  border: 2px solid rgba(255, 215, 0, 0.6);
+  text-shadow: 1px 1px 0 #000;
   animation: sparkle 1.5s ease-in-out infinite;
+}
+
+.episode-link-row {
+  display: flex;
+  justify-content: center;
+  margin: 12px 0 18px;
+}
+
+.episode-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 2px solid #FFD700;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  text-decoration: none;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.episode-link:hover {
+  border-color: #fff;
+  color: #FFD700;
+}
+
+.episode-link-icon {
+  width: 14px;
+  height: 14px;
 }
 
 @keyframes sparkle {
@@ -343,8 +408,14 @@ function handleContainerClick(event) {
 
 /* Buttons */
 .action-buttons {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 15px;
+  justify-content: center;
+}
+
+.action-buttons.single {
+  grid-template-columns: minmax(0, 240px);
   justify-content: center;
 }
 
@@ -357,6 +428,12 @@ function handleContainerClick(event) {
   cursor: pointer;
   transition: all 0.2s ease;
   text-shadow: 2px 2px 0 #000;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  white-space: nowrap;
+  width: 100%;
 }
 
 .retry-btn {
@@ -389,6 +466,11 @@ function handleContainerClick(event) {
   box-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 4px 0 currentColor;
   border-color: #FFD700;
   animation: pulse 1s ease-in-out infinite;
+}
+
+.result-btn-icon {
+  width: 16px;
+  height: 16px;
 }
 
 @keyframes pulse {
@@ -428,12 +510,28 @@ function handleContainerClick(event) {
   }
 
   .result-btn {
-    font-size: 11px;
-    padding: 12px 20px;
+    font-size: 9px;
+    padding: 10px 8px;
+    flex: 1 1 0;
+    min-width: 0;
   }
 
   .action-buttons {
-    flex-direction: column;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .action-buttons.single {
+    grid-template-columns: minmax(0, 200px);
+  }
+
+  .episode-link {
+    font-size: 7px;
+  }
+
+  .result-btn-icon {
+    width: 14px;
+    height: 14px;
   }
 }
 </style>

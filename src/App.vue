@@ -185,9 +185,10 @@ function handleAcceptBattle() {
             id: index + 1,
             type: "mcq",
             prompt: q.question,
-            choices: q.options,
-            correctAnswer: q.options.indexOf(q.answer),
-            explanation: `The correct answer is: ${q.answer}`
+            choices: q.choices,
+            correctAnswer: q.choices.indexOf(q.answer),
+            explanation: q.explanation || '',
+            difficulty: q.difficulty || ''
           }))
         };
         console.log('Formatted battle questions:', battleData.value.questions);
@@ -490,9 +491,10 @@ onMounted(() => {
               id: index + 1,
               type: "mcq",
               prompt: q.question,
-              choices: q.options,
-              correctAnswer: q.options.indexOf(q.answer),
-              explanation: `The correct answer is: ${q.answer}`
+              choices: q.choices,
+              correctAnswer: q.choices.indexOf(q.answer),
+              explanation: q.explanation || '',
+              difficulty: q.difficulty || ''
             }))
           };
           console.log('Formatted battle questions:', battleData.value.questions);

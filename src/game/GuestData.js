@@ -36,6 +36,7 @@ class GuestDataManager {
         id: String(index + 1).padStart(3, '0'),
         name: guestName,
         episode: episode.title,
+        episodeUrl: episode.url || '',
         questions: episode.questions,
         avatarKey: this.generateAvatarKey(guestName),
         sprite: null, // Default sprite icon handled in UI

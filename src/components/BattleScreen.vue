@@ -81,7 +81,7 @@
           <div class="question-section">
             <div class="q-header">
               <span class="q-num">Q{{ currentQuestionIndex + 1 }}/{{ battleData.questions?.length || 1 }}</span>
-              <span class="diff-badge">{{ battleData.guest.difficulty || 'Med' }}</span>
+              <span class="diff-badge">{{ currentQuestion.difficulty || battleData.guest.difficulty || 'Med' }}</span>
             </div>
             <div class="q-text">{{ currentQuestion.prompt }}</div>
             <div class="controls">
@@ -110,7 +110,7 @@
             <span class="icon">{{ isCorrect ? '✓' : '✗' }}</span>
             <span class="label">{{ isCorrect ? 'CORRECT!' : 'WRONG!' }}</span>
           </div>
-          <p class="explain-text">{{ currentQuestion.explanation }}</p>
+          <p v-if="currentQuestion.explanation" class="explain-text">{{ currentQuestion.explanation }}</p>
           <div class="continue-bar">
             <span class="key">ENTER</span> {{ currentQuestionIndex < (battleStats.totalQuestions - 1) ? 'Next' : 'Finish' }} ▼
           </div>
@@ -123,6 +123,7 @@
       :isActive="battleEnded"
       :won="battleWon"
       :guestName="battleData?.guest?.name || 'Guest'"
+      :episodeUrl="battleData?.guest?.episodeUrl || ''"
       :stats="battleStats"
       @retry="handleRetry"
       @continue="handleContinue"
