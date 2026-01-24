@@ -15,20 +15,6 @@ const config = {
     parent: 'game-container',
     backgroundColor: '#000000',
     pixelArt: true,
-    scale: {
-        mode: Phaser.Scale.FIT,
-        autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: 960,
-        height: 640,
-        min: {
-            width: 320,
-            height: 213
-        },
-        max: {
-            width: 1920,
-            height: 1280
-        }
-    },
     scene: [
         Boot,
         Preloader,
