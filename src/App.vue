@@ -1378,29 +1378,6 @@ body {
     width: 56px;
     height: 56px;
   }
-}
-
-@media (max-width: 480px) {
-  .dpad-btn {
-    width: 50px;
-    height: 50px;
-    font-size: 18px;
-    border-width: 2px;
-  }
-
-  .dpad-center {
-    width: 50px;
-    height: 50px;
-  }
-
-  .game-title {
-    font-size: 18px;
-  }
-
-  .game-subtitle {
-    font-size: 9px;
-  }
-}
 
   .footer-container {
     grid-template-columns: 1fr;
@@ -1430,6 +1407,28 @@ body {
 
   .credits-disclaimer {
     font-size: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dpad-btn {
+    width: 50px;
+    height: 50px;
+    font-size: 18px;
+    border-width: 2px;
+  }
+
+  .dpad-center {
+    width: 50px;
+    height: 50px;
+  }
+
+  .game-title {
+    font-size: 18px;
+  }
+
+  .game-subtitle {
+    font-size: 9px;
   }
 }
 
