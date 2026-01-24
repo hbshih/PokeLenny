@@ -434,6 +434,7 @@ function handleContainerClick(event) {
   gap: 10px;
   white-space: nowrap;
   width: 100%;
+  touch-action: manipulation;
 }
 
 .retry-btn {

@@ -650,6 +650,7 @@ function handleContinue() {
   transition: all 0.2s ease;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
   pointer-events: auto;
+  touch-action: manipulation;
 }
 
 .exit-battle-btn:hover {
@@ -1021,6 +1022,7 @@ function handleContinue() {
   transition: all 0.15s ease;
   position: relative;
   min-height: 32px;
+  touch-action: manipulation;
 }
 
 .answer-item.active {

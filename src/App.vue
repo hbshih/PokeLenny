@@ -40,6 +40,7 @@ const showShareModal = ref(false);
 // Audio control
 const isMuted = ref(false);
 const isMobile = ref(false);
+const isPortrait = ref(false);
 
 // Player stats
 const playerStats = ref({
@@ -390,7 +391,9 @@ function toggleMobileMenu() {
 
 function updateViewportFlags() {
   const w = window.innerWidth;
+  const h = window.innerHeight;
   isMobile.value = w <= 1024 || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+  isPortrait.value = h > w;
 }
 
 onMounted(() => {
@@ -533,6 +536,12 @@ onUnmounted(() => {
 
 <template>
   <div id="app" :class="{ 'mobile-view': isMobile, 'battle-active': showBattle }">
+    <div v-if="isMobile && isPortrait" class="orientation-lock">
+      <div class="orientation-card">
+        <div class="orientation-title">Rotate your phone</div>
+        <div class="orientation-subtitle">Play PokéLenny in landscape mode</div>
+      </div>
+    </div>
     <button
       class="mobile-menu-btn"
       v-if="isMobile && currentSceneName === 'Overworld' && !showBattle"
@@ -812,8 +821,8 @@ body {
 .mobile-menu-btn {
   display: none;
   position: fixed;
-  top: 12px;
-  right: 12px;
+  top: calc(12px + env(safe-area-inset-top));
+  right: calc(12px + env(safe-area-inset-right));
   z-index: 5000;
   width: 40px;
   height: 40px;
@@ -824,6 +833,7 @@ body {
   font-family: 'Press Start 2P', monospace, sans-serif;
   font-size: 16px;
   cursor: pointer;
+  touch-action: manipulation;
 }
 
 .mobile-menu-overlay {
@@ -835,8 +845,8 @@ body {
 
 .mobile-menu-panel {
   position: fixed;
-  top: 80px;
-  right: 12px;
+  top: calc(80px + env(safe-area-inset-top));
+  right: calc(12px + env(safe-area-inset-right));
   left: auto;
   z-index: 5001;
   background: rgba(0, 0, 0, 0.92);
@@ -849,6 +859,7 @@ body {
   overflow-x: hidden;
   width: min(92vw, 420px);
   box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
 }
 
 .mobile-menu-header {
@@ -878,6 +889,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  touch-action: manipulation;
 }
 
 .mobile-menu-close:hover {
@@ -953,6 +965,7 @@ body {
   width: 100%;
   justify-content: flex-start;
   padding: 12px 14px;
+  min-height: 44px;
 }
 
 .game-header {
@@ -1078,6 +1091,7 @@ body {
   align-items: center;
   gap: 8px;
   justify-content: center;
+  touch-action: manipulation;
 }
 
 .btn-icon {
@@ -1376,10 +1390,44 @@ body {
     object-fit: contain;
   }
 
+  .orientation-lock {
+    position: fixed;
+    inset: 0;
+    z-index: 6000;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px;
+  }
+
+  .orientation-card {
+    border: 3px solid #FFD700;
+    border-radius: 12px;
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.8);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+  }
+
+  .orientation-title {
+    font-family: 'Press Start 2P', monospace, sans-serif;
+    font-size: 14px;
+    color: #FFD700;
+    margin-bottom: 10px;
+  }
+
+  .orientation-subtitle {
+    font-family: 'Press Start 2P', monospace, sans-serif;
+    font-size: 10px;
+    color: #fff;
+    opacity: 0.9;
+  }
+
   .mobile-view .stats-bar {
     position: fixed;
-    top: 8px;
-    left: 8px;
+    top: calc(8px + env(safe-area-inset-top));
+    left: calc(8px + env(safe-area-inset-left));
     z-index: 2000;
     padding: 6px 8px;
     gap: 4px;

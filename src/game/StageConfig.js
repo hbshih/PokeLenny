@@ -8,7 +8,7 @@ export const STAGE_CONFIG = [
   // Stage 1 (Top 10 most recognizable)
   [
     "Shreyas Doshi",
-    "Elena Verna 2.0",
+    "Elena Verna",
     "Ben Horowitz",
     "Brian Chesky",
     "Seth Godin",
@@ -16,15 +16,15 @@ export const STAGE_CONFIG = [
     "Eric Ries",
     "Gibson Biddle",
     "Geoffrey Moore",
-    "Marty Cagan 2.0"
+    "Marty Cagan"
   ],
 
   // Stage 2
   [
     "Kim Scott",
-    "Julie Zhuo 2.0",
+    "Julie Zhuo",
     "Stewart Butterfield",
-    "Dylan Field 2.0",
+    "Dylan Field",
     "Tobi Lutke",
     "Melanie Perkins",
     "Ivan Zhao",
@@ -36,7 +36,7 @@ export const STAGE_CONFIG = [
   // Stage 3
   [
     "Gokul Rajaram",
-    "April Dunford 2.0",
+    "April Dunford",
     "Patrick Campbell",
     "Marc Benioff",
     "Drew Houston",
@@ -71,7 +71,7 @@ export const STAGE_CONFIG = [
     "Chip Huyen",
     "Hamel Husain & Shreya Shankar",
     "Dr. Fei Fei Li",
-    "Nicole Forsgren 2.0",
+    "Nicole Forsgren",
     "Gergely"
   ],
 
@@ -81,19 +81,19 @@ export const STAGE_CONFIG = [
     "Guillermo Rauch",
     "Amjad Masad",
     "Howie Liu",
-    "Uri Levine 2.0",
+    "Uri Levine",
     "Rahul Vohra",
     "Teresa Torres",
     "Melissa Perri",
-    "Bob Moesta 2.0",
-    "Madhavan Ramanujam 2.0"
+    "Bob Moesta",
+    "Madhavan Ramanujam"
   ],
 
   // Stage 7
   [
     "Roger Martin",
     "Richard Rumelt",
-    "Jake Knapp + John Zeratsky 2.0",
+    "Jake Knapp + John Zeratsky",
     "Janna Bastow",
     "Nancy Duarte",
     "John Cutler",
@@ -120,7 +120,7 @@ export const STAGE_CONFIG = [
   // Stage 9
   [
     "Andrew Wilkinson",
-    "Wes Kao 2.0",
+    "Wes Kao",
     "Kristen Berman",
     "Gia Laudi",
     "Emily Kramer",
@@ -167,7 +167,7 @@ export const STAGE_CONFIG = [
     "Logan Kilpatrick",
     "Scott Wu",
     "Michael Truell",
-    "Sander Schulhoff 2.0",
+    "Sander Schulhoff",
     "Dan Shipper",
     "Varun Mohan",
     "Anton Osika"
@@ -177,7 +177,7 @@ export const STAGE_CONFIG = [
   [
     "Alex Komoroske",
     "Lulu Cheng Meservey",
-    "Andy Raskin_",
+    "Andy Raskin",
     "Matt Abrahams",
     "Christopher Lochhead",
     "David Placek",
@@ -189,7 +189,7 @@ export const STAGE_CONFIG = [
 
   // Stage 14
   [
-    "Tomer Cohen 2.0",
+    "Tomer Cohen",
     "Sam Lessin",
     "Alisa Cohn",
     "Graham Weaver",
@@ -332,7 +332,7 @@ export const STAGE_CONFIG = [
     "Jonny Miller",
     "Joe Hudson",
     "Dan Hockenmaier",
-    "Ethan Evans 2.0",
+    "Ethan Evans",
     "Ian McAllister",
     "Dhanji R. Prasanna",
     "Farhan Thawar",
@@ -344,8 +344,8 @@ export const STAGE_CONFIG = [
   // Stage 25
   [
     "Shreyas Doshi Live",
-    "Tomer Cohen 2.0",
-    "Jen Abel 2.0",
+    "Tomer Cohen",
+    "Jen Abel",
     "Alex Hardimen",
     "Benjamin Lauzier",
     "Benjamin Mann",
@@ -401,9 +401,9 @@ export const STAGE_CONFIG = [
   [
     "Brian Tolkin",
     "Zevi Arnovitz",
-    "Interview Q Compilation",
-    "EOY Review",
-    "Teaser_2021"
+    "Lulu Cheng Meservey",
+    "Mihika Kapoor",
+    "Ronny Kohavi"
   ]
 ];
 
