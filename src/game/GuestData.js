@@ -106,24 +106,28 @@ class GuestDataManager {
     // Handle special episodes/variations
     const specialMappings = {
       'Shreyas Doshi Live': 'Shreyas Doshi',
-      'Yuhki Yamashata': null, // Typo - no avatar exists
+      'Yuhki Yamashata': 'Yuhki Yamashita',
       'Melissa': 'Melissa Perri', // Use Melissa Perri for standalone "Melissa"
       'EOY Review': null,
       'Interview Q Compilation': null,
       'Teaser_2021': null,
       'Failure': 'Failure', // This one exists
+      // Non-people/compilations (exclude)
+      'EOY Review': null,
+      'Interview Q Compilation': null,
+      'Teaser_2021': null,
       // Missing avatars
-      'Dr. Fei Fei Li': null,
-      'Gia Laudi': null,
-      'Chip Conley': null,
-      'Cam Adams': null,
-      'Benjamin Mann': null,
-      'Alex Hardimen': null,
-      'Phyl Terry': null,
-      'Jeanne Grosser': null,
-      'Jess Lachs': null,
-      'Jason M Lemkin': null,
-      'Mike Maples Jr': null
+      'Dr. Fei Fei Li': 'Dr. Fei-Fei Li',
+      'Gia Laudi': 'Georgiana Laudi',
+      'Chip Conley': 'Chip Conley',
+      'Cam Adams': 'Cameron Adams',
+      'Benjamin Mann': 'Benjamin Mann',
+      'Alex Hardimen': 'Alex Hardiman',
+      'Phyl Terry': 'Phyl Terry',
+      'Jeanne Grosser': 'Jeanne DeWitt Grosser',
+      'Jess Lachs': 'Jessica Lachs',
+      'Jason M Lemkin': 'Jason Lemkin',
+      'Mike Maples Jr': 'Mike Maples, Jr.'
     };
 
     // Check collaboration mappings first

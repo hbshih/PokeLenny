@@ -126,7 +126,7 @@ const collection = ref([]);
 // Level system
 const currentGameLevel = ref(1);
 const enemiesPerLevel = 10;
-const showLevelComplete = ref(true);
+const showLevelComplete = ref(false);
 const levelUpQueue = ref([]);
 const levelUpInfo = ref(null);
 const currentLevelEnemiesDefeated = ref(0);

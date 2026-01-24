@@ -16,7 +16,7 @@ export class Overworld extends Scene
         this.nearestNPC = null;
         this.playerName = 'Player';
         this.playerNameText = null;
-        this.currentMap = 'map'; // Use smaller map by default
+        this.currentMap = 'large-map';
         this.mapTransitions = []; // Store transition zones
         this.battleActive = false; // Track if battle is active to disable input
         this.music = null;
@@ -24,6 +24,11 @@ export class Overworld extends Scene
         this.victorySound = null;
         this.spawnedGuestIndices = []; // Track which guests have been spawned
         this.currentLevel = 1;
+        this.unlockedLevel = 1;
+        this.currentSegment = 0;
+        this.segmentHeight = 40;
+        this.segmentWidth = 40;
+        this.totalSegments = 1;
     }
 
     init (data)
@@ -36,6 +41,8 @@ export class Overworld extends Scene
         // Handle map transitions
         if (data.map) {
             this.currentMap = data.map;
+        } else {
+            this.currentMap = 'large-map';
         }
 
         // Set spawn position if transitioning
@@ -56,6 +63,8 @@ export class Overworld extends Scene
         this.battleNPC = null;
         this.spawnedGuestIndices = [];
         this.currentLevel = 1;
+        this.unlockedLevel = 1;
+        this.currentSegment = 0;
 
         // Clean up any DOM elements from previous scenes
         const existingInput = document.getElementById('player-name-input');
@@ -89,6 +98,10 @@ export class Overworld extends Scene
         this.map = map;
         this.worldLayer = worldLayer;
         this.belowLayer = belowLayer;
+        this.segmentHeight = 40;
+        this.segmentWidth = 40;
+        this.totalSegments = Math.max(1, Math.floor(this.map.height / this.segmentHeight));
+        this.currentSegment = Math.min(this.currentSegment, this.totalSegments - 1);
 
         this.createPlayer();
 
@@ -118,6 +131,8 @@ export class Overworld extends Scene
 
         // Make minimap follow player smoothly
         this.minimap.startFollow(this.player.sprite, false, 0.1, 0.1);
+
+        this.updateSegmentView();
 
         // Add styled border to minimap
         this.minimapBorder = this.add.graphics();
@@ -308,9 +323,8 @@ export class Overworld extends Scene
         // Level progression - spawn next batch of NPCs
         EventBus.on('spawn-next-level', (data) => {
             console.log('spawn-next-level event received:', data);
-            this.currentLevel = data.level;
-            this.clearAllNPCs();
-            this.spawnNPCsForLevel(data.enemiesCount);
+            this.unlockedLevel = data.level;
+            this.updateSegmentView();
         });
 
         // Handle game restart
@@ -318,6 +332,8 @@ export class Overworld extends Scene
             console.log('restart-game event received');
             // Reset level and spawned indices
             this.currentLevel = 1;
+            this.unlockedLevel = 1;
+            this.currentSegment = 0;
             this.spawnedGuestIndices = [];
             // Clear all NPCs and spawn fresh level 1
             this.clearAllNPCs();
@@ -382,7 +398,8 @@ export class Overworld extends Scene
     spawnNPCsForLevel(count)
     {
         // Get fixed opponents for this stage
-        const stageOpponents = getStageOpponents(this.currentLevel);
+        const stageNumber = this.currentSegment + 1;
+        const stageOpponents = getStageOpponents(stageNumber);
         if (!stageOpponents || stageOpponents.length === 0) {
             console.log('No opponents defined for this stage!');
             return;
@@ -398,11 +415,11 @@ export class Overworld extends Scene
         console.log(`Total guests loaded: ${allGuests.length}`);
         console.log('Sample guest names:', allGuests.slice(0, 10).map(g => g.name));
 
-        // Match stage opponents with guest data
+        // Match stage opponents with guest data (skip captured)
         const guestsToSpawn = [];
         for (const opponentName of stageOpponents) {
             const guest = allGuests.find(g => g.name === opponentName);
-            if (guest) {
+            if (guest && !guest.captured) {
                 guestsToSpawn.push(guest);
             } else {
                 console.warn(`Opponent "${opponentName}" not found in guest data`);
@@ -414,12 +431,14 @@ export class Overworld extends Scene
             return;
         }
 
-        console.log(`Spawning ${guestsToSpawn.length} NPCs for Stage ${this.currentLevel}:`, stageOpponents);
+        console.log(`Spawning ${guestsToSpawn.length} NPCs for Stage ${stageNumber}:`, stageOpponents);
 
-        const mapWidth = this.map.width;
+        const mapWidth = this.segmentWidth;
         const mapHeight = this.map.height;
-        const minSpacing = 2; // Minimum tiles between NPCs (reduced for better distribution)
-        const maxAttempts = 1000; // Maximum placement attempts per NPC
+        const segmentStartY = this.currentSegment * this.segmentHeight;
+        const segmentEndY = segmentStartY + this.segmentHeight - 1;
+        const minSpacing = 1; // Allow tighter placement to avoid missing NPCs
+        const maxAttempts = 2000; // Increase attempts to improve placement success
 
         let npcCount = 0;
         let attempts = 0;
@@ -427,7 +446,7 @@ export class Overworld extends Scene
         // Helper function to check if position is valid
         const isValidPosition = (x, y, existingPositions) => {
             // Check bounds
-            if (x < 2 || x >= mapWidth - 2 || y < 2 || y >= mapHeight - 2) {
+            if (x < 2 || x >= mapWidth - 2 || y < segmentStartY + 2 || y > segmentEndY - 2) {
                 return false;
             }
 
@@ -461,11 +480,11 @@ export class Overworld extends Scene
                 const offsetX = Math.floor(Math.random() * 10) - 5;
                 const offsetY = Math.floor(Math.random() * 10) - 5;
                 x = Math.max(2, Math.min(mapWidth - 2, this.player.tileX + offsetX));
-                y = Math.max(2, Math.min(mapHeight - 2, this.player.tileY + offsetY));
+                y = Math.max(segmentStartY + 2, Math.min(segmentEndY - 2, this.player.tileY + offsetY));
             } else {
                 // Random position for other guests
                 x = Math.floor(Math.random() * (mapWidth - 6)) + 3;
-                y = Math.floor(Math.random() * (mapHeight - 6)) + 3;
+                y = Math.floor(Math.random() * (segmentEndY - segmentStartY - 4)) + segmentStartY + 3;
             }
 
             if (isValidPosition(x, y, npcPositions)) {
@@ -655,18 +674,44 @@ export class Overworld extends Scene
         const newX = this.player.tileX + dx;
         const newY = this.player.tileY + dy;
 
-        // Check for map transitions at edges
-        if (newX < 0) {
-            this.transitionMap('west', newX, newY);
+        const segmentStartY = this.currentSegment * this.segmentHeight;
+        const segmentEndY = segmentStartY + this.segmentHeight;
+
+        // Block map edges
+        if (newX < 0 || newX >= this.segmentWidth) {
+            this.showLockedMessage();
             return;
-        } else if (newX >= this.map.width) {
-            this.transitionMap('east', newX, newY);
+        }
+
+        // Move north to previous segment
+        if (newY < segmentStartY) {
+            if (this.currentSegment > 0) {
+                this.currentSegment -= 1;
+                this.currentLevel = this.currentSegment + 1;
+                this.clearAllNPCs();
+                this.spawnNPCsForLevel(10);
+                this.player.tileY = segmentStartY - 2;
+                this.player.tileX = newX;
+                this.snapPlayerToTile();
+            } else {
+                this.showLockedMessage();
+            }
             return;
-        } else if (newY < 0) {
-            this.transitionMap('north', newX, newY);
-            return;
-        } else if (newY >= this.map.height) {
-            this.transitionMap('south', newX, newY);
+        }
+
+        // Move south to next segment if unlocked
+        if (newY >= segmentEndY) {
+            if (this.currentSegment + 1 < Math.min(this.unlockedLevel, this.totalSegments)) {
+                this.currentSegment += 1;
+                this.currentLevel = this.currentSegment + 1;
+                this.clearAllNPCs();
+                this.spawnNPCsForLevel(10);
+                this.player.tileY = segmentEndY + 1;
+                this.player.tileX = newX;
+                this.snapPlayerToTile();
+            } else {
+                this.showLockedMessage();
+            }
             return;
         }
 
@@ -755,6 +800,61 @@ export class Overworld extends Scene
             map: connection,
             spawnX: spawnX,
             spawnY: spawnY
+        });
+    }
+
+    updateSegmentView ()
+    {
+        if (!this.map || !this.cameras?.main) return;
+        const unlockedSegments = Math.min(this.unlockedLevel, this.totalSegments);
+        const heightTiles = unlockedSegments * this.segmentHeight;
+        const heightPx = heightTiles * this.map.tileHeight;
+        const widthPx = this.segmentWidth * this.map.tileWidth;
+
+        this.cameras.main.setBounds(0, 0, widthPx, heightPx);
+        if (this.minimap) {
+            this.minimap.setBounds(0, 0, widthPx, heightPx);
+        }
+    }
+
+    snapPlayerToTile ()
+    {
+        if (!this.player?.sprite) return;
+        this.player.sprite.setPosition(this.player.tileX * 32 + 16, this.player.tileY * 32 + 16);
+        if (this.playerNameText) {
+            this.playerNameText.setPosition(this.player.tileX * 32 + 16, this.player.tileY * 32 + 16 + 35);
+        }
+    }
+
+    showLockedMessage ()
+    {
+        const message = 'Area locked — level up to continue';
+        if (!this.lockedText) {
+            this.lockedText = this.add.text(this.scale.width / 2, 40, message, {
+                fontSize: '10px',
+                fontFamily: 'Press Start 2P, monospace',
+                color: '#FFD700',
+                stroke: '#000000',
+                strokeThickness: 3,
+                align: 'center'
+            });
+            this.lockedText.setOrigin(0.5);
+            this.lockedText.setScrollFactor(0);
+            this.lockedText.setDepth(2000);
+        } else {
+            this.lockedText.setText(message);
+            this.lockedText.setAlpha(1);
+            this.lockedText.setVisible(true);
+        }
+
+        if (this.lockedMessageTimer) {
+            this.lockedMessageTimer.remove(false);
+        }
+        this.lockedMessageTimer = this.time.delayedCall(1200, () => {
+            if (this.lockedText) {
+                this.lockedText.setAlpha(0);
+                this.lockedText.setVisible(false);
+            }
         });
     }
 

@@ -44,34 +44,34 @@ Also update **gamification rules** to fully match `SIMPLE_GAMIFICATION.md` (XP s
 
 ### B) Map Extension / Segment System
 ### 1) Map data & layout
-- [ ] Confirm the **large map file** to use (likely `pokelenny-large-map.json`).
-- [ ] Ensure the large map is built as **stacked copies** of the current map (vertical).
+- [x] Use the **large map file** (`pokelenny-large-map.json`).
+- [x] Treat the large map as **stacked copies** of the current map (vertical).
   - If not already stacked, generate/edit the large map so it contains **N vertical segments**.
 - [ ] Decide segment height in tiles (e.g., `mapHeight` from the base map).
 
 ### 2) Overworld transitions
-- [ ] Add logic in `Overworld.transitionMap()` to allow **south edge** movement into the next segment.
-- [ ] Keep **north edge** movement to return to the previous segment.
-- [ ] Track current **segment index** (0-based) on the map.
+- [x] Allow **south edge** movement into the next segment.
+- [x] Keep **north edge** movement to return to the previous segment.
+- [x] Track current **segment index** (0-based) on the map.
 
 ### 3) Unlock gating
-- [ ] Only allow movement into segment **N+1** once **Level N+1 is unlocked**.
-- [ ] If player attempts to move south while locked, show a short message (“Area locked — Level Up to continue”).
+- [x] Only allow movement into segment **N+1** once **Level N+1 is unlocked**.
+- [x] If player attempts to move south while locked, show a short message.
 
 ### 4) NPC spawning by segment
-- [ ] Spawn **only the 10 NPCs for the current level/segment** in that segment’s tile range.
-- [ ] When entering a segment, load/spawn its NPCs.
+- [x] Spawn **only the 10 NPCs for the current level/segment** in that segment’s tile range.
+- [x] When entering a segment, load/spawn its NPCs.
 - [ ] When leaving, either:
   - despawn that segment’s NPCs (performance), or
   - keep them alive but don’t show outside viewport.
 
 ### 5) Player positioning on transition
-- [ ] When moving south, place the player at the **top edge** of the next segment.
-- [ ] When moving north, place at the **bottom edge** of the previous segment.
+- [x] When moving south, place the player at the **top edge** of the next segment.
+- [x] When moving north, place at the **bottom edge** of the previous segment.
 
 ### 6) UI / UX
 - [ ] Update mini‑map or HUD (if present) to show **current segment / map level**.
-- [ ] Add a subtle **“Map {N} Unlocked”** toast or modal when the segment becomes available.
+- [x] Add a subtle **“Area locked”** message when trying to enter a locked segment.
 
 ### 7) Testing
 - [ ] Level up to unlock map segment.
@@ -79,6 +79,38 @@ Also update **gamification rules** to fully match `SIMPLE_GAMIFICATION.md` (XP s
 - [ ] Confirm NPCs spawned match the level’s opponent list.
 - [ ] Confirm you cannot walk into locked segments.
 - [ ] Verify XP/HP changes match spec (correct, wrong, perfect, bonus).
+
+---
+
+## Implementation Log (Map Extension)
+
+**Summary:** Implemented vertical segment system on the existing large map, gated by level unlocks, with NPCs spawning only in the current segment and “locked” messaging at boundaries.
+
+**Files touched:**
+- `src/game/scenes/Overworld.js`
+
+**Changes applied:**
+1) **Segmented world bounds**
+   - Added `segmentHeight = 40`, `segmentWidth = 40`
+   - Computed `totalSegments` from map height
+   - Camera/minimap bounds now clamp to unlocked segments only
+
+2) **Movement gating**
+   - South movement only allowed if `currentSegment + 1 < unlockedLevel`
+   - North movement allowed back to previous segment
+   - Edges (north/west/east) show “Area locked” message
+
+3) **NPC spawning scoped to current segment**
+   - Spawn X within `segmentWidth`
+   - Spawn Y within current segment slice only
+   - Skip already‑captured guests
+   - Increased placement success (lower spacing, more attempts)
+
+4) **Unlock tracking**
+   - `unlockedLevel` updated by `spawn-next-level`
+   - `currentSegment` drives which opponents are spawned
+
+**Note on avatars:** You’ve added new avatar assets (see message list). If any still show fallbacks, we can run a quick mismatch report and align naming.
 
 ---
 
