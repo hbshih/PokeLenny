@@ -82,6 +82,7 @@
             <div class="q-header">
               <span class="q-num">Q{{ currentQuestionIndex + 1 }}/{{ battleData.questions?.length || 1 }}</span>
               <span class="diff-badge">{{ currentQuestion.difficulty || battleData.guest.difficulty || 'Med' }}</span>
+              <span v-if="currentQuestion.isBonus" class="bonus-badge">Bonus</span>
             </div>
             <div class="q-text">{{ currentQuestion.prompt }}</div>
             <div class="controls">
@@ -170,8 +171,11 @@ const battleStats = ref({
   wrongAnswers: 0,
   xpGained: 0,
   hpGained: 0,
-  perfectBattle: false
+  perfectBattle: false,
+  bonusCorrect: false
 });
+
+const xpPerCorrect = computed(() => Math.min(10 + 5 * (playerLevel.value - 1), 50));
 
 // Keyboard handler for navigation and confirmation
 function handleKeyPress(event) {
@@ -420,7 +424,8 @@ function resetBattle() {
     wrongAnswers: 0,
     xpGained: 0,
     hpGained: 0,
-    perfectBattle: false
+    perfectBattle: false,
+    bonusCorrect: false
   };
 
   console.log('Battle reset with', totalQs, 'questions');
@@ -436,12 +441,35 @@ function selectAnswer(index) {
   // Track battle stats (totalQuestions is already set in resetBattle, don't increment it)
   if (isCorrect.value) {
     battleStats.value.correctAnswers++;
+    let earnedXp = xpPerCorrect.value;
+    let bonusHp = 0;
+
+    if (currentQuestion.value.isBonus) {
+      earnedXp += 2 * xpPerCorrect.value;
+      bonusHp = 10;
+      battleStats.value.bonusCorrect = true;
+    }
+
+    battleStats.value.xpGained += earnedXp;
+
+    if (bonusHp > 0) {
+      const bonusNewHP = Math.min(playerMaxHP.value, playerHP.value + bonusHp);
+      const actualBonus = bonusNewHP - playerHP.value;
+      if (actualBonus > 0) {
+        playerHP.value = bonusNewHP;
+        battleStats.value.hpGained += actualBonus;
+        emit('hp-changed', bonusNewHP);
+      }
+    }
   } else {
     battleStats.value.wrongAnswers++;
+    const newHP = Math.max(0, playerHP.value - 10);
+    playerHP.value = newHP;
+    emit('hp-changed', newHP);
   }
 
   // Emit answer result to parent
-  emit('answer-submitted', isCorrect.value);
+  emit('answer-submitted', { correct: isCorrect.value, bonus: currentQuestion.value.isBonus });
 
   setTimeout(() => {
     const totalQuestions = battleStats.value.totalQuestions || 1;
@@ -455,11 +483,6 @@ function selectAnswer(index) {
         guestMax - battleStats.value.correctAnswers * guestDmgPerQ
       );
       guestHP.value = nextGuestHP;
-    } else {
-      const newHP = Math.max(0, playerHP.value - 10);
-      playerHP.value = newHP;
-      // Emit HP change to sync with global stats
-      emit('hp-changed', newHP);
     }
   }, 100);
 }
@@ -496,11 +519,9 @@ function endBattle(won) {
   // Check for perfect battle (no wrong answers)
   battleStats.value.perfectBattle = won && battleStats.value.wrongAnswers === 0;
 
-  // XP reward (only on victory)
-  if (won) {
-    battleStats.value.xpGained = battleStats.value.perfectBattle ? 20 : 10;
-  } else {
-    battleStats.value.xpGained = 0;
+  // Perfect kill bonus XP (base XP already counted per correct answer)
+  if (battleStats.value.perfectBattle) {
+    battleStats.value.xpGained += 3 * xpPerCorrect.value;
   }
 
   // HP bonus for perfect battle
@@ -511,7 +532,7 @@ function endBattle(won) {
 
     if (actualHpGained > 0) {
       playerHP.value = newHP;
-      battleStats.value.hpGained = actualHpGained;
+      battleStats.value.hpGained += actualHpGained;
       // Emit HP change to sync with global stats
       emit('hp-changed', newHP);
     }
@@ -969,6 +990,17 @@ function handleContinue() {
   padding: 2px 6px;
   background: #f5f5f5;
   border-radius: 2px;
+}
+
+.bonus-badge {
+  font-size: 8px;
+  color: #000;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  background: #ffd700;
+  border-radius: 2px;
+  border: 2px solid #000;
+  margin-left: 6px;
 }
 
 .q-text {

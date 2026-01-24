@@ -20,6 +20,7 @@ import LeaderboardPanel from './components/LeaderboardPanel.vue';
 import { EventBus } from './game/EventBus';
 import guestDataManager from './game/GuestData';
 import { leaderboardService } from './services/supabase-leaderboard.js';
+import { getStageOpponents } from './game/StageConfig.js';
 
 // Game state
 const phaserRef = ref();
@@ -53,14 +54,23 @@ const playerStats = ref({
   totalBattles: 0
 });
 
-// XP needed for each level (exponential growth)
-const getXPForLevel = (level) => {
-  // Level 2 requires 100 XP, then grows exponentially
-  return Math.floor(100 * Math.pow(1.5, level - 2));
+// XP per correct answer (scales with level, capped)
+const getXPPerCorrect = (level) => Math.min(10 + 5 * (level - 1), 50);
+
+// XP required to reach next level (based on current level)
+const getXPToNextLevel = (level) => 24 * getXPPerCorrect(level);
+
+// Cumulative unlock XP for a given level
+const getUnlockXP = (level) => {
+  let total = 0;
+  for (let i = 1; i < level; i++) {
+    total += getXPToNextLevel(i);
+  }
+  return total;
 };
 
 // Current XP needed for next level
-const xpForNextLevel = computed(() => getXPForLevel(playerStats.value.level + 1));
+const xpForNextLevel = computed(() => getXPToNextLevel(playerStats.value.level));
 
 // Mock battle data
 const battleData = ref({
@@ -116,7 +126,9 @@ const collection = ref([]);
 // Level system
 const currentGameLevel = ref(1);
 const enemiesPerLevel = 10;
-const showLevelComplete = ref(false);
+const showLevelComplete = ref(true);
+const levelUpQueue = ref([]);
+const levelUpInfo = ref(null);
 const currentLevelEnemiesDefeated = ref(0);
 const totalQuestionsAnswered = ref(0);
 
@@ -132,6 +144,34 @@ const remainingGuests = computed(() => totalGuests.value - capturedCount.value);
 // Event handlers
 function handleStartBattle() {
   showBattle.value = true;
+}
+
+function buildBattleQuestions(guestId) {
+  const questionCount = 3;
+  const questions = guestDataManager.getRandomQuestions(guestId, questionCount);
+  if (questions.length > 0 && questions.length < questionCount) {
+    while (questions.length < questionCount) {
+      const fallback = questions[Math.floor(Math.random() * questions.length)];
+      questions.push(fallback);
+    }
+  }
+
+  if (!questions || questions.length === 0) {
+    return [];
+  }
+
+  const bonusIndex = Math.random() < 0.05 ? Math.floor(Math.random() * questionCount) : -1;
+
+  return questions.map((q, index) => ({
+    id: index + 1,
+    type: "mcq",
+    prompt: q.question,
+    choices: q.choices,
+    correctAnswer: q.choices.indexOf(q.answer),
+    explanation: q.explanation || '',
+    difficulty: q.difficulty || '',
+    isBonus: index === bonusIndex
+  }));
 }
 
 function handleCloseBattle() {
@@ -167,33 +207,14 @@ function handleAcceptBattle() {
     const guest = collection.value.find(g => g.id === encounterNPC.value.id);
     console.log('Found guest for battle:', guest);
     if (guest) {
-      // Always 3 questions per battle
-      const questionCount = 3;
-      const questions = guestDataManager.getRandomQuestions(guest.id, questionCount);
-      if (questions.length > 0 && questions.length < questionCount) {
-        while (questions.length < questionCount) {
-          const fallback = questions[Math.floor(Math.random() * questions.length)];
-          questions.push(fallback);
-        }
-      }
-      console.log(`Questions loaded for battle (${questionCount} questions):`, questions);
-
-      if (questions && questions.length > 0) {
-        // Create new battle data object (better reactivity)
+      const battleQuestions = buildBattleQuestions(guest.id);
+      if (battleQuestions.length > 0) {
         battleData.value = {
-          guest: guest,
-          questions: questions.map((q, index) => ({
-            id: index + 1,
-            type: "mcq",
-            prompt: q.question,
-            choices: q.choices,
-            correctAnswer: q.choices.indexOf(q.answer),
-            explanation: q.explanation || '',
-            difficulty: q.difficulty || ''
-          }))
+          guest,
+          questions: battleQuestions
         };
         console.log('Formatted battle questions:', battleData.value.questions);
-        totalQuestionsAnswered.value += questions.length;
+        totalQuestionsAnswered.value += battleQuestions.length;
       } else {
         console.error('No questions found for guest:', guest.id, guest.name);
       }
@@ -219,19 +240,12 @@ function handleGuestCaptured(payload) {
     gainXP(xpGained);
     playerStats.value.totalBattles++;
 
-    // Track level progress
-    currentLevelEnemiesDefeated.value++;
-
     // Notify Overworld to remove this NPC
     EventBus.emit('remove-npc', guestId);
 
     // Save score to global leaderboard (async, non-blocking)
     saveScoreToLeaderboard();
 
-    // Check if level is complete (defeated 10 enemies)
-    if (currentLevelEnemiesDefeated.value >= enemiesPerLevel) {
-      checkLevelCompletion();
-    }
   }
 }
 
@@ -252,40 +266,35 @@ async function saveScoreToLeaderboard() {
   }
 }
 
-function checkLevelCompletion() {
-  // Show level complete modal
+function showNextLevelUp() {
+  if (levelUpQueue.value.length === 0) return;
+  const next = levelUpQueue.value.shift();
+  levelUpInfo.value = next;
   showLevelComplete.value = true;
-
-  // Hide battle screen
   showBattle.value = false;
 }
 
 function handleLevelContinue() {
   showLevelComplete.value = false;
 
-  // Increase player stats level
-  playerStats.value.level++;
-  playerStats.value.maxHp += 20;
-  playerStats.value.hp = playerStats.value.maxHp; // Restore HP to full
-
-  // Check if there are more guests to fight
-  if (remainingGuests.value > 0) {
-    // Move to next level
-    currentGameLevel.value++;
-    currentLevelEnemiesDefeated.value = 0;
-
-    // Spawn next 10 enemies
+  if (levelUpInfo.value) {
+    currentGameLevel.value = levelUpInfo.value.level;
+    const unlockedCount = levelUpInfo.value.unlockedOpponents?.length || 0;
     EventBus.emit('spawn-next-level', {
       level: currentGameLevel.value,
-      enemiesCount: Math.min(enemiesPerLevel, remainingGuests.value)
+      enemiesCount: unlockedCount || Math.min(enemiesPerLevel, remainingGuests.value)
     });
+  }
+
+  if (levelUpQueue.value.length > 0) {
+    showNextLevelUp();
   } else {
-    // Game complete!
-    alert('Congratulations! You\'ve met all the guests from Lenny\'s Podcast!');
+    levelUpInfo.value = null;
   }
 }
 
-function handleAnswerResult(isCorrect) {
+function handleAnswerResult(result) {
+  const isCorrect = typeof result === 'object' ? result.correct : result;
   if (isCorrect) {
     playerStats.value.rightAnswers++;
   } else {
@@ -327,6 +336,8 @@ function handleGameRestart() {
   currentGameLevel.value = 1;
   currentLevelEnemiesDefeated.value = 0;
   totalQuestionsAnswered.value = 0;
+  levelUpQueue.value = [];
+  levelUpInfo.value = null;
 
   // Reset collection (mark all as uncaptured)
   collection.value.forEach(guest => {
@@ -341,10 +352,25 @@ function gainXP(amount) {
   playerStats.value.xp += amount;
 
   // Level up when XP meets/exceeds threshold
-  while (playerStats.value.xp >= getXPForLevel(playerStats.value.level + 1)) {
-    playerStats.value.level++;
-    playerStats.value.maxHp += 20;
-    playerStats.value.hp = playerStats.value.maxHp;
+  const pending = [];
+  while (playerStats.value.xp >= getUnlockXP(playerStats.value.level + 1)) {
+    const oldLevel = playerStats.value.level;
+    const nextLevel = oldLevel + 1;
+    playerStats.value.level = nextLevel;
+
+    pending.push({
+      level: nextLevel,
+      oldXpPerCorrect: getXPPerCorrect(oldLevel),
+      newXpPerCorrect: getXPPerCorrect(nextLevel),
+      unlockedOpponents: getStageOpponents(nextLevel) || []
+    });
+  }
+
+  if (pending.length > 0) {
+    levelUpQueue.value.push(...pending);
+    if (!showLevelComplete.value) {
+      showNextLevelUp();
+    }
   }
 }
 
@@ -476,32 +502,14 @@ onMounted(() => {
       const guest = collection.value.find(g => g.id === data.guestId);
       console.log('Found guest for battle:', guest);
       if (guest) {
-        // Always 3 questions per battle
-        const questionCount = 3;
-        const questions = guestDataManager.getRandomQuestions(data.guestId, questionCount);
-        if (questions.length > 0 && questions.length < questionCount) {
-          while (questions.length < questionCount) {
-            const fallback = questions[Math.floor(Math.random() * questions.length)];
-            questions.push(fallback);
-          }
-        }
-        console.log(`Questions loaded for battle (${questionCount} questions):`, questions);
-        if (questions && questions.length > 0) {
-          // Create new battle data object (better reactivity)
+        const battleQuestions = buildBattleQuestions(data.guestId);
+        if (battleQuestions.length > 0) {
           battleData.value = {
-            guest: guest,
-            questions: questions.map((q, index) => ({
-              id: index + 1,
-              type: "mcq",
-              prompt: q.question,
-              choices: q.choices,
-              correctAnswer: q.choices.indexOf(q.answer),
-              explanation: q.explanation || '',
-              difficulty: q.difficulty || ''
-            }))
+            guest,
+            questions: battleQuestions
           };
           console.log('Formatted battle questions:', battleData.value.questions);
-          totalQuestionsAnswered.value += questions.length;
+          totalQuestionsAnswered.value += battleQuestions.length;
         }
         showBattle.value = true;
       }
@@ -748,12 +756,10 @@ onUnmounted(() => {
 
     <LevelComplete
       :show="showLevelComplete"
-      :currentLevel="currentGameLevel"
-      :enemiesDefeated="currentLevelEnemiesDefeated"
-      :questionsAnswered="totalQuestionsAnswered"
-      :accuracy="accuracy"
-      :totalGuests="totalGuests"
-      :remainingGuests="remainingGuests"
+      :currentLevel="levelUpInfo?.level || playerStats.level"
+      :oldXpPerCorrect="levelUpInfo?.oldXpPerCorrect || getXPPerCorrect(playerStats.level)"
+      :newXpPerCorrect="levelUpInfo?.newXpPerCorrect || getXPPerCorrect(playerStats.level + 1)"
+      :unlockedOpponents="levelUpInfo?.unlockedOpponents || []"
       @continue="handleLevelContinue"
     />
 
