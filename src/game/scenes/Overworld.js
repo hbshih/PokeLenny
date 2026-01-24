@@ -141,6 +141,10 @@ export class Overworld extends Scene
 
         // Mobile touch controls
         this.createMobileControls();
+        this.scale.on('resize', () => {
+            this.destroyMobileControls();
+            this.createMobileControls();
+        });
 
         // Start overworld music
         if (!this.music || !this.music.isPlaying) {
@@ -791,22 +795,42 @@ export class Overworld extends Scene
         });
     }
 
+    destroyMobileControls ()
+    {
+        if (!this.mobileControls) return;
+
+        Object.values(this.mobileControls).forEach(control => {
+            if (control.button) control.button.destroy();
+            if (control.text) control.text.destroy();
+        });
+
+        this.mobileControls = null;
+        this.mobileDirection = null;
+    }
+
     createMobileControls ()
     {
         // Only show on touch devices or small screens
-        const isMobile = this.sys.game.device.input.touch || window.innerWidth <= 1024;
+        const isMobile = this.sys.game.device.input.touch ||
+            this.sys.game.device.os.android ||
+            this.sys.game.device.os.iOS ||
+            window.matchMedia('(pointer: coarse)').matches ||
+            window.innerWidth <= 1024 ||
+            window.innerHeight <= 600;
 
-        if (!isMobile) {
+        const isPortrait = window.innerHeight > window.innerWidth;
+
+        if (!isMobile || isPortrait) {
             return;
         }
 
         // Virtual D-Pad
         const buttonSize = 60;
         const buttonGap = 10;
-        const padding = 20;
+        const padding = 120;
 
         // Position in bottom-left corner
-        const startX = padding + buttonSize;
+        const startX = padding + buttonSize + 12;
         const startY = this.scale.height - padding - buttonSize;
 
         // Create button background circle
@@ -887,6 +911,12 @@ export class Overworld extends Scene
 
         // Track mobile direction
         this.mobileDirection = null;
+
+        // Ensure controls are visible by default
+        this.setMobileControlsVisible(true);
+
+        // Ensure controls are visible by default
+        this.setMobileControlsVisible(true);
 
         // Make NPCs clickable
         this.npcs.forEach(npc => {

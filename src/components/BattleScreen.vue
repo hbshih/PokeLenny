@@ -96,6 +96,7 @@
               :key="index"
               class="answer-item"
               :class="{ 'active': selectedAnswerIndex === index }"
+              @click="selectAnswer(index)"
             >
               <span class="ans-num">{{ index + 1 }}</span>
               <span class="ans-text">{{ choice }}</span>
@@ -104,7 +105,7 @@
         </div>
 
         <!-- Feedback Display -->
-        <div v-if="answered" class="feedback-display">
+        <div v-if="answered" class="feedback-display" @click="nextQuestion">
           <div class="result-bar" :class="{ 'correct': isCorrect, 'wrong': !isCorrect }">
             <span class="icon">{{ isCorrect ? '✓' : '✗' }}</span>
             <span class="label">{{ isCorrect ? 'CORRECT!' : 'WRONG!' }}</span>
@@ -1217,6 +1218,77 @@ function handleContinue() {
 @media (max-width: 768px) {
   .battle-screen {
     font-size: 90%;
+    width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+    top: 0;
+    left: 0;
+    transform: none;
+  }
+
+  .battle-background {
+    background-image: none;
+    background: #000;
+    transform: none;
+  }
+
+  .battle-arena {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 35%;
+    height: 100%;
+    transform: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding-top: 8px;
+  }
+
+  .opponent-area {
+    right: auto;
+    left: 10px;
+    top: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .player-area {
+    left: 10px;
+    bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .opponent-sprite,
+  .player-sprite {
+    margin: 0;
+  }
+
+  .opponent-avatar {
+    width: 96px;
+    height: 96px;
+  }
+
+  .player-sprite {
+    display: none;
+  }
+
+  .battle-ui-panel {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    bottom: 12px;
+    width: 60%;
+    overflow-y: auto;
+    left: auto;
+    transform: none;
+    animation: none;
   }
 
   .battle-layout-horizontal {
@@ -1237,21 +1309,45 @@ function handleContinue() {
     flex: 1;
   }
 
+
+  .pokemon-battle-box {
+    padding: 16px;
+  }
+
   .q-text {
-    font-size: 10px !important;
+    font-size: 12px !important;
+    line-height: 1.5;
   }
 
   .ans-text {
-    font-size: 9px !important;
+    font-size: 11px !important;
   }
 
   .hp-display {
-    font-size: 10px !important;
+    font-size: 9px !important;
+    padding: 8px 10px;
+    width: 90%;
+  }
+
+  .opponent-hp,
+  .player-hp {
+    position: static;
+    margin: 0 0 6px 0;
+  }
+
+  .opponent-area .opponent-sprite {
+    order: 1;
+  }
+
+  .opponent-area .opponent-hp {
+    order: 2;
   }
 
   .exit-battle-btn {
     width: 36px;
     height: 36px;
+    top: 10px;
+    right: 10px;
   }
 
   .opponent-sprite img, .player-sprite img {
@@ -1259,12 +1355,9 @@ function handleContinue() {
     max-height: 90%;
   }
 
-  .pokemon-battle-box {
-    padding: 10px 12px;
-  }
-
   .answer-item {
-    padding: 7px 8px;
+    min-height: 36px;
+    padding: 8px 10px;
   }
 }
 
@@ -1274,11 +1367,11 @@ function handleContinue() {
   }
 
   .q-text {
-    font-size: 9px !important;
+    font-size: 12px !important;
   }
 
   .ans-text {
-    font-size: 8px !important;
+    font-size: 10px !important;
   }
 
   .hp-display {

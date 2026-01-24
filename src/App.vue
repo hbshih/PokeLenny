@@ -23,6 +23,7 @@ import { leaderboardService } from './services/supabase-leaderboard.js';
 
 // Game state
 const phaserRef = ref();
+const currentSceneName = ref('');
 const showBattle = ref(false);
 const showCollection = ref(false);
 const showEncounter = ref(false);
@@ -30,6 +31,7 @@ const encounterNPC = ref(null);
 const showGameOver = ref(false);
 const showTutorial = ref(false);
 const showLeaderboard = ref(false);
+const showMobileMenu = ref(false);
 
 // Player data
 const playerName = ref('Player');
@@ -37,6 +39,8 @@ const showShareModal = ref(false);
 
 // Audio control
 const isMuted = ref(false);
+const isMobile = ref(false);
+const isPortrait = ref(false);
 
 // Player stats
 const playerStats = ref({
@@ -139,6 +143,7 @@ function handleCloseBattle() {
 
 function handleOpenCollection() {
   showCollection.value = true;
+  showMobileMenu.value = false;
 }
 
 function handleCloseCollection() {
@@ -345,6 +350,7 @@ function gainXP(amount) {
 function handleShareStats() {
   // Show share modal instead of immediately sharing
   showShareModal.value = true;
+  showMobileMenu.value = false;
 }
 
 function setPlayerName(name) {
@@ -371,13 +377,31 @@ function handleCloseTutorial() {
 
 function handleOpenLeaderboard() {
   showLeaderboard.value = true;
+  showMobileMenu.value = false;
 }
 
 function handleCloseLeaderboard() {
   showLeaderboard.value = false;
 }
 
+function toggleMobileMenu() {
+  showMobileMenu.value = !showMobileMenu.value;
+}
+
+function updateViewportFlags() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  isMobile.value = w <= 1024 || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+  isPortrait.value = h > w;
+}
+
 onMounted(() => {
+  updateViewportFlags();
+  window.addEventListener('resize', updateViewportFlags);
+
+  EventBus.on('current-scene-ready', (scene) => {
+    currentSceneName.value = scene?.scene?.key || '';
+  });
   // Listen for guests-loaded event from Preloader
   EventBus.on('guests-loaded', (guests) => {
     console.log('✓ Guests loaded event received:', guests.length, 'guests');
@@ -498,6 +522,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  window.removeEventListener('resize', updateViewportFlags);
   EventBus.off('guests-loaded');
   EventBus.off('show-encounter-dialog');
   EventBus.off('hide-encounter-dialog');
@@ -508,14 +533,98 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div id="app">
+  <div id="app" :class="{ 'mobile-landscape': isMobile && !isPortrait, 'mobile-portrait': isMobile && isPortrait, 'battle-active': showBattle }">
+    <div v-if="isMobile && isPortrait" class="orientation-lock">
+      <div class="orientation-card">
+        <div class="orientation-title">Rotate your device</div>
+        <div class="orientation-text">Play PokéLenny in landscape mode.</div>
+      </div>
+    </div>
+
+    <button
+      class="mobile-menu-btn"
+      v-if="isMobile && !isPortrait"
+      @click="toggleMobileMenu"
+      :aria-expanded="showMobileMenu"
+      aria-label="Open menu"
+    >
+      ☰
+    </button>
+    <div v-if="showMobileMenu" class="mobile-menu-overlay" @click="toggleMobileMenu"></div>
+    <div v-if="showMobileMenu" class="mobile-menu-panel">
+      <div class="mobile-menu-header">
+        <div class="mobile-menu-title">Menu</div>
+        <button class="mobile-menu-close" @click="toggleMobileMenu" aria-label="Close menu">✕</button>
+      </div>
+      <div class="mobile-menu-section">
+        <div class="action-buttons mobile-actions">
+          <button class="action-btn collection-btn" @click="handleOpenCollection">
+            <Icon class="btn-icon" :icon="bookOpen" />
+            Collection
+          </button>
+          <button class="action-btn leaderboard-btn" @click="handleOpenLeaderboard">
+            <Icon class="btn-icon" :icon="trophy" />
+            Leaderboard
+          </button>
+          <button class="action-btn share-btn" @click="handleShareStats">
+            <Icon class="btn-icon" :icon="upload" />
+            Share Stats
+          </button>
+          <button class="action-btn mute-btn" @click="toggleMute" :title="isMuted ? 'Unmute' : 'Mute'">
+            <Icon class="btn-icon" :icon="isMuted ? volumeX : volume" />
+            {{ isMuted ? 'Unmute' : 'Mute' }}
+          </button>
+        </div>
+      </div>
+      <div class="mobile-menu-section footer-container mobile-footer" style="width: 100%;">
+        <div class="footer-column controls-column">
+          <div class="controls-title">How to Play:</div>
+          <div class="controls-list">
+            <div class="control-item">
+              <Icon class="control-icon" :icon="keyboard" />
+              Arrow Keys or WASD to move
+            </div>
+            <div class="control-item">
+              <Icon class="control-icon" :icon="message" />
+              Walk near guests to battle
+            </div>
+            <div class="control-item">
+              <Icon class="control-icon" :icon="bookOpen" />
+              Press C to view collection
+            </div>
+          </div>
+        </div>
+        <div class="footer-column credits-column mobile-credits">
+          <div class="credits-title">Information:</div>
+          <div class="credits-content">
+            <div class="credits-line">
+              Created from <span class="credits-lenny">Lenny Podcast Episodes</span>
+            </div>
+            <div class="credits-line credits-row">
+              <span>Built by <a href="https://benshih.design" target="_blank" rel="noopener noreferrer" class="credits-link">Ben Shih</a></span>
+              <span class="credits-separator">•</span>
+              <a href="https://github.com/benmiro/PokeLenny" target="_blank" rel="noopener noreferrer" class="credits-github" title="Contribute on GitHub">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
+                Contribute on Github
+              </a>
+            </div>
+            <div class="credits-line credits-disclaimer">
+              Unofficial fan project. AI-generated art. No affiliation.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="game-header">
       <h1 class="game-title">PokéLenny</h1>
       <p class="game-subtitle">Catch 'Em All!</p>
     </div>
 
     <div class="game-wrapper">
-      <div class="stats-bar">
+      <div class="stats-bar" v-if="currentSceneName === 'Overworld' || !isMobile">
         <div class="stat-item level-stat">
           <span class="stat-label">Level {{ playerStats.level }}</span>
           <div class="xp-bar-container">
@@ -538,7 +647,7 @@ onUnmounted(() => {
 
       <PhaserGame ref="phaserRef" />
 
-      <div class="action-buttons">
+      <div class="action-buttons" v-if="currentSceneName === 'Overworld' || !isMobile">
         <button class="action-btn collection-btn" @click="handleOpenCollection">
           <Icon class="btn-icon" :icon="bookOpen" />
           Collection
@@ -558,7 +667,7 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <div class="game-footer">
+    <div class="game-footer" v-if="currentSceneName === 'Overworld' || !isMobile">
       <div class="footer-container">
         <div class="footer-column controls-column">
           <div class="controls-title">How to Play:</div>
@@ -706,6 +815,185 @@ body {
   overflow: hidden;
   gap: 20px;
   padding: 20px;
+}
+
+.orientation-lock {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.orientation-card {
+  background: rgba(0, 0, 0, 0.85);
+  border: 3px solid #FFD700;
+  border-radius: 12px;
+  padding: 24px;
+  width: min(90vw, 420px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  font-family: 'Press Start 2P', monospace, sans-serif;
+}
+
+.orientation-title {
+  color: #FFD700;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.orientation-text {
+  color: #fff;
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.mobile-menu-btn {
+  display: none;
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 5000;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 3px solid #FFD700;
+  background: rgba(0, 0, 0, 0.85);
+  color: #FFD700;
+  font-family: 'Press Start 2P', monospace, sans-serif;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.mobile-menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 4000;
+}
+
+.mobile-menu-panel {
+  position: fixed;
+  top: 80px;
+  right: 12px;
+  left: auto;
+  z-index: 5001;
+  background: rgba(0, 0, 0, 0.92);
+  border: 3px solid #FFD700;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  max-height: calc(100vh - 96px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: min(92vw, 420px);
+  box-sizing: border-box;
+}
+
+.mobile-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+}
+
+.mobile-menu-title {
+  color: #FFD700;
+  font-size: 12px;
+  font-family: 'Press Start 2P', monospace, sans-serif;
+}
+
+.mobile-menu-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 2px solid #FFD700;
+  background: rgba(0, 0, 0, 0.7);
+  color: #FFD700;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-menu-close:hover {
+  background: rgba(0, 0, 0, 0.9);
+}
+
+.mobile-menu-section + .mobile-menu-section {
+  margin-top: 12px;
+}
+
+.mobile-footer {
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid rgba(255, 215, 0, 0.4);
+  border-radius: 8px;
+  padding: 10px;
+  box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
+}
+
+.mobile-actions {
+  flex-direction: column;
+  min-width: auto;
+  align-items: stretch;
+  flex-wrap: nowrap;
+  gap: 10px;
+}
+
+.mobile-footer {
+  width: 100%;
+  max-width: none;
+  border: none;
+  padding: 12px;
+  grid-template-columns: 1fr;
+}
+
+.mobile-footer .controls-column {
+  border: none;
+  padding-right: 0;
+}
+
+.mobile-footer .controls-list {
+  width: 100%;
+}
+
+.mobile-footer .control-item {
+  width: 100%;
+}
+
+.mobile-credits {
+  align-items: flex-start;
+}
+
+.mobile-credits .credits-row {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  max-width: 100%;
+}
+
+.mobile-credits .credits-separator {
+  display: none;
+}
+
+.mobile-footer .credits-content,
+.mobile-footer .credits-line {
+  max-width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+
+.mobile-actions .action-btn {
+  width: 100%;
+  justify-content: flex-start;
+  padding: 12px 14px;
 }
 
 .game-header {
@@ -968,8 +1256,8 @@ body {
     gap: 12px;
   }
 
-  .stats-bar,
-  .action-buttons {
+  .game-wrapper .stats-bar,
+  .game-wrapper .action-buttons {
     flex-direction: row;
     min-width: auto;
     width: 100%;
@@ -982,7 +1270,7 @@ body {
     min-width: 120px;
   }
 
-  .action-buttons {
+  .game-wrapper .action-buttons {
     max-width: 500px;
   }
 }
@@ -1084,6 +1372,131 @@ body {
 
   .credits-disclaimer {
     font-size: 6px;
+  }
+}
+
+/* Mobile landscape fullscreen layout */
+.mobile-landscape {
+  padding: 0;
+  gap: 0;
+}
+
+.mobile-landscape .game-header,
+.mobile-landscape .game-footer {
+  display: none;
+}
+
+.mobile-landscape .game-wrapper {
+  position: fixed;
+  inset: 0;
+  padding: 0;
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+.mobile-landscape #game-container {
+  width: 100vw;
+  height: 100vh;
+  border: none;
+  box-shadow: none;
+}
+
+.mobile-landscape #game-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.mobile-landscape .stats-bar {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 2000;
+  padding: 6px;
+  gap: 6px;
+  min-width: 96px;
+  max-width: 140px;
+  background: rgba(0, 0, 0, 0.7);
+  border-width: 2px;
+  align-items: flex-start;
+  width: 140px;
+  overflow: hidden;
+  flex-direction: column;
+}
+
+.mobile-landscape .stats-bar .stat-item {
+  gap: 3px;
+  width: 100%;
+}
+
+.mobile-landscape .stats-bar .stat-label {
+  font-size: 6px;
+}
+
+.mobile-landscape .stats-bar .stat-value,
+.mobile-landscape .stats-bar .stat-value-small {
+  font-size: 8px;
+}
+
+.mobile-landscape .stats-bar .xp-bar-container,
+.mobile-landscape .stats-bar .stat-value-small,
+.mobile-landscape .stats-bar .collection-stat {
+  display: block;
+}
+
+.mobile-landscape .stats-bar .hp-bar-container {
+  height: 8px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.mobile-landscape .stats-bar .stat-value {
+  line-height: 1.2;
+}
+
+.mobile-landscape .stats-bar .hp-stat .stat-value {
+  display: none;
+}
+
+.mobile-landscape .stats-bar .xp-bar-container {
+  height: 8px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.mobile-landscape .stats-bar .stat-value-small {
+  font-size: 7px;
+}
+
+.mobile-landscape .stats-bar .level-stat .stat-value-small {
+  margin-top: 2px;
+}
+
+.mobile-landscape .action-buttons {
+  display: none;
+}
+
+.mobile-landscape.battle-active .mobile-menu-btn {
+  display: none;
+}
+
+.mobile-landscape .game-wrapper .action-buttons {
+  display: none;
+}
+
+.mobile-portrait .game-header,
+.mobile-portrait .game-wrapper,
+.mobile-portrait .game-footer {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .mobile-menu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 }
 

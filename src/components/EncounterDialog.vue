@@ -320,14 +320,17 @@ onUnmounted(() => {
 /* Responsive adjustments */
 @media (max-width: 1000px) {
   .pokemon-dialog-container {
-    width: calc(100% - 40px);
-    max-width: none;
+    width: 64vw;
+    max-width: 72vw;
+    bottom: 20px;
+    left: 65%;
+    transform: translateX(-50%);
   }
 }
 
 @media (max-width: 800px) {
   .pokemon-textbox {
-    padding: 16px 20px;
+    padding: 14px 12px 14px 28px;
     border-width: 6px;
   }
 

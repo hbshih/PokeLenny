@@ -1,6 +1,6 @@
 <template>
   <div v-if="isActive" class="battle-result-overlay">
-    <div class="result-container" :class="{ victory: won, defeat: !won }">
+    <div class="result-container" :class="{ victory: won, defeat: !won }" @click="handleContainerClick">
       <!-- Result Header -->
       <div class="result-header">
         <h1 class="result-title">{{ won ? 'VICTORY!' : 'DEFEAT' }}</h1>
@@ -41,6 +41,8 @@
           class="result-btn retry-btn"
           :class="{ selected: selectedButton === 0 }"
           @click="retry"
+          @touchstart.stop.prevent="retry"
+          type="button"
         >
           ▶ TRY AGAIN
         </button>
@@ -48,6 +50,8 @@
           class="result-btn continue-btn"
           :class="{ selected: won ? selectedButton === 0 : selectedButton === 1 }"
           @click="continueGame"
+          @touchstart.stop.prevent="continueGame"
+          type="button"
         >
           ▶ {{ won ? 'CONTINUE' : 'RETURN' }}
         </button>
@@ -154,6 +158,14 @@ function retry() {
 function continueGame() {
   console.log('BattleResult: continueGame() called, emitting continue event');
   emit('continue');
+}
+
+function handleContainerClick(event) {
+  const target = event.target;
+  if (target?.closest?.('.result-btn')) return;
+  if (props.won) {
+    continueGame();
+  }
 }
 </script>
 
