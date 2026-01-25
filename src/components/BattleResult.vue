@@ -25,6 +25,10 @@
           <span class="stat-label">Accuracy:</span>
           <span class="stat-value">{{ accuracy }}%</span>
         </div>
+        <div class="stat-row">
+          <span class="stat-label">Total XP:</span>
+          <span class="stat-value">{{ totalXp }}</span>
+        </div>
         <div v-if="won" class="stat-row highlight">
           <span class="stat-label">XP Increased:</span>
           <span class="stat-value xp">+{{ stats.xpGained }}</span>
@@ -91,6 +95,10 @@ const props = defineProps({
   won: Boolean,
   guestName: String,
   episodeUrl: String,
+  totalXp: {
+    type: Number,
+    default: 0
+  },
   stats: {
     type: Object,
     default: () => ({

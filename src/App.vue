@@ -20,7 +20,7 @@ import LeaderboardPanel from './components/LeaderboardPanel.vue';
 import { EventBus } from './game/EventBus';
 import guestDataManager from './game/GuestData';
 import { leaderboardService } from './services/supabase-leaderboard.js';
-import { getStageOpponents, STAGE_CONFIG } from './game/StageConfig.js';
+import { getStageOpponents, STAGE_CONFIG, getTotalStages } from './game/StageConfig.js';
 
 // Game state
 const phaserRef = ref();
@@ -58,7 +58,10 @@ const playerStats = ref({
 const getXPPerCorrect = (level) => Math.min(10 + 5 * (level - 1), 50);
 
 // XP required to reach next level (based on current level)
-const getXPToNextLevel = (level) => 24 * getXPPerCorrect(level);
+const getXPToNextLevel = (level) => {
+  if (level === 1) return 200;
+  return 24 * getXPPerCorrect(level);
+};
 
 // Cumulative unlock XP for a given level
 const getUnlockXP = (level) => {
@@ -71,11 +74,14 @@ const getUnlockXP = (level) => {
 
 // Current XP needed for next level
 const xpForNextLevel = computed(() => getXPToNextLevel(playerStats.value.level));
-const xpLevelBase = computed(() => getUnlockXP(playerStats.value.level));
-const xpIntoLevel = computed(() => Math.max(0, playerStats.value.xp - xpLevelBase.value));
+const nextLevelThreshold = computed(() => getUnlockXP(playerStats.value.level + 1));
+const maxLevel = computed(() => getTotalStages());
+const isMaxLevel = computed(() => playerStats.value.level >= maxLevel.value);
 const xpProgressPercent = computed(() => {
+  if (isMaxLevel.value) return 100;
   if (xpForNextLevel.value <= 0) return 0;
-  return Math.min(100, (xpIntoLevel.value / xpForNextLevel.value) * 100);
+  const xpIntoLevel = Math.max(0, playerStats.value.xp - getUnlockXP(playerStats.value.level));
+  return Math.min(100, (xpIntoLevel / xpForNextLevel.value) * 100);
 });
 
 // Mock battle data
@@ -700,7 +706,8 @@ onUnmounted(() => {
           <div class="xp-bar-container">
             <div class="xp-bar" :style="{ width: xpProgressPercent + '%' }"></div>
           </div>
-          <span class="stat-value-small">{{ xpIntoLevel }}/{{ xpForNextLevel }} XP</span>
+          <span class="stat-value-small" v-if="!isMaxLevel">{{ playerStats.xp }}/{{ nextLevelThreshold }} XP</span>
+          <span class="stat-value-small" v-else>{{ playerStats.xp }} XP</span>
         </div>
         <div class="stat-item hp-stat">
           <span class="stat-label">HP</span>
@@ -713,13 +720,17 @@ onUnmounted(() => {
           <span class="stat-label">Captured</span>
           <span class="stat-value">{{ capturedCount }}/{{ totalGuests }}</span>
         </div>
-        <div class="stat-item map-stat">
-          <span class="stat-label">Map</span>
-          <span class="stat-value">Map {{ currentMapInfo.level }}</span>
-        </div>
       </div>
 
-      <PhaserGame ref="phaserRef" />
+      <div class="game-stage">
+        <PhaserGame ref="phaserRef" />
+        <div
+          class="map-indicator"
+          v-if="currentSceneName === 'Overworld'"
+        >
+          Map {{ currentMapInfo.level }}
+        </div>
+      </div>
 
       <div class="action-buttons" v-if="currentSceneName === 'Overworld' || !isMobile">
         <button class="action-btn collection-btn" @click="handleOpenCollection">
@@ -834,6 +845,7 @@ onUnmounted(() => {
       :guestsCaptured="capturedCount"
       :questionsAnswered="totalQuestionsAnswered"
       :accuracy="accuracy"
+      :totalXp="playerStats.xp"
       @restart="handleGameRestart"
       @share="handleShareStats"
     />
@@ -1071,6 +1083,27 @@ body {
   align-items: flex-start;
   flex-shrink: 0;
   justify-content: center;
+}
+
+.game-stage {
+  position: relative;
+  display: inline-flex;
+}
+
+.map-indicator {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  padding: 6px 8px;
+  background: rgba(0, 0, 0, 0.75);
+  border: 2px solid #FFD700;
+  border-radius: 6px;
+  font-family: 'Press Start 2P', monospace, sans-serif;
+  font-size: 10px;
+  color: #FFD700;
+  text-transform: uppercase;
+  pointer-events: none;
+  z-index: 5;
 }
 
 .stats-bar {
@@ -1630,6 +1663,13 @@ body {
 
   .mobile-view .stats-bar .level-stat .stat-value-small {
     margin-top: 2px;
+  }
+
+  .mobile-view .map-indicator {
+    right: 8px;
+    bottom: 8px;
+    font-size: 9px;
+    padding: 5px 7px;
   }
 
   .mobile-view .action-buttons {

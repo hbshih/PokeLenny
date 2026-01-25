@@ -27,6 +27,10 @@
           <div class="stat-value">{{ accuracy }}%</div>
           <div class="stat-label">Accuracy</div>
         </div>
+        <div class="stat-item">
+          <div class="stat-value">{{ totalXp }}</div>
+          <div class="stat-label">Total XP</div>
+        </div>
       </div>
 
       <!-- Encouragement Message -->
@@ -70,6 +74,10 @@ const props = defineProps({
     default: 0
   },
   accuracy: {
+    type: Number,
+    default: 0
+  },
+  totalXp: {
     type: Number,
     default: 0
   }

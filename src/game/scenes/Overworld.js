@@ -40,6 +40,7 @@ export class Overworld extends Scene
         this.totalSegments = 1;
         this.isTransitioning = false;
         this.lastLockedModalTime = 0;
+        this.enableMobileControls = false;
     }
 
     init (data)
@@ -305,12 +306,8 @@ export class Overworld extends Scene
         this.cursors = this.input.keyboard.createCursorKeys();
         this.keys = this.input.keyboard.addKeys('W,A,S,D,C,SPACE,ENTER,L,J');
 
-        // Mobile touch controls
-        this.createMobileControls();
-        this.scale.on('resize', () => {
-            this.destroyMobileControls();
-            this.createMobileControls();
-        });
+        // Mobile touch controls (disabled)
+        this.destroyMobileControls();
 
         // Initialize Music Manager
         this.musicManager = new MusicManager(this);

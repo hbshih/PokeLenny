@@ -125,6 +125,7 @@
       :won="battleWon"
       :guestName="battleData?.guest?.name || 'Guest'"
       :episodeUrl="battleData?.guest?.episodeUrl || ''"
+      :totalXp="playerStats?.xp || 0"
       :stats="battleStats"
       @retry="handleRetry"
       @continue="handleContinue"

@@ -289,3 +289,8 @@ export const GUEST_TITLES = {
   "Teaser_2021": "Preview Content",
   "default": "Product Expert"
 };
+
+export function getGuestTitle(guestName) {
+  if (!guestName) return GUEST_TITLES.default;
+  return GUEST_TITLES[guestName] || GUEST_TITLES.default;
+}
