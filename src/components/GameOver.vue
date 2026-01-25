@@ -24,6 +24,14 @@
           <div class="stat-label">Questions Answered</div>
         </div>
         <div class="stat-item">
+          <div class="stat-value">{{ correctAnswers }}</div>
+          <div class="stat-label">Correct Answers</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">{{ wrongAnswers }}</div>
+          <div class="stat-label">Wrong Answers</div>
+        </div>
+        <div class="stat-item">
           <div class="stat-value">{{ accuracy }}%</div>
           <div class="stat-label">Accuracy</div>
         </div>
@@ -70,6 +78,14 @@ const props = defineProps({
     default: 0
   },
   questionsAnswered: {
+    type: Number,
+    default: 0
+  },
+  correctAnswers: {
+    type: Number,
+    default: 0
+  },
+  wrongAnswers: {
     type: Number,
     default: 0
   },

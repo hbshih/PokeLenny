@@ -27,11 +27,6 @@
             <!-- Stats Grid -->
             <div class="stats-grid">
               <div class="stat-card">
-                <Icon class="stat-icon" :icon="heart" />
-                <div class="stat-label">HP</div>
-                <div class="stat-value">{{ stats.hp }}/{{ stats.maxHp }}</div>
-              </div>
-              <div class="stat-card">
                 <Icon class="stat-icon" :icon="zap" />
                 <div class="stat-label">XP</div>
                 <div class="stat-value">{{ stats.xp }}</div>
@@ -45,6 +40,11 @@
                 <Icon class="stat-icon" :icon="trophy" />
                 <div class="stat-label">Battles</div>
                 <div class="stat-value">{{ stats.totalBattles }}</div>
+              </div>
+              <div class="stat-card">
+                <Icon class="stat-icon" :icon="map" />
+                <div class="stat-label">Maps Unlocked</div>
+                <div class="stat-value">{{ stats.level }}</div>
               </div>
             </div>
 
@@ -126,6 +126,7 @@ import trophy from '@iconify/icons-pixelarticons/trophy';
 import check from '@iconify/icons-pixelarticons/check';
 import close from '@iconify/icons-pixelarticons/close';
 import user from '@iconify/icons-pixelarticons/user';
+import map from '@iconify/icons-pixelarticons/map';
 import download from '@iconify/icons-pixelarticons/download';
 
 const props = defineProps({
