@@ -22,7 +22,7 @@
 
     <div class="collection-grid">
       <div
-        v-for="guest in paginatedGuests"
+        v-for="(guest, idx) in paginatedGuests"
         :key="guest.id"
         class="guest-card"
         :class="{ 'captured': guest.captured, 'uncaptured': !guest.captured }"
@@ -39,7 +39,7 @@
         </div>
         <div class="guest-card-info">
           <p class="guest-card-name">{{ guest.name }}</p>
-          <p class="guest-card-number">#{{ guest.id }}</p>
+          <p class="guest-card-number">#{{ indexForGuest(idx) }}</p>
         </div>
       </div>
     </div>
@@ -55,7 +55,7 @@
           />
         </div>
         <h2 class="detail-name">{{ selectedGuest.name }}</h2>
-        <p class="detail-number">#{{ selectedGuest.id }}</p>
+        <p class="detail-number">#{{ indexForSelected }}</p>
         <div class="detail-info">
           <div class="detail-row">
             <span class="detail-label">Episode:</span>
@@ -119,14 +119,18 @@ const totalGuests = computed(() => {
   return props.totalGuests || props.collection.length;
 });
 
+const orderedCollection = computed(() => {
+  return props.collection.slice();
+});
+
 const totalPages = computed(() => {
-  return Math.ceil(props.collection.length / itemsPerPage.value);
+  return Math.ceil(orderedCollection.value.length / itemsPerPage.value);
 });
 
 const paginatedGuests = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage.value;
   const end = start + itemsPerPage.value;
-  return props.collection.slice(start, end);
+  return orderedCollection.value.slice(start, end);
 });
 
 // Handle window resize
@@ -182,6 +186,22 @@ function prevPage() {
     currentPage.value--;
   }
 }
+
+const indexForGuest = (indexInPage) => {
+  const index = (currentPage.value - 1) * itemsPerPage.value + indexInPage + 1;
+  return String(index).padStart(3, '0');
+};
+
+const indexForSelected = computed(() => {
+  if (!selectedGuest.value) {
+    return '';
+  }
+  const index = orderedCollection.value.findIndex(guest => guest.id === selectedGuest.value.id);
+  if (index === -1) {
+    return '';
+  }
+  return String(index + 1).padStart(3, '0');
+});
 </script>
 
 <style scoped>

@@ -465,9 +465,10 @@ onMounted(() => {
     currentSceneName.value = scene?.scene?.key || '';
   });
   // Listen for guests-loaded event from Preloader
-  EventBus.on('guests-loaded', (guests) => {
-    console.log('✓ Guests loaded event received:', guests.length, 'guests');
-    collection.value = guests;
+  EventBus.on('guests-loaded', () => {
+    const selectedGuests = guestDataManager.getSelectedGuests();
+    console.log('✓ Guests loaded event received:', selectedGuests.length, 'guests');
+    collection.value = selectedGuests;
     console.log('Collection IDs:', collection.value.map(g => g.id).join(', '));
   });
 
