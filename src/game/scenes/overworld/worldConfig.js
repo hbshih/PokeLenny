@@ -8,7 +8,8 @@ export const WORLD_CONFIGS = [
             world: 'World',
             above: 'Above Player'
         },
-        segmentWidth: 40
+        segmentWidth: 40,
+        music: 'overworld' // Main overworld theme
     },
     {
         key: 'desert-map',
@@ -19,7 +20,8 @@ export const WORLD_CONFIGS = [
             world: 'Ground',
             above: null
         },
-        segmentWidth: null
+        segmentWidth: null,
+        music: 'overworld2' // Desert/alternative theme
     }
 ];
 

@@ -10,13 +10,9 @@ export const bindOverworldEvents = (scene) => {
     // Listen for battle start - disable input during battle
     scene.bindEvent('start-battle', () => {
         scene.battleActive = true;
-        // Pause overworld music during battle - safely check sound context
-        if (scene.music && scene.music.isPlaying) {
-            try {
-                scene.music.pause();
-            } catch (e) {
-                console.warn('Failed to pause overworld music:', e);
-            }
+        // Pause overworld music during battle
+        if (scene.musicManager) {
+            scene.musicManager.pause();
         }
         // Hide mobile controls during battle
         scene.setMobileControlsVisible(false);
@@ -25,13 +21,9 @@ export const bindOverworldEvents = (scene) => {
     // Listen for battle starting from encounter dialog
     scene.bindEvent('battle-starting', () => {
         scene.battleActive = true;
-        // Pause overworld music during battle - safely check sound context
-        if (scene.music && scene.music.isPlaying) {
-            try {
-                scene.music.pause();
-            } catch (e) {
-                console.warn('Failed to pause overworld music:', e);
-            }
+        // Pause overworld music during battle
+        if (scene.musicManager) {
+            scene.musicManager.pause();
         }
         // Hide mobile controls during battle
         scene.setMobileControlsVisible(false);
@@ -40,16 +32,20 @@ export const bindOverworldEvents = (scene) => {
     // Listen for battle end - re-enable input
     scene.bindEvent('battle-ended', () => {
         scene.battleActive = false;
-        // Resume overworld music after battle - use play() instead of resume()
-        if (scene.music && scene.sound && scene.sound.context) {
-            try {
-                if (!scene.music.isPlaying) {
-                    scene.music.play();
-                }
-            } catch (e) {
-                console.warn('Failed to resume overworld music:', e);
+
+        // Check if victory or defeat sounds are playing before resuming music
+        const victoryPlaying = scene.victorySound && scene.victorySound.isPlaying;
+        const defeatPlaying = scene.defeatSound && scene.defeatSound.isPlaying;
+
+        if (!victoryPlaying && !defeatPlaying) {
+            // No victory/defeat sounds playing, resume map music
+            if (scene.musicManager) {
+                scene.musicManager.resume();
             }
         }
+        // If victory/defeat is playing, the 'stop-battle-music' event handler
+        // will handle resuming the music after the sound completes
+
         // Show mobile controls after battle
         scene.setMobileControlsVisible(true);
     });
@@ -61,15 +57,9 @@ export const bindOverworldEvents = (scene) => {
             scene.battleNPC = null;
         }
         scene.battleActive = false;
-        // Resume music if paused - use play() instead of resume()
-        if (scene.music && scene.sound && scene.sound.context) {
-            try {
-                if (!scene.music.isPlaying) {
-                    scene.music.play();
-                }
-            } catch (e) {
-                console.warn('Failed to resume overworld music:', e);
-            }
+        // Resume overworld music when battle is rejected
+        if (scene.musicManager) {
+            scene.musicManager.resume();
         }
         // Show mobile controls
         scene.setMobileControlsVisible(true);
@@ -85,17 +75,10 @@ export const bindOverworldEvents = (scene) => {
 
     // Audio control events from BattleScreen
     scene.bindEvent('play-battle-music', () => {
-        // Stop overworld music and play battle music - safely check sound context
-        if (scene.music && scene.music.isPlaying) {
+        // Play battle music (overworld music already paused from start-battle event)
+        if (scene.musicManager && scene.sound && scene.sound.context) {
             try {
-                scene.music.stop();
-            } catch (e) {
-                console.warn('Failed to stop overworld music:', e);
-            }
-        }
-        // Check if sound manager exists
-        if (scene.sound && scene.sound.context) {
-            try {
+                // Create battle music as a separate sound object (not managed by MusicManager)
                 if (!scene.battleMusic) {
                     scene.battleMusic = scene.sound.add('battle-music', {
                         loop: true,
@@ -112,7 +95,7 @@ export const bindOverworldEvents = (scene) => {
     });
 
     scene.bindEvent('stop-battle-music', () => {
-        // Stop battle music and resume overworld music - safely check sound context
+        // Stop only the battle music
         if (scene.battleMusic && scene.battleMusic.isPlaying) {
             try {
                 scene.battleMusic.stop();
@@ -120,39 +103,107 @@ export const bindOverworldEvents = (scene) => {
                 console.warn('Failed to stop battle music:', e);
             }
         }
-        if (scene.music && scene.sound && scene.sound.context && !scene.music.isPlaying) {
-            try {
-                scene.music.play();
-            } catch (e) {
-                console.warn('Failed to resume overworld music:', e);
+
+        // Check if victory or defeat sounds are playing
+        const victoryPlaying = scene.victorySound && scene.victorySound.isPlaying;
+        const defeatPlaying = scene.defeatSound && scene.defeatSound.isPlaying;
+
+        if (victoryPlaying || defeatPlaying) {
+            // Don't resume map music yet - wait for victory/defeat sound to finish
+            console.log('Victory/defeat sound playing, delaying map music resume');
+
+            // Set up one-time listeners to resume map music after sound finishes
+            if (victoryPlaying && scene.victorySound) {
+                scene.victorySound.once('complete', () => {
+                    if (scene.musicManager) {
+                        scene.musicManager.resume();
+                    }
+                });
+            }
+            if (defeatPlaying && scene.defeatSound) {
+                scene.defeatSound.once('complete', () => {
+                    if (scene.musicManager) {
+                        scene.musicManager.resume();
+                    }
+                });
+            }
+        } else {
+            // No victory/defeat sounds playing, resume map music immediately
+            if (scene.musicManager) {
+                scene.musicManager.resume();
             }
         }
     });
 
     scene.bindEvent('play-victory-sound', () => {
-        // Play victory fanfare (doesn't loop) - safely check sound context
+        // Play victory fanfare without affecting map music
         if (scene.sound && scene.sound.context) {
             try {
-                if (!scene.victorySound) {
-                    scene.victorySound = scene.sound.add('victory-fanfare', {
-                        loop: false,
-                        volume: 0.6
-                    });
-                }
                 // Stop battle music first
                 if (scene.battleMusic && scene.battleMusic.isPlaying) {
                     scene.battleMusic.stop();
                 }
+                // Stop and clean up any existing victory sound
+                if (scene.victorySound) {
+                    scene.victorySound.stop();
+                    scene.victorySound.destroy();
+                }
+                // Create fresh victory sound
+                scene.victorySound = scene.sound.add('victory-fanfare', {
+                    loop: false,
+                    volume: 0.6
+                });
                 scene.victorySound.play();
+
+                // Auto-stop after 5 seconds for shorter duration
+                scene.time.delayedCall(5000, () => {
+                    if (scene.victorySound && scene.victorySound.isPlaying) {
+                        scene.victorySound.stop();
+                    }
+                });
             } catch (e) {
                 console.warn('Failed to play victory sound:', e);
             }
         }
     });
 
+    scene.bindEvent('play-defeat-sound', () => {
+        // Play defeat music without affecting map music
+        if (scene.sound && scene.sound.context) {
+            try {
+                // Stop battle music first
+                if (scene.battleMusic && scene.battleMusic.isPlaying) {
+                    scene.battleMusic.stop();
+                }
+                // Stop and clean up any existing defeat sound
+                if (scene.defeatSound) {
+                    scene.defeatSound.stop();
+                    scene.defeatSound.destroy();
+                }
+                // Create fresh defeat sound
+                scene.defeatSound = scene.sound.add('defeat-music', {
+                    loop: false,
+                    volume: 0.5
+                });
+                scene.defeatSound.play();
+
+                // Auto-stop after 5 seconds for shorter duration
+                scene.time.delayedCall(5000, () => {
+                    if (scene.defeatSound && scene.defeatSound.isPlaying) {
+                        scene.defeatSound.stop();
+                    }
+                });
+            } catch (e) {
+                console.warn('Failed to play defeat sound:', e);
+            }
+        }
+    });
+
     // Global mute/unmute control
     scene.bindEvent('toggle-mute', (isMuted) => {
-        if (scene.sound && scene.sound.context) {
+        if (scene.musicManager) {
+            scene.musicManager.setMute(isMuted);
+        } else if (scene.sound && scene.sound.context) {
             scene.sound.mute = isMuted;
         }
     });
@@ -197,9 +248,9 @@ export const bindOverworldEvents = (scene) => {
     // Listen for return to menu (game over retry)
     scene.bindEvent('return-to-menu', () => {
         console.log('return-to-menu event received - transitioning to MainMenu');
-        // Stop overworld music
-        if (scene.music) {
-            scene.music.stop();
+        // Stop all music
+        if (scene.musicManager) {
+            scene.musicManager.stopAll();
         }
         // Transition to MainMenu scene
         scene.scene.start('MainMenu');

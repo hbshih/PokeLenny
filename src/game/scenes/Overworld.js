@@ -7,6 +7,7 @@ import { bindOverworldEvents } from './overworld/events';
 import { handleDebugKeys } from './overworld/debug';
 import { WORLD_CONFIGS, getMaxWorldLevel } from './overworld/worldConfig';
 import { createSegmentLabel, showLockedMessage, updateSegmentLabel, updateSegmentView } from './overworld/ui';
+import { MusicManager } from '../MusicManager';
 
 export class Overworld extends Scene
 {
@@ -28,6 +29,8 @@ export class Overworld extends Scene
         this.music = null;
         this.battleMusic = null;
         this.victorySound = null;
+        this.defeatSound = null;
+        this.musicManager = null; // Centralized music management
         this.spawnedGuestIndices = []; // Track which guests have been spawned
         this.currentLevel = 1;
         this.unlockedLevel = 1;
@@ -306,14 +309,13 @@ export class Overworld extends Scene
             this.createMobileControls();
         });
 
-        // Start overworld music
-        if (!this.music || !this.music.isPlaying) {
-            this.music = this.sound.add('overworld-music', {
-                loop: true,
-                volume: 0.4
-            });
-            this.music.play();
-        }
+        // Initialize Music Manager
+        this.musicManager = new MusicManager(this);
+
+        // Start music based on current world configuration (reuse worldConfig from above)
+        const musicTrack = worldConfig.music || 'overworld';
+        this.musicManager.play(musicTrack, true, 500); // 500ms fade in
+
         bindOverworldEvents(this);
     }
 
@@ -987,6 +989,12 @@ export class Overworld extends Scene
             spawn: { x: spawnX, y: spawnY },
             edge: spawnEdge
         });
+
+        // Fade out current music during transition
+        if (this.musicManager) {
+            this.musicManager.stop(220); // Fade out over 220ms to match camera fade
+        }
+
         this.cameras.main.fadeOut(220, 0, 0, 0);
         this.cameras.main.once('camerafadeoutcomplete', () => {
             this.scene.restart({

@@ -388,6 +388,8 @@ export const useBattleState = (props, emit, swirlCanvas) => {
         // Play victory or defeat sound
         if (won) {
             EventBus.emit('play-victory-sound');
+        } else {
+            EventBus.emit('play-defeat-sound');
         }
 
         // Record battle result in game state

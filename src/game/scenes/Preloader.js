@@ -57,9 +57,15 @@ export class Preloader extends Scene
         // Load audio files
         this.load.audio('menu-music', 'audio/music/menu-theme.ogg');
         this.load.audio('overworld-music', 'audio/music/overworld-theme.ogg');
+        this.load.audio('overworld-music-2', 'audio/music/overworld-theme-2.ogg');
+        this.load.audio('town-music', 'audio/music/town-theme.ogg');
         this.load.audio('battle-music', 'audio/music/battle-theme.ogg');
+        this.load.audio('battle-music-intense', 'audio/music/battle-theme-intense.ogg');
+        this.load.audio('boss-battle-music', 'audio/music/boss-battle-theme.ogg');
         this.load.audio('victory-fanfare', 'audio/music/victory-fanfare.ogg');
         this.load.audio('victory-music', 'audio/music/victory-theme.ogg');
+        this.load.audio('victory-music-full', 'audio/music/victory-theme-full.ogg');
+        this.load.audio('defeat-music', 'audio/music/defeat-theme.ogg');
 
         // Load questions.json
         this.load.json('questions', 'questions.json');
