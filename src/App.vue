@@ -264,10 +264,13 @@ async function saveScoreToLeaderboard() {
     await leaderboardService.saveScore({
       name: playerName.value,
       level: playerStats.value.level,
+      xp: playerStats.value.xp,
       maxHp: playerStats.value.maxHp,
       captured: capturedCount.value,
       total: totalGuests.value,
-      accuracy: accuracy.value
+      accuracy: accuracy.value,
+      correct: playerStats.value.rightAnswers,
+      wrong: playerStats.value.wrongAnswers
     });
     console.log('✓ Score saved to leaderboard');
   } catch (error) {

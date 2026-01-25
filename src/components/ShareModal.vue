@@ -106,13 +106,9 @@
           </svg>
           Share on LinkedIn
         </button>
-        <button class="action-btn share-btn" @click="shareCard">
-          <Icon class="action-icon" :icon="upload" />
-          Share
-        </button>
-        <button class="action-btn copy-btn" @click="copyStats">
-          <Icon class="action-icon" :icon="copy" />
-          Copy Stats
+        <button class="action-btn download-btn" @click="downloadCard">
+          <Icon class="action-icon" :icon="download" />
+          Download Card
         </button>
       </div>
     </div>
@@ -130,8 +126,7 @@ import trophy from '@iconify/icons-pixelarticons/trophy';
 import check from '@iconify/icons-pixelarticons/check';
 import close from '@iconify/icons-pixelarticons/close';
 import user from '@iconify/icons-pixelarticons/user';
-import upload from '@iconify/icons-pixelarticons/upload';
-import copy from '@iconify/icons-pixelarticons/copy';
+import download from '@iconify/icons-pixelarticons/download';
 
 const props = defineProps({
   isActive: Boolean,
@@ -209,41 +204,6 @@ ${guestsLine ? '\n' + guestsLine : ''}
   window.open(linkedInUrl, '_blank', 'width=700,height=700');
 }
 
-function shareCard() {
-  const shareText = `PokéLenny Trainer Card
-
-Trainer: ${props.playerName}
-Level: ${props.stats.level}
-HP: ${props.stats.hp}/${props.stats.maxHp}
-
-Stats:
-Battles Won: ${props.stats.totalBattles}
-Accuracy: ${props.accuracy}%
-Correct Answers: ${props.stats.rightAnswers}
-Wrong Answers: ${props.stats.wrongAnswers}
-Guests Captured: ${props.capturedCount}/${props.totalGuests}
-
-${capturedGuests.value.length > 0 ? 'Captured Guests:\n' + capturedGuests.value.map(g => `  • ${g.name}`).join('\n') : ''}
-
-Play PokéLenny and catch your favorite Lenny's Podcast guests!`;
-
-  if (navigator.share) {
-    navigator.share({
-      title: `${props.playerName}'s PokéLenny Stats`,
-      text: shareText
-    }).catch(() => {
-      copyToClipboard(shareText);
-    });
-  } else {
-    copyToClipboard(shareText);
-  }
-}
-
-function copyStats() {
-  const statsText = `${props.playerName}'s PokéLenny Stats\n\nLevel ${props.stats.level} • ${props.capturedCount}/${props.totalGuests} Captured • ${props.accuracy}% Accuracy`;
-  copyToClipboard(statsText);
-}
-
 async function downloadCard() {
   const card = shareCardRef.value;
   if (!card) return;
@@ -274,13 +234,6 @@ async function downloadCard() {
   }
 }
 
-function copyToClipboard(text) {
-  navigator.clipboard.writeText(text).then(() => {
-    alert('Stats copied to clipboard!');
-  }).catch(() => {
-    alert(text);
-  });
-}
 </script>
 
 <style scoped>
@@ -665,22 +618,13 @@ function copyToClipboard(text) {
   box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
 }
 
-.share-btn {
-  border-color: #a78bfa;
+.download-btn {
+  border-color: #f5a623;
 }
 
-.share-btn:hover {
-  border-color: #8b5cf6;
-  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.3), 0 0 20px rgba(167, 139, 250, 0.4);
-}
-
-.copy-btn {
-  border-color: #60a5fa;
-}
-
-.copy-btn:hover {
-  border-color: #3b82f6;
-  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.3), 0 0 20px rgba(96, 165, 250, 0.4);
+.download-btn:hover {
+  border-color: #e09020;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.3), 0 0 20px rgba(245, 166, 35, 0.4);
 }
 
 .linkedin-btn {

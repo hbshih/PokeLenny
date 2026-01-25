@@ -38,9 +38,10 @@
             <div class="player-name">{{ player.name }}</div>
             <div class="player-stats">
               <span class="stat stat-level">Lv.{{ player.level }}</span>
-              <span class="stat stat-hp"><Icon class="stat-icon" :icon="heart" /> {{ player.maxHp }}</span>
+              <span class="stat stat-xp"><Icon class="stat-icon" :icon="zap" /> XP {{ player.xp }}</span>
               <span class="stat stat-caught"><Icon class="stat-icon" :icon="users" /> {{ player.captured }}/{{ player.total }}</span>
-              <span class="stat stat-accuracy"><Icon class="stat-icon" :icon="bullseye" /> {{ player.accuracy }}%</span>
+              <span class="stat stat-correct"><Icon class="stat-icon" :icon="check" /> {{ player.correct }}</span>
+              <span class="stat stat-wrong"><Icon class="stat-icon" :icon="close" /> {{ player.wrong }}</span>
             </div>
           </div>
         </div>
@@ -96,9 +97,10 @@ import { Icon } from '@iconify/vue';
 import trophy from '@iconify/icons-pixelarticons/trophy';
 import reload from '@iconify/icons-pixelarticons/reload';
 import loader from '@iconify/icons-pixelarticons/loader';
-import heart from '@iconify/icons-pixelarticons/heart';
+import zap from '@iconify/icons-pixelarticons/zap';
 import users from '@iconify/icons-pixelarticons/users';
-import bullseye from '@iconify/icons-pixelarticons/bullseye';
+import check from '@iconify/icons-pixelarticons/check';
+import close from '@iconify/icons-pixelarticons/close';
 import arrowLeft from '@iconify/icons-pixelarticons/arrow-left';
 import arrowRight from '@iconify/icons-pixelarticons/arrow-right';
 import { leaderboardService } from '../services/supabase-leaderboard.js';
@@ -132,10 +134,11 @@ const currentPagePlayers = computed(() => {
     id: player.id,
     name: player.player_name,
     level: player.level,
-    maxHp: player.max_hp,
+    xp: player.xp ?? 0,
     captured: player.captured,
     total: player.total,
-    accuracy: player.accuracy,
+    correct: player.correct ?? 0,
+    wrong: player.wrong ?? 0,
     isCurrentPlayer: player.player_name === props.currentPlayer.name
   }));
 });
@@ -523,6 +526,7 @@ onMounted(() => {
   align-items: center;
   gap: 4px;
   border: 2px solid rgba(255, 255, 255, 0.1);
+  min-height: 20px;
 }
 
 .stat-level {
@@ -530,19 +534,24 @@ onMounted(() => {
   color: #FFD700;
 }
 
-.stat-hp {
-  border-color: #E74C3C;
-  color: #E74C3C;
-}
-
 .stat-caught {
   border-color: #4A90E2;
   color: #4A90E2;
 }
 
-.stat-accuracy {
+.stat-xp {
+  border-color: #f5a623;
+  color: #f5a623;
+}
+
+.stat-correct {
   border-color: #50C878;
   color: #50C878;
+}
+
+.stat-wrong {
+  border-color: #e74c3c;
+  color: #e74c3c;
 }
 
 .pagination {

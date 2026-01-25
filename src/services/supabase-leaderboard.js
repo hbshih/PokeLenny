@@ -18,6 +18,7 @@ export const leaderboardService = {
       .from('leaderboard')
       .select('*')
       .order('level', { ascending: false })
+      .order('xp', { ascending: false })
       .order('captured', { ascending: false })
       .limit(50);
 
@@ -33,10 +34,13 @@ export const leaderboardService = {
       .insert([{
         player_name: playerData.name,
         level: playerData.level,
+        xp: playerData.xp,
         max_hp: playerData.maxHp,
         captured: playerData.captured,
         total: playerData.total,
-        accuracy: playerData.accuracy
+        accuracy: playerData.accuracy,
+        correct: playerData.correct,
+        wrong: playerData.wrong
       }]);
 
     if (error) throw error;
@@ -48,8 +52,9 @@ export const leaderboardService = {
     if (!ensureSupabase()) return null;
     const { data, error } = await supabase
       .from('leaderboard')
-      .select('player_name, level, captured')
+      .select('player_name, level, xp, captured')
       .order('level', { ascending: false })
+      .order('xp', { ascending: false })
       .order('captured', { ascending: false });
 
     if (error) throw error;
