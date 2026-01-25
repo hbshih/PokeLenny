@@ -20,7 +20,7 @@ import LeaderboardPanel from './components/LeaderboardPanel.vue';
 import { EventBus } from './game/EventBus';
 import guestDataManager from './game/GuestData';
 import { leaderboardService } from './services/supabase-leaderboard.js';
-import { getStageOpponents } from './game/StageConfig.js';
+import { getStageOpponents, STAGE_CONFIG } from './game/StageConfig.js';
 
 // Game state
 const phaserRef = ref();
@@ -71,6 +71,12 @@ const getUnlockXP = (level) => {
 
 // Current XP needed for next level
 const xpForNextLevel = computed(() => getXPToNextLevel(playerStats.value.level));
+const xpLevelBase = computed(() => getUnlockXP(playerStats.value.level));
+const xpIntoLevel = computed(() => Math.max(0, playerStats.value.xp - xpLevelBase.value));
+const xpProgressPercent = computed(() => {
+  if (xpForNextLevel.value <= 0) return 0;
+  return Math.min(100, (xpIntoLevel.value / xpForNextLevel.value) * 100);
+});
 
 // Mock battle data
 const battleData = ref({
@@ -137,7 +143,8 @@ const currentMapInfo = ref({ level: 1, world: 1 });
 
 // Computed stats
 const capturedCount = computed(() => collection.value.filter(g => g.captured).length);
-const totalGuests = computed(() => collection.value.length);
+const TOTAL_GUESTS = STAGE_CONFIG.flat().length;
+const totalGuests = computed(() => TOTAL_GUESTS);
 const accuracy = computed(() => {
   const total = playerStats.value.rightAnswers + playerStats.value.wrongAnswers;
   return total > 0 ? Math.round((playerStats.value.rightAnswers / total) * 100) : 0;
@@ -688,9 +695,9 @@ onUnmounted(() => {
         <div class="stat-item level-stat">
           <span class="stat-label">Level {{ playerStats.level }}</span>
           <div class="xp-bar-container">
-            <div class="xp-bar" :style="{ width: (playerStats.xp / xpForNextLevel * 100) + '%' }"></div>
+            <div class="xp-bar" :style="{ width: xpProgressPercent + '%' }"></div>
           </div>
-          <span class="stat-value-small">{{ playerStats.xp }}/{{ xpForNextLevel }} XP</span>
+          <span class="stat-value-small">{{ xpIntoLevel }}/{{ xpForNextLevel }} XP</span>
         </div>
         <div class="stat-item hp-stat">
           <span class="stat-label">HP</span>
@@ -795,6 +802,7 @@ onUnmounted(() => {
     <CollectionScreen
       :isActive="showCollection"
       :collection="collection"
+      :totalGuests="totalGuests"
       @close="handleCloseCollection"
     />
 

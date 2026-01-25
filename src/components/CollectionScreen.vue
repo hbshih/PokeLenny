@@ -3,7 +3,7 @@
     <div class="collection-header">
       <h1 class="collection-title">PokéLenny Collection</h1>
       <p class="collection-progress">
-        {{ capturedCount }} / {{ props.collection.length }} Captured
+        {{ capturedCount }} / {{ totalGuests }} Captured
       </p>
       <button class="close-btn" @click="$emit('close')">✕</button>
     </div>
@@ -78,7 +78,8 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 
 const props = defineProps({
   isActive: Boolean,
-  collection: Array
+  collection: Array,
+  totalGuests: Number
 });
 
 defineEmits(['close']);
@@ -112,6 +113,10 @@ const itemsPerPage = computed(() => {
 
 const capturedCount = computed(() => {
   return props.collection.filter(g => g.captured).length;
+});
+
+const totalGuests = computed(() => {
+  return props.totalGuests || props.collection.length;
 });
 
 const totalPages = computed(() => {

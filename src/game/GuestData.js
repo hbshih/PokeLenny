@@ -3,6 +3,8 @@
  * Handles loading and processing guest data from questions.json and avatar images
  */
 
+import { STAGE_CONFIG, STAGE_NAME_ALIASES } from './StageConfig';
+
 class GuestDataManager {
   constructor() {
     this.allGuests = [];
@@ -106,7 +108,7 @@ class GuestDataManager {
     // Handle collaboration episodes - use first person's avatar
     const collaborationMappings = {
       'Keith Coleman & Jay Baxter': 'Keith Coleman',
-      'Jake Knapp + John Zeratsky': 'John Zeratsky',
+      'Jake Knapp + John Zeratsky': 'Jake Knapp + John Zeratsky',
       'Melissa Perri + Denise Tilles': 'Melissa Perri',
       'Hamel Husain & Shreya Shankar': 'Hamel Husain & Shreya Shankar', // This one exists
       'Aishwarya Naresh Reganti + Kiriti Badam': null, // No avatar
@@ -140,7 +142,8 @@ class GuestDataManager {
           return null; // No avatar available
         }
         const cleanName = this.cleanGuestName(replacement);
-        return `avatars/${cleanName}_pixel_art.png`;
+        const encodedFileName = encodeURI(`${cleanName}_pixel_art.png`);
+        return `avatars/${encodedFileName}`;
       }
     }
 
@@ -151,7 +154,8 @@ class GuestDataManager {
           return null; // No avatar available
         }
         const cleanName = this.cleanGuestName(replacement);
-        return `avatars/${cleanName}_pixel_art.png`;
+        const encodedFileName = encodeURI(`${cleanName}_pixel_art.png`);
+        return `avatars/${encodedFileName}`;
       }
     }
 
@@ -215,10 +219,58 @@ class GuestDataManager {
       return [];
     }
 
-    // Simply use all guests as-is, maintaining their original IDs and order
-    this.selectedGuests = this.allGuests.map(guest => ({ ...guest }));
+    const stageNames = STAGE_CONFIG.flat();
+    const guestsByName = new Map(this.allGuests.map(guest => [guest.name, guest]));
+    const normalize = (value) => value
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/\p{Diacritic}/gu, '')
+      .replace(/[^a-z0-9]/g, '');
+    const guestsByNormalized = new Map();
+    this.allGuests.forEach(guest => {
+      const key = normalize(guest.name);
+      if (!guestsByNormalized.has(key)) {
+        guestsByNormalized.set(key, guest);
+      }
+    });
 
-    console.log(`Selected all ${this.selectedGuests.length} guests for fixed stage system`);
+    const selected = [];
+    const selectedIds = new Set();
+    const missing = [];
+    const duplicates = [];
+
+    stageNames.forEach(name => {
+      let guest = guestsByName.get(name);
+      if (!guest) {
+        const alias = STAGE_NAME_ALIASES[name];
+        if (alias) {
+          guest = guestsByName.get(alias) || guestsByNormalized.get(normalize(alias));
+        }
+      }
+      if (!guest) {
+        guest = guestsByNormalized.get(normalize(name));
+      }
+      if (!guest) {
+        missing.push(name);
+        return;
+      }
+      if (selectedIds.has(guest.id)) {
+        duplicates.push({ name, guest: guest.name, id: guest.id });
+        return;
+      }
+      selectedIds.add(guest.id);
+      selected.push({ ...guest });
+    });
+
+    this.selectedGuests = selected;
+
+    if (missing.length > 0) {
+      console.warn(`StageConfig names not found in questions data (${missing.length}):`, missing);
+    }
+    if (duplicates.length > 0) {
+      console.warn(`StageConfig names mapped to duplicate guests (${duplicates.length}):`, duplicates);
+    }
+    console.log(`Selected ${this.selectedGuests.length} guests for fixed stage system (from ${stageNames.length} stage names)`);
     return this.selectedGuests;
   }
 

@@ -5,407 +5,409 @@
  */
 
 export const STAGE_CONFIG = [
-  // Stage 1 (Top 10 most recognizable)
+  // Tier 1
   [
-    "Shreyas Doshi",
-    "Elena Verna",
-    "Ben Horowitz",
     "Brian Chesky",
-    "Seth Godin",
+    "Ben Horowitz",
+    "Marc Benioff",
+    "Stewart Butterfield",
+    "Tobi Lutke",
+    "Dylan Field",
+    "Melanie Perkins",
+    "Elena Verna",
     "Brian Balfour",
-    "Eric Ries",
-    "Gibson Biddle",
-    "Geoffrey Moore",
-    "Marty Cagan"
+    "Seth Godin"
   ],
 
-  // Stage 2
+  // Tier 2
   [
+    "Marty Cagan",
+    "Eric Ries",
     "Kim Scott",
     "Julie Zhuo",
-    "Stewart Butterfield",
-    "Dylan Field",
-    "Tobi Lutke",
-    "Melanie Perkins",
-    "Ivan Zhao",
-    "Jason Fried",
-    "Hamilton Helmer",
-    "Annie Duke"
-  ],
-
-  // Stage 3
-  [
-    "Gokul Rajaram",
-    "April Dunford",
-    "Patrick Campbell",
-    "Marc Benioff",
-    "Drew Houston",
-    "Ronny Kohavi",
-    "Casey Winters",
-    "Sean Ellis",
-    "Nir Eyal",
-    "Ken Norton"
-  ],
-
-  // Stage 4
-  [
-    "Bill Carr",
-    "Bret Taylor",
-    "Ryan Singer",
-    "Shishir Mehrotra",
-    "Scott Belsky",
-    "Jessica Livingston",
-    "Nikita Bier",
-    "Julian Shapiro",
-    "Karri Saarinen",
-    "Matt Mullenweg"
-  ],
-
-  // Stage 5
-  [
-    "Yuhki Yamashata",
-    "Peter Deng",
-    "Naomi Gleit",
-    "Mike Krieger",
-    "Boz",
-    "Chip Huyen",
-    "Hamel Husain & Shreya Shankar",
-    "Dr. Fei Fei Li",
-    "Nicole Forsgren",
-    "Gergely"
-  ],
-
-  // Stage 6
-  [
-    "David Singleton",
-    "Guillermo Rauch",
-    "Amjad Masad",
-    "Howie Liu",
-    "Uri Levine",
-    "Rahul Vohra",
-    "Teresa Torres",
-    "Melissa Perri",
-    "Bob Moesta",
-    "Madhavan Ramanujam"
-  ],
-
-  // Stage 7
-  [
+    "Geoffrey Moore",
+    "Annie Duke",
     "Roger Martin",
     "Richard Rumelt",
-    "Jake Knapp + John Zeratsky",
-    "Janna Bastow",
     "Nancy Duarte",
-    "John Cutler",
-    "Nikhyl Singhal",
-    "Itamar Gilad",
-    "Ravi Mehta",
+    "Teresa Torres"
+  ],
+
+  // Tier 3
+  [
+    "Shreyas Doshi",
+    "Gibson Biddle",
+    "Ken Norton",
+    "April Dunford",
+    "Casey Winters",
+    "Hamilton Helmer",
+    "Nir Eyal",
+    "Scott Belsky",
+    "Ivan Zhao",
+    "Karri Saarinen"
+  ],
+
+  // Tier 4
+  [
+    "Bret Taylor",
+    "Mike Krieger",
+    "Drew Houston",
+    "Guillermo Rauch",
+    "Howie Liu",
+    "Uri Levine",
+    "Matt Mullenweg",
+    "Kevin Weil",
+    "Gustav Söderström",
+    "Jason Fried"
+  ],
+
+  // Tier 5
+  [
+    "Camille Fournier",
+    "Bill Carr",
+    "Bob Moesta",
+    "Claire Hughes Johnson",
+    "Will Larson",
+    "Molly Graham",
+    "Katie Dill",
+    "Todd Jackson",
+    "Jerry Colonna",
     "Deb Liu"
   ],
 
-  // Stage 8
+  // Tier 6
   [
-    "Josh Miller",
-    "Sarah Tavel",
-    "Mike Maples Jr",
-    "Dalton Caldwell",
-    "Jason M Lemkin",
-    "Kunal Shah",
-    "Gustaf Alstromer",
-    "Andy Johns",
-    "Bangaly Kaba",
-    "Shaun Clowes"
-  ],
-
-  // Stage 9
-  [
-    "Andrew Wilkinson",
+    "Andy Raskin",
+    "Dan Shipper",
+    "Lulu Cheng Meservey",
     "Wes Kao",
     "Kristen Berman",
-    "Gia Laudi",
-    "Emily Kramer",
-    "Chip Conley",
-    "Oji Udezue",
-    "Claire Hughes Johnson",
-    "Molly Graham",
-    "Camille Fournier"
+    "Julian Shapiro",
+    "Patrick Campbell",
+    "Jason Lemkin",
+    "Pete Kazanjy",
+    "Ryan Hoover"
   ],
 
-  // Stage 10
+  // Tier 7
   [
-    "Will Larson",
-    "Matt Mochary",
-    "Carole Robin",
-    "Jerry Colonna",
-    "Katie Dill",
-    "Brandon Chu",
-    "Noah Weiss",
-    "Kayvon Beykpour",
-    "Todd Jackson",
-    "Crystal W"
-  ],
-
-  // Stage 11
-  [
-    "Fareed Mosavat",
-    "Gina Gotthilf",
-    "Garrett Lord",
-    "Petra Wille",
-    "Jackie Bavaro",
-    "Arielle Jackson",
-    "Adam Fishman",
-    "Ami Vora",
-    "Bob Baxley",
-    "Matthew Dicks"
-  ],
-
-  // Stage 12
-  [
-    "Naomi Ionita",
-    "Gustav Söderström",
-    "Eoghan McCabe",
+    "Amjad Masad",
     "Logan Kilpatrick",
+    "Nick Turley",
+    "Varun Mohan",
+    "Anton Osika",
     "Scott Wu",
     "Michael Truell",
-    "Sander Schulhoff",
-    "Dan Shipper",
-    "Varun Mohan",
-    "Anton Osika"
+    "Rahul Vohra",
+    "David Singleton",
+    "Aparna Chennapragada"
   ],
 
-  // Stage 13
+  // Tier 8
+  [
+    "Bob Baxley",
+    "John Cutler",
+    "Itamar Gilad",
+    "Janna Bastow",
+    "Nicole Forsgren",
+    "Heidi Helfand",
+    "Petra Wille",
+    "Matt LeMay",
+    "Donna Lichaw",
+    "Christina Wodtke"
+  ],
+
+  // Tier 9
+  [
+    "Andrew Wilkinson",
+    "Dalton Caldwell",
+    "Mike Maples, Jr.",
+    "Sarah Tavel",
+    "Kunal Shah",
+    "Chip Conley",
+    "Sam Lessin",
+    "Graham Weaver",
+    "Dharmesh Shah",
+    "Farhan Thawar"
+  ],
+
+  // Tier 10
+  [
+    "Andy Johns",
+    "Josh Miller",
+    "Bangaly Kaba",
+    "Oji Udezue",
+    "Emilie Gerber",
+    "Hilary Gridley",
+    "Ethan Evans",
+    "Gina Gotthilf",
+    "Jason Feifer",
+    "Ryan Singer"
+  ],
+
+  // Tier 11
+  [
+    "Ada Chen Rekhi",
+    "Peter Deng",
+    "Camille Ricketts",
+    "Marily Nika",
+    "Nilan Peiris",
+    "Ravi Mehta",
+    "Matt Mochary",
+    "Matt Dixon",
+    "Matthew Dicks",
+    "Mihika Kapoor"
+  ],
+
+  // Tier 12
+  [
+    "Dr. Fei-Fei Li",
+    "Ronny Kohavi",
+    "Gokul Rajaram",
+    "Naomi Gleit",
+    "Tamar Yehoshua",
+    "Kayvon Beykpour",
+    "Nickey Skarstad",
+    "Noah Weiss",
+    "Tom Conrad",
+    "Kevin Aluwi"
+  ],
+
+  // Tier 13
+  [
+    "Alisa Cohn",
+    "Ami Vora",
+    "Chip Huyen",
+    "Chris Hutchins",
+    "Jessica Livingston",
+    "Jiaona Zhang",
+    "Joe Hudson",
+    "Matt Abrahams",
+    "Paul Adams",
+    "Paul Millerd"
+  ],
+
+  // Tier 14
   [
     "Alex Komoroske",
-    "Lulu Cheng Meservey",
-    "Andy Raskin",
-    "Matt Abrahams",
-    "Christopher Lochhead",
+    "Daniel Lereya",
+    "Eoghan McCabe",
+    "Eric Simons",
+    "Gaurav Misra",
+    "Ian McAllister",
+    "Judd Antin",
+    "Robby Stein",
+    "Ryan J. Salva",
+    "Tomer Cohen"
+  ],
+
+  // Tier 15
+  [
+    "Adam Fishman",
+    "Adam Grenier",
+    "Adriel Frederick",
+    "Albert Cheng",
+    "Alex Hardiman",
+    "Alexander Embiricos",
+    "Anneka Gupta",
+    "Annie Pearl",
+    "Anuj Rathi",
+    "Archie Abrams"
+  ],
+
+  // Tier 16
+  [
+    "Arielle Jackson",
+    "Asha Sharma",
+    "Austin Hay",
+    "Ayo Omojola",
+    "Barbra Gago",
+    "Ben Williams",
+    "Benjamin Lauzier",
+    "Benjamin Mann",
+    "Boz",
+    "Brandon Chu"
+  ],
+
+  // Tier 17
+  [
+    "Brendan Foody",
+    "Brian Tolkin",
+    "Cameron Adams",
+    "Camille Hearst",
+    "Carilu Dietrich",
+    "Carole Robin",
+    "Chandra Janakiraman",
+    "Christian Idiodi",
+    "Christine Itwaru",
+    "Christopher Lochhead"
+  ],
+
+  // Tier 18
+  [
+    "Christopher Miller",
+    "Claire Butler",
+    "Claire Vo",
+    "Crystal W",
+    "Dan Hockenmaier",
     "David Placek",
-    "Tristan de Montebello",
-    "Jessica Hische",
-    "Donna Lichaw",
-    "Paul Adams"
+    "Dhanji R. Prasanna",
+    "Dmitry Zlokazov",
+    "Ebi Atawodi",
+    "Edwin Chen"
   ],
 
-  // Stage 14
+  // Tier 19
   [
-    "Tomer Cohen",
-    "Sam Lessin",
-    "Alisa Cohn",
-    "Graham Weaver",
-    "Jeffrey Pfeffer",
-    "Pete Kazanjy",
-    "Sahil Mansuri",
-    "Matt Dixon",
-    "Jason Shah",
-    "Inbal S"
-  ],
-
-  // Stage 15
-  [
-    "Ramesh Johari",
+    "Eeke de Milliano",
     "Eli Schwartz",
-    "Ryan Hoover",
-    "Chris Hutchins",
+    "Elizabeth Stone",
+    "Emily Kramer",
+    "Ethan Smith",
+    "Evan LaPointe",
+    "Fareed Mosavat",
+    "Garrett Lord",
+    "Geoff Charles",
+    "Georgiana Laudi"
+  ],
+
+  // Tier 20
+  [
+    "Gergely",
+    "Grant Lee",
+    "Gustaf Alstromer",
+    "Hamel Husain & Shreya Shankar",
+    "Sean Ellis",
+    "Hari Srinivasan",
     "Hila Qu",
+    "Inbal S",
+    "Jackson Shuttleworth",
+    "Jag Duggal",
+    "Jason Droege"
+  ],
+
+  // Tier 21
+  [
+    "Jason Shah",
+    "Jeanne DeWitt Grosser",
+    "Jeff Weinstein",
+    "Jeffrey Pfeffer",
+    "Jen Abel",
+    "Jeremy Henrickson",
+    "Jessica Hische",
+    "Jessica Lachs",
+    "John Mark Nickels",
+    "Jonathan Becker"
+  ],
+
+  // Tier 22
+  [
+    "Jonathan Lowenhar",
+    "Jonny Miller",
     "Jules Walter",
     "Julia Schottenstein",
-    "Kevin Aluwi",
-    "Kevin Yien",
-    "Manik Gupta"
-  ],
-
-  // Stage 16
-  [
-    "Mayur Kamat",
-    "Ray Cao",
-    "Tamar Yehoshua",
-    "Keith Coleman & Jay Baxter",
-    "Sriram and Aarthi",
-    "Upasna Gautam",
-    "Varun Parmar",
-    "Matt LeMay",
-    "Dmitry Zlokazov",
-    "Ebi Atawodi"
-  ],
-
-  // Stage 17
-  [
-    "Edwin Chen",
-    "Eeke de Milliano",
-    "Emilie Gerber",
-    "Evan LaPointe",
-    "Gaurav Misra",
-    "Geoff Charles",
-    "Grant Lee",
-    "Heidi Helfand",
-    "Hilary Gridley",
-    "Jackson Shuttleworth"
-  ],
-
-  // Stage 18
-  [
-    "Jag Duggal",
-    "Jason Droege",
-    "Jeanne Grosser",
-    "Jeremy Henrickson",
-    "Jess Lachs",
-    "Jiaona Zhang",
-    "John Mark Nickels",
-    "Jonathan Becker",
-    "Jonathan Lowenhar",
-    "Karina Nguyen"
-  ],
-
-  // Stage 19
-  [
+    "Karina Nguyen",
+    "Keith Coleman",
     "Keith Yandell",
     "Kenneth Berger",
-    "Krithika Shankarraman",
+    "Kevin Yien",
+    "Krithika Shankarraman"
+  ],
+
+  // Tier 23
+  [
+    "Lane Shackleton",
     "Laura Modi",
     "Laura Schaffer",
     "Lauren Ipsen",
     "Lauryn Isford",
-    "Marily Nika",
-    "Matt MacInnis",
-    "Maya Prohovnik"
+    "Luc Levesque",
+    "Maggie Crowley",
+    "Manik Gupta",
+    "Maya Prohovnik",
+    "Mayur Kamat"
   ],
 
-  // Stage 20
+  // Tier 24
   [
     "Megan Cook",
-    "Melissa Perri + Denise Tilles",
     "Melissa Tan",
     "Meltem Kuran",
     "Merci Grace",
-    "Mihika Kapoor",
+    "Nabeel S. Qureshi",
     "Nan Yu",
-    "Nick Turley",
-    "Nickey Skarstad",
-    "Nilan Peiris"
+    "Naomi Ionita",
+    "Nikhyl Singhal",
+    "Nikita Miller",
+    "Noam Lovinsky"
   ],
 
-  // Stage 21
+  // Tier 25
   [
-    "Noam Lovinsky",
     "Paige Costello",
     "Phyl Terry",
     "Raaz Herzberg",
     "Rachel Lockett",
-    "Robby Stein",
-    "Ryan J. Salva",
+    "Ramesh Johari",
+    "Ray Cao",
     "Sachin Monga",
-    "Sanchan Saxena",
-    "Shweta Shriva"
+    "Sahil Mansuri",
+    "Sam Schillace",
+    "Sanchan Saxena"
   ],
 
-  // Stage 22
+  // Tier 26
   [
+    "Sander Schulhoff",
+    "Shaun Clowes",
+    "Shishir Mehrotra",
+    "Shweta Shriva",
     "Sri Batchu",
+    "Sriram and Aarthi",
+    "Tanguy Crusson",
     "Tim Holley",
     "Timothy Davis",
+    "Tristan de Montebello"
+  ],
+
+  // Tier 27
+  [
+    "Upasna Gautam",
+    "Varun Parmar",
     "Vijay",
     "Vikrama Dhiman",
+    "Yuhki Yamashita",
     "Yuriy Timen",
-    "Zoelle Egner",
-    "Tom Conrad",
-    "Kevin Weil",
-    "Tanguy Crusson"
-  ],
-
-  // Stage 23
-  [
-    "Jeff Weinstein",
-    "Sam Schillace",
-    "Lane Shackleton",
-    "Christina Wodtke",
-    "Nikita Miller",
-    "Camille Hearst",
-    "Luc Levesque",
-    "Christopher Miller",
-    "Jason Feifer",
-    "Paul Millerd"
-  ],
-
-  // Stage 24
-  [
-    "Jonny Miller",
-    "Joe Hudson",
-    "Dan Hockenmaier",
-    "Ethan Evans",
-    "Ian McAllister",
-    "Dhanji R. Prasanna",
-    "Farhan Thawar",
-    "Hari Srinivasan",
-    "Maggie Crowley",
-    "Dalton Caldwell"
-  ],
-
-  // Stage 25
-  [
-    "Shreyas Doshi Live",
-    "Tomer Cohen",
-    "Jen Abel",
-    "Alex Hardimen",
-    "Benjamin Lauzier",
-    "Benjamin Mann",
-    "Carilu Dietrich",
-    "Judd Antin",
-    "Melissa",
-    "Dharmesh Shah"
-  ],
-
-  // Stage 26
-  [
-    "Nabeel S. Qureshi",
-    "Anneka Gupta",
-    "Aparna Chennapragada",
-    "Asha Sharma",
-    "Ayo Omojola",
-    "Cam Adams",
-    "Camille Ricketts",
-    "Chandra Janakiraman",
-    "Christian Idiodi",
-    "Christine Itwaru"
-  ],
-
-  // Stage 27
-  [
-    "Claire Butler",
-    "Claire Vo",
-    "Daniel Lereya",
-    "Elizabeth Stone",
-    "Eric Simons",
-    "Ethan Smith",
-    "Failure",
-    "Ada Chen Rekhi",
-    "Adam Grenier",
-    "Adriel Frederick"
-  ],
-
-  // Stage 28
-  [
-    "Aishwarya Naresh Reganti + Kiriti Badam",
-    "Albert Cheng",
-    "Alexander Embiricos",
-    "Annie Pearl",
-    "Anuj Rathi",
-    "Archie Abrams",
-    "Austin Hay",
-    "Barbra Gago",
-    "Ben Williams",
-    "Brendan Foody"
-  ],
-
-  // Stage 29 (Final)
-  [
-    "Brian Tolkin",
     "Zevi Arnovitz",
-    "Lulu Cheng Meservey",
-    "Mihika Kapoor",
-    "Ronny Kohavi"
+    "Zoelle Egner"
+  ],
+
+  // Tier 28
+  [
+    "Jackie Bavaro",
+    "Jake Knapp + John Zeratsky",
+    "Madhavan Ramanujam",
+    "Matt MacInnis",
+    "Melissa Perri",
+    "Nikita Bier"
   ]
 ];
+
+export const STAGE_NAME_ALIASES = {
+  "Cameron Adams": "Cam Adams",
+  "Georgiana Laudi": "Gia Laudi",
+  "Jeanne DeWitt Grosser": "Jeanne Grosser",
+  "Jessica Lachs": "Jess Lachs",
+  "Yuhki Yamashita": "Yuhki Yamashata",
+  "Alex Hardiman": "Alex Hardimen",
+  "Mike Maples, Jr.": "Mike Maples Jr",
+  "Dr. Fei-Fei Li": "Dr. Fei Fei Li",
+  "Jason Lemkin": "Jason M Lemkin",
+  "Keith Coleman": "Keith Coleman & Jay Baxter",
+  "Gustav Söderström": "Gustav Söderström",
+  "Shreya Shankar": "Hamel Husain & Shreya Shankar",
+  "John Zeratsky": "Jake Knapp + John Zeratsky"
+};
 
 /**
  * Get opponents for a specific stage (1-indexed)

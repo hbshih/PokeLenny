@@ -79,7 +79,7 @@ export const GUEST_TITLES = {
   // Stage 7
   "Roger Martin": "Strategy Choice",
   "Richard Rumelt": "Good Strategy",
-  "Jake Knapp + John Zeratsky 2.0": "Design Sprint",
+  "Jake Knapp + John Zeratsky": "Design Sprint",
   "Janna Bastow": "Product Roadmaps",
   "Nancy Duarte": "Storytelling",
   "John Cutler": "Product Ops",

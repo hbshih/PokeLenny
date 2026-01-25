@@ -111,7 +111,7 @@ export class Preloader extends Scene
 
         // Process questions and select ALL guests for fixed stage system
         guestDataManager.loadQuestionsData(questionsData);
-        guestDataManager.selectAllGuestsForFixedStages(); // Load all 283 guests
+        guestDataManager.selectAllGuestsForFixedStages(); // Load stage-config guests only
 
         // Load avatar images for selected guests
         const avatarsToLoad = guestDataManager.getAvatarsToLoad();
