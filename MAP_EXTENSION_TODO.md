@@ -182,8 +182,48 @@ Also update **gamification rules** to fully match `SIMPLE_GAMIFICATION.md` (XP s
 
 ---
 
+## Implementation Log (World Scaling / Future Maps Ready)
+
+**Summary:** Added guardrails so the game can unlock stages beyond current worlds without crashing, and prepared transition logic for future maps (even before their assets are added).
+
+**Files touched:**
+- `src/game/scenes/Overworld.js`
+
+**What changed:**
+1) **World bounds + transitions are now clamped**
+   - Added `getMaxWorldLevel()` to compute total available stages based on `WORLD_CONFIGS.length`.
+   - Movement into later worlds now checks `maxAvailableLevel`, so you can unlock stages beyond available maps without error.
+
+2) **Unlock gating respects available worlds**
+   - `updateSegmentView()` and south-transition logic now clamp to the highest **available** level.
+   - If a player tries to move into a world that doesn’t exist yet, they see `New map coming soon`.
+
+3) **Debug keys safe for future worlds**
+   - `J` jump now clamps to the highest available world, no more overshooting into missing maps.
+
+**Why this matters:**
+- You can continue extending stages (XP unlocks) while new maps are still being prepared.
+- When you add new map JSON + tiles, the world will immediately become reachable.
+
+---
+
 ## Files to Update (expected)
 - `src/game/scenes/Overworld.js` — transitions + segment handling
 - `src/game/scenes/Preloader.js` — load larger map (if not already)
 - `src/game/StageConfig.js` — stage ↔ segment mapping (if needed)
 - `src/components/LevelComplete.vue` — “Map Unlocked” copy (if needed)
+
+---
+
+## Refactor Note (Overworld Structure)
+
+**Summary:** Overworld scene was split into focused helpers to make future map/world work easier without changing gameplay.
+
+**New structure:**
+- `src/game/scenes/Overworld.js` — orchestrator (scene lifecycle, movement, NPC logic)
+- `src/game/scenes/overworld/worldConfig.js` — world definitions + `getMaxWorldLevel`
+- `src/game/scenes/overworld/ui.js` — segment HUD, camera bounds, locked message
+- `src/game/scenes/overworld/events.js` — EventBus wiring + cleanup
+- `src/game/scenes/overworld/debug.js` — debug `L`/`J` handlers
+
+**Why this matters:** adding new worlds now usually only requires editing `worldConfig.js` and adding assets, without touching UI/event wiring.
