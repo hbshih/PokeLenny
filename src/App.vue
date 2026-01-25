@@ -563,8 +563,18 @@ onUnmounted(() => {
   <div id="app" :class="{ 'mobile-view': isMobile, 'battle-active': showBattle }">
     <div v-if="isMobile && isPortrait" class="orientation-lock">
       <div class="orientation-card">
-        <div class="orientation-title">Rotate your phone</div>
-        <div class="orientation-subtitle">Play PokéLenny in landscape mode</div>
+        <div class="orientation-title">Best on desktop</div>
+        <div class="orientation-subtitle">
+          PokéLenny is designed for desktop play. For the best experience, continue on a computer.
+        </div>
+        <a
+          class="orientation-link"
+          href="https://www.lennysnewsletter.com/podcast"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Explore Lenny’s Podcast →
+        </a>
       </div>
     </div>
     <button
@@ -1445,6 +1455,23 @@ body {
     font-size: 10px;
     color: #fff;
     opacity: 0.9;
+  }
+
+  .orientation-link {
+    display: inline-flex;
+    margin-top: 14px;
+    font-family: 'Press Start 2P', monospace, sans-serif;
+    font-size: 9px;
+    color: #000;
+    background: #FFD700;
+    padding: 8px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    box-shadow: 0 4px 0 #000;
+  }
+
+  .orientation-link:hover {
+    transform: translateY(-1px);
   }
 
   .mobile-view .stats-bar {
