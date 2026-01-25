@@ -2,47 +2,47 @@
   <div v-if="show" class="tutorial-overlay" @click="handleClose">
     <div class="tutorial-modal" @click.stop>
       <div class="tutorial-header">
-        <h2 class="tutorial-title">Welcome to PokéLenny!</h2>
         <Icon class="tutorial-icon" :icon="gamepad" />
+        <h2 class="tutorial-title">How to play?</h2>
       </div>
 
       <div class="tutorial-content">
         <div class="instruction-item">
           <div class="instruction-number">1</div>
           <div class="instruction-text">
-            <h3>Explore the World</h3>
-            <p>Use Arrow Keys or WASD to move around and find podcast guests!</p>
+            <h3>Use Arrow keys or WASD to move</h3>
+            <p>Walk around the map to find podcast guests.</p>
           </div>
         </div>
 
         <div class="instruction-item">
           <div class="instruction-number">2</div>
           <div class="instruction-text">
-            <h3>Battle & Answer</h3>
-            <p>Walk near guests to start battles. Answer trivia questions correctly to capture them!</p>
+            <h3>Press Space near a guest to battle</h3>
+            <p>Each battle has 3 questions. Answer correctly to capture the guest.</p>
           </div>
         </div>
 
         <div class="instruction-item">
           <div class="instruction-number">3</div>
           <div class="instruction-text">
-            <h3>Level Up & Progress</h3>
-            <p>Correct answers earn XP. Level up to unlock more challenging leaders around the world!</p>
+            <h3>Earn XP to level up</h3>
+            <p>Leveling up unlocks new guests and new maps.</p>
           </div>
         </div>
 
         <div class="instruction-item">
           <div class="instruction-number">4</div>
           <div class="instruction-text">
-            <h3>Build Your Collection</h3>
-            <p>Press C to view your captured guests. Can you catch them all?</p>
+            <h3>Show off your captures</h3>
+            <p>Hit C to view your Collection, and share your results whenever you want.</p>
           </div>
         </div>
       </div>
 
       <button class="start-button" @click="handleClose">
         <Icon class="btn-icon" :icon="bullseye" />
-        Let's Go!
+        Start playing
       </button>
 
       <p class="skip-hint">Click anywhere to skip</p>
