@@ -207,6 +207,14 @@ export class GameState {
         this.save();
     }
 
+    clearNPCPositions() {
+        if (!this.data.overworld) {
+            this.data.overworld = { npcPositions: {} };
+        }
+        this.data.overworld.npcPositions = {};
+        this.save();
+    }
+
     /**
      * Check and unlock achievements
      */

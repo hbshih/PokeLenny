@@ -257,6 +257,12 @@ export const bindOverworldEvents = (scene) => {
     });
 
     scene.events.once('shutdown', () => {
+        // Clean up MusicManager
+        if (scene.musicManager) {
+            scene.musicManager.destroy();
+        }
+
+        // Clean up event handlers
         if (!scene.eventHandlers) return;
         Object.entries(scene.eventHandlers).forEach(([eventName, handler]) => {
             EventBus.off(eventName, handler);

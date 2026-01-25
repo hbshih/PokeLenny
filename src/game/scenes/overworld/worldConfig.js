@@ -6,8 +6,11 @@ export const WORLD_CONFIGS = [
         layers: {
             below: 'Below Player',
             world: 'World',
-            above: 'Above Player'
+            above: 'Above Player',
+            objects: 'Objects'
         },
+        // Spawn NPCs on path/road tiles only (Tuxemon map). Values are Tiled GIDs.
+        spawnableTileIds: [149, 150, 151, 173, 175, 198],
         segmentWidth: 40,
         music: 'overworld' // Main overworld theme
     },
@@ -21,8 +24,9 @@ export const WORLD_CONFIGS = [
             above: null
         },
         segmentWidth: null,
-        music: 'overworld2' // Desert/alternative theme
+        music: 'desert' // Desert theme music
     }
+    // Maps will cycle: Tuxemon -> Desert -> Tuxemon -> Desert...
 ];
 
-export const getMaxWorldLevel = (segmentsPerWorld) => WORLD_CONFIGS.length * segmentsPerWorld;
+export const getMaxWorldLevel = () => Number.POSITIVE_INFINITY;

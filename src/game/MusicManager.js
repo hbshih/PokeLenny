@@ -13,7 +13,7 @@ export class MusicManager {
         this.tracks = {
             menu: { key: 'menu-music', volume: 0.5, loop: true },
             overworld: { key: 'overworld-music', volume: 0.4, loop: true },
-            overworld2: { key: 'overworld-music-2', volume: 0.4, loop: true },
+            desert: { key: 'desert-music', volume: 0.4, loop: true },
             town: { key: 'town-music', volume: 0.4, loop: true },
             battle: { key: 'battle-music', volume: 0.5, loop: true },
             battleIntense: { key: 'battle-music-intense', volume: 0.5, loop: true },
@@ -233,7 +233,14 @@ export class MusicManager {
      * Clean up - call when scene shuts down
      */
     destroy() {
-        this.stop();
+        if (this.currentTrack) {
+            try {
+                this.currentTrack.stop();
+                this.currentTrack.destroy();
+            } catch (e) {
+                console.warn('Failed to destroy music track:', e);
+            }
+        }
         this.currentTrack = null;
         this.currentKey = null;
         this.scene = null;

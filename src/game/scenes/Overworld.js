@@ -52,25 +52,18 @@ export class Overworld extends Scene
         }
 
         // Handle map transitions
-        if (typeof data.worldIndex === 'number') {
-            this.currentWorld = data.worldIndex;
-        }
-        if (typeof data.segmentIndex === 'number') {
-            this.currentSegment = data.segmentIndex;
-        }
         if (typeof data.level === 'number') {
             this.currentLevel = data.level;
         }
         if (typeof data.unlockedLevel === 'number') {
             this.unlockedLevel = data.unlockedLevel;
         }
-        if (data.map) {
-            this.currentMap = data.map;
-        } else {
-            this.currentMap = WORLD_CONFIGS[this.currentWorld]?.key || 'large-map';
-        }
 
-        this.currentWorld = Math.max(0, Math.min(this.currentWorld, WORLD_CONFIGS.length - 1));
+        const derived = this.getWorldSegmentForLevel(this.currentLevel);
+        this.currentWorld = derived.worldIndex;
+        this.currentSegment = derived.segmentIndex;
+        this.currentMap = WORLD_CONFIGS[this.currentWorld]?.key || 'large-map';
+
         if (!this.isWorldAvailable(this.currentWorld)) {
             console.warn('World assets missing, falling back to large-map');
             this.currentWorld = 0;
@@ -112,6 +105,11 @@ export class Overworld extends Scene
         if (!this.unlockedLevel) this.unlockedLevel = 1;
         if (!this.currentSegment) this.currentSegment = 0;
 
+        const derived = this.getWorldSegmentForLevel(this.currentLevel);
+        this.currentWorld = derived.worldIndex;
+        this.currentSegment = derived.segmentIndex;
+        this.currentMap = WORLD_CONFIGS[this.currentWorld]?.key || 'large-map';
+
         // Clean up any DOM elements from previous scenes
         const existingInput = document.getElementById('player-name-input');
         if (existingInput) {
@@ -129,6 +127,7 @@ export class Overworld extends Scene
         }
         const map = this.make.tilemap({ key: this.currentMap });
         const worldConfig = WORLD_CONFIGS[this.currentWorld] || WORLD_CONFIGS[0];
+        this.worldConfig = worldConfig;
 
         if (!this.textures.exists(worldConfig.tilesKey)) {
             console.warn(`Tileset "${worldConfig.tilesKey}" missing. Falling back to large-map.`);
@@ -181,6 +180,7 @@ export class Overworld extends Scene
         const belowLayer = belowLayerName ? map.createLayer(belowLayerName, tileset) : null;
         const worldLayer = worldLayerName ? map.createLayer(worldLayerName, tileset) : null;
         const aboveLayer = aboveLayerName ? map.createLayer(aboveLayerName, tileset) : null;
+        const objectLayer = map.getObjectLayer?.(worldConfig.layers.objects || 'Objects') || null;
 
         if (!worldLayer) {
             console.warn(`World layer not found for map "${this.currentMap}". Falling back to large-map.`);
@@ -207,6 +207,9 @@ export class Overworld extends Scene
         this.map = map;
         this.worldLayer = worldLayer;
         this.belowLayer = belowLayer;
+        this.aboveLayer = aboveLayer;
+        this.objectLayer = objectLayer;
+        this.tilesetFirstGid = tileset?.firstgid ?? this.map.tilesets?.[0]?.firstgid ?? 1;
         this.segmentHeight = Math.max(1, Math.floor(this.map.height / this.segmentsPerWorld));
         this.segmentWidth = worldConfig.segmentWidth || this.map.width;
         this.totalSegments = this.segmentsPerWorld;
@@ -393,12 +396,15 @@ export class Overworld extends Scene
         const mapWidth = this.segmentWidth;
         const segmentStartY = this.currentSegment * this.segmentHeight;
         const segmentEndY = segmentStartY + this.segmentHeight - 1;
-        const minSpacing = 1; // Allow tighter placement to avoid missing NPCs
+        const minSpacing = 3; // Prefer some breathing room between NPCs
         const maxAttempts = 2000; // Increase attempts to improve placement success
 
         let npcCount = 0;
         let attempts = 0;
         const placedIds = new Set();
+
+        const candidateTiles = this.getReachableSpawnTiles(segmentStartY, segmentEndY, mapWidth);
+        const candidateKey = new Set(candidateTiles.map(pos => `${pos.x},${pos.y}`));
 
         // Helper function to check if position is valid
         const isValidPosition = (x, y, existingPositions) => {
@@ -407,9 +413,12 @@ export class Overworld extends Scene
                 return false;
             }
 
-            // Check if tile is walkable
-            const tile = this.worldLayer.getTileAt(x, y);
-            if (!tile || tile.collides) {
+            if (!candidateKey.has(`${x},${y}`)) {
+                return false;
+            }
+
+            // Check if tile is spawnable (walkable + allowed surface)
+            if (!this.isSpawnableTile(x, y)) {
                 return false;
             }
 
@@ -483,13 +492,81 @@ export class Overworld extends Scene
             if (npcCount >= guestsToSpawn.length) return;
             const cachedX = Math.max(1, Math.min(mapWidth - 2, cached.x));
             const cachedY = Math.max(segmentStartY + 1, Math.min(segmentEndY - 1, cached.y));
+            if (!isValidPosition(cachedX, cachedY, npcPositions)) {
+                return;
+            }
             createNpcSprite(guest, cachedX, cachedY);
         });
 
         const remainingGuests = guestsToSpawn.filter(guest => !placedIds.has(guest.id));
         let remainingIndex = 0;
 
-        // Place NPCs
+        const quadrantCounts = new Map();
+        const segmentHeight = segmentEndY - segmentStartY + 1;
+        const getQuadrantKey = (x, y) => {
+            const qx = Math.min(2, Math.floor((x / mapWidth) * 3));
+            const qy = Math.min(2, Math.floor(((y - segmentStartY) / segmentHeight) * 3));
+            return `${qx},${qy}`;
+        };
+        npcPositions.forEach(pos => {
+            const key = getQuadrantKey(pos.x, pos.y);
+            quadrantCounts.set(key, (quadrantCounts.get(key) || 0) + 1);
+        });
+
+        const candidatesGuard = Math.max(200, guestsToSpawn.length * 50);
+
+        const pickBestCandidate = (spacing, minPlayerDistance) => {
+            if (candidateTiles.length === 0) return null;
+            const sampleSize = Math.min(200, candidateTiles.length);
+            let best = null;
+            let bestScore = -Infinity;
+            for (let i = 0; i < sampleSize; i++) {
+                const pos = candidateTiles[Math.floor(Math.random() * candidateTiles.length)];
+                if (!isValidPosition(pos.x, pos.y, npcPositions)) continue;
+                let minDist = Infinity;
+                for (const existing of npcPositions) {
+                    const distance = Math.abs(existing.x - pos.x) + Math.abs(existing.y - pos.y);
+                    if (distance < minDist) minDist = distance;
+                }
+                if (minDist < spacing) continue;
+                const playerDist = Math.abs(this.player.tileX - pos.x) + Math.abs(this.player.tileY - pos.y);
+                if (minPlayerDistance && playerDist < minPlayerDistance) continue;
+                const quadrantKey = getQuadrantKey(pos.x, pos.y);
+                const quadrantPenalty = quadrantCounts.get(quadrantKey) || 0;
+                const score = minDist * 2 + playerDist * 0.6 - quadrantPenalty * 4;
+                if (score > bestScore) {
+                    bestScore = score;
+                    best = pos;
+                }
+            }
+            return best;
+        };
+
+        const placeFromCandidates = (spacing, minPlayerDistance) => {
+            let guard = 0;
+            while (npcCount < guestsToSpawn.length && remainingIndex < remainingGuests.length && guard < candidatesGuard) {
+                guard++;
+                const pos = pickBestCandidate(spacing, minPlayerDistance);
+                if (!pos) break;
+                const guest = remainingGuests[remainingIndex];
+                createNpcSprite(guest, pos.x, pos.y);
+                const key = getQuadrantKey(pos.x, pos.y);
+                quadrantCounts.set(key, (quadrantCounts.get(key) || 0) + 1);
+                remainingIndex++;
+            }
+        };
+
+        if (candidateTiles.length > 0) {
+            placeFromCandidates(6, 6);
+            if (npcCount < guestsToSpawn.length) {
+                placeFromCandidates(4, 4);
+            }
+            if (npcCount < guestsToSpawn.length) {
+                placeFromCandidates(3, 2);
+            }
+        }
+
+        // Place remaining NPCs with random attempts as a fallback
         while (npcCount < guestsToSpawn.length && remainingIndex < remainingGuests.length && attempts < maxAttempts * guestsToSpawn.length) {
             attempts++;
 
@@ -501,8 +578,11 @@ export class Overworld extends Scene
                 const offsetY = Math.floor(Math.random() * 10) - 5;
                 x = Math.max(2, Math.min(mapWidth - 2, this.player.tileX + offsetX));
                 y = Math.max(segmentStartY + 2, Math.min(segmentEndY - 2, this.player.tileY + offsetY));
+            } else if (candidateTiles.length > 0) {
+                const pos = candidateTiles[Math.floor(Math.random() * candidateTiles.length)];
+                x = pos.x;
+                y = pos.y;
             } else {
-                // Random position for other guests
                 x = Math.floor(Math.random() * (mapWidth - 6)) + 3;
                 y = Math.floor(Math.random() * (segmentEndY - segmentStartY - 4)) + segmentStartY + 3;
             }
@@ -523,8 +603,7 @@ export class Overworld extends Scene
             if (x < 1 || x >= mapWidth - 1 || y < segmentStartY + 1 || y > segmentEndY - 1) {
                 return false;
             }
-            const tile = this.worldLayer.getTileAt(x, y);
-            if (!tile || tile.collides) {
+            if (!this.isSpawnableTile(x, y)) {
                 return false;
             }
             for (const pos of existingPositions) {
@@ -538,8 +617,16 @@ export class Overworld extends Scene
 
         while (npcCount < guestsToSpawn.length && remainingIndex < remainingGuests.length && fallbackAttempts < fallbackMax) {
             fallbackAttempts++;
-            const x = Math.floor(Math.random() * (mapWidth - 2)) + 1;
-            const y = Math.floor(Math.random() * (segmentEndY - segmentStartY - 2)) + segmentStartY + 1;
+            let x;
+            let y;
+            if (candidateTiles.length > 0) {
+                const pos = candidateTiles[Math.floor(Math.random() * candidateTiles.length)];
+                x = pos.x;
+                y = pos.y;
+            } else {
+                x = Math.floor(Math.random() * (mapWidth - 2)) + 1;
+                y = Math.floor(Math.random() * (segmentEndY - segmentStartY - 2)) + segmentStartY + 1;
+            }
             if (!isFallbackPosition(x, y, npcPositions)) continue;
 
             const guest = remainingGuests[remainingIndex];
@@ -729,42 +816,43 @@ export class Overworld extends Scene
         }
 
         if (newY < segmentStartY) {
-            if (this.currentSegment > 0) {
-                console.log(`[transition] north to prev segment`, {
-                    fromWorld: this.currentWorld,
-                    fromSegment: this.currentSegment,
-                    fromLevel: this.currentLevel,
-                    toSegment: this.currentSegment - 1,
-                    toLevel: this.currentWorld * this.segmentsPerWorld + this.currentSegment,
-                    at: { x: newX, y: newY }
-                });
-                this.transitionToSegment({
-                    nextSegment: this.currentSegment - 1,
-                    nextLevel: this.currentWorld * this.segmentsPerWorld + this.currentSegment,
-                    nextX: newX,
-                    nextY: segmentStartY - 2
-                });
-            } else if (this.currentWorld > 0) {
-                const prevWorld = this.currentWorld - 1;
-                const prevSegment = this.segmentsPerWorld - 1;
-                const prevLevel = prevWorld * this.segmentsPerWorld + prevSegment + 1;
-                console.log(`[transition] north to prev world`, {
-                    fromWorld: this.currentWorld,
-                    fromSegment: this.currentSegment,
-                    fromLevel: this.currentLevel,
-                    toWorld: prevWorld,
-                    toSegment: prevSegment,
-                    toLevel: prevLevel,
-                    at: { x: newX, y: newY }
-                });
-                this.transitionToWorld({
-                    worldIndex: prevWorld,
-                    segmentIndex: prevSegment,
-                    level: prevLevel,
-                    spawnX: newX,
-                    spawnY: -1,
-                    spawnEdge: 'south'
-                });
+            const prevLevel = this.currentLevel - 1;
+            if (prevLevel >= 1) {
+                const target = this.getWorldSegmentForLevel(prevLevel);
+                if (target.worldIndex === this.currentWorld && target.segmentIndex === this.currentSegment - 1) {
+                    console.log(`[transition] north to prev segment`, {
+                        fromWorld: this.currentWorld,
+                        fromSegment: this.currentSegment,
+                        fromLevel: this.currentLevel,
+                        toSegment: target.segmentIndex,
+                        toLevel: prevLevel,
+                        at: { x: newX, y: newY }
+                    });
+                    this.transitionToSegment({
+                        nextSegment: target.segmentIndex,
+                        nextLevel: prevLevel,
+                        nextX: newX,
+                        nextY: segmentStartY - 2
+                    });
+                } else {
+                    console.log(`[transition] north to prev world`, {
+                        fromWorld: this.currentWorld,
+                        fromSegment: this.currentSegment,
+                        fromLevel: this.currentLevel,
+                        toWorld: target.worldIndex,
+                        toSegment: target.segmentIndex,
+                        toLevel: prevLevel,
+                        at: { x: newX, y: newY }
+                    });
+                    this.transitionToWorld({
+                        worldIndex: target.worldIndex,
+                        segmentIndex: target.segmentIndex,
+                        level: prevLevel,
+                        spawnX: newX,
+                        spawnY: -1,
+                        spawnEdge: 'south'
+                    });
+                }
             } else {
                 this.showLockedMessage();
             }
@@ -775,46 +863,46 @@ export class Overworld extends Scene
         if (newY >= segmentEndY) {
             const nextLevel = this.currentLevel + 1;
             const maxAvailableLevel = Math.min(this.unlockedLevel, getMaxWorldLevel(this.segmentsPerWorld));
-            const maxSegmentsUnlocked = maxAvailableLevel - (this.currentWorld * this.segmentsPerWorld);
-            if (this.currentSegment + 1 < Math.min(maxSegmentsUnlocked, this.segmentsPerWorld)) {
-                console.log(`[transition] south to next segment`, {
-                    fromWorld: this.currentWorld,
-                    fromSegment: this.currentSegment,
-                    fromLevel: this.currentLevel,
-                    toSegment: this.currentSegment + 1,
-                    toLevel: nextLevel,
-                    at: { x: newX, y: newY }
-                });
-                this.transitionToSegment({
-                    nextSegment: this.currentSegment + 1,
-                    nextLevel,
-                    nextX: newX,
-                    nextY: segmentEndY + 1
-                });
-            } else if (nextLevel <= maxAvailableLevel && this.currentSegment + 1 >= this.segmentsPerWorld && this.currentWorld + 1 < WORLD_CONFIGS.length) {
-                const nextWorld = this.currentWorld + 1;
-                const nextSegment = 0;
-                if (!this.isWorldAvailable(nextWorld)) {
-                    this.showLockedMessage('New map coming soon');
-                    return;
+            if (nextLevel <= maxAvailableLevel) {
+                const target = this.getWorldSegmentForLevel(nextLevel);
+                if (target.worldIndex === this.currentWorld && target.segmentIndex === this.currentSegment + 1) {
+                    console.log(`[transition] south to next segment`, {
+                        fromWorld: this.currentWorld,
+                        fromSegment: this.currentSegment,
+                        fromLevel: this.currentLevel,
+                        toSegment: target.segmentIndex,
+                        toLevel: nextLevel,
+                        at: { x: newX, y: newY }
+                    });
+                    this.transitionToSegment({
+                        nextSegment: target.segmentIndex,
+                        nextLevel,
+                        nextX: newX,
+                        nextY: segmentEndY + 1
+                    });
+                } else {
+                    if (!this.isWorldAvailable(target.worldIndex)) {
+                        this.showLockedMessage('New map coming soon');
+                        return;
+                    }
+                    console.log(`[transition] south to next world`, {
+                        fromWorld: this.currentWorld,
+                        fromSegment: this.currentSegment,
+                        fromLevel: this.currentLevel,
+                        toWorld: target.worldIndex,
+                        toSegment: target.segmentIndex,
+                        toLevel: nextLevel,
+                        at: { x: newX, y: newY }
+                    });
+                    this.transitionToWorld({
+                        worldIndex: target.worldIndex,
+                        segmentIndex: target.segmentIndex,
+                        level: nextLevel,
+                        spawnX: newX,
+                        spawnY: 1,
+                        spawnEdge: 'north'
+                    });
                 }
-                console.log(`[transition] south to next world`, {
-                    fromWorld: this.currentWorld,
-                    fromSegment: this.currentSegment,
-                    fromLevel: this.currentLevel,
-                    toWorld: nextWorld,
-                    toSegment: nextSegment,
-                    toLevel: nextLevel,
-                    at: { x: newX, y: newY }
-                });
-                this.transitionToWorld({
-                    worldIndex: nextWorld,
-                    segmentIndex: nextSegment,
-                    level: nextLevel,
-                    spawnX: newX,
-                    spawnY: 1,
-                    spawnEdge: 'north'
-                });
             } else {
                 this.showLockedMessage();
             }
@@ -990,9 +1078,9 @@ export class Overworld extends Scene
             edge: spawnEdge
         });
 
-        // Fade out current music during transition
-        if (this.musicManager) {
-            this.musicManager.stop(220); // Fade out over 220ms to match camera fade
+        // Stop all music and sounds immediately before transition
+        if (this.sound) {
+            this.sound.stopAll();
         }
 
         this.cameras.main.fadeOut(220, 0, 0, 0);
@@ -1013,7 +1101,8 @@ export class Overworld extends Scene
 
     isWorldAvailable (worldIndex)
     {
-        const config = WORLD_CONFIGS[worldIndex];
+        const normalizedIndex = ((worldIndex % WORLD_CONFIGS.length) + WORLD_CONFIGS.length) % WORLD_CONFIGS.length;
+        const config = WORLD_CONFIGS[normalizedIndex];
         if (!config) return false;
         if (config.key === 'desert-map') {
             const desertReady = this.registry.get('desertAssetsLoaded');
@@ -1029,6 +1118,16 @@ export class Overworld extends Scene
         return getMaxWorldLevel(this.segmentsPerWorld);
     }
 
+    getWorldSegmentForLevel (level)
+    {
+        const safeLevel = Math.max(1, level || 1);
+        const zeroBased = safeLevel - 1;
+        const rawWorld = Math.floor(zeroBased / this.segmentsPerWorld);
+        const worldIndex = ((rawWorld % WORLD_CONFIGS.length) + WORLD_CONFIGS.length) % WORLD_CONFIGS.length;
+        const segmentIndex = zeroBased % this.segmentsPerWorld;
+        return { worldIndex, segmentIndex };
+    }
+
     getLevelKey ()
     {
         return `level-${this.currentLevel}`;
@@ -1041,6 +1140,69 @@ export class Overworld extends Scene
             worldIndex: this.currentWorld,
             segment: this.currentSegment
         });
+    }
+
+    getReachableSpawnTiles (segmentStartY, segmentEndY, mapWidth)
+    {
+        const startX = Math.max(1, Math.min(mapWidth - 2, this.player?.tileX ?? 2));
+        const startY = Math.max(segmentStartY + 1, Math.min(segmentEndY - 1, this.player?.tileY ?? (segmentStartY + 2)));
+        const segmentHeight = segmentEndY - segmentStartY + 1;
+        const visited = new Array(mapWidth * segmentHeight).fill(false);
+        const queue = [];
+        const results = [];
+        const edgeBuffer = 2;
+
+        const enqueue = (x, y) => {
+            const idx = (y - segmentStartY) * mapWidth + x;
+            if (visited[idx]) return;
+            visited[idx] = true;
+            queue.push({ x, y });
+        };
+
+        if (this.isWalkable(startX, startY)) {
+            enqueue(startX, startY);
+        }
+
+        while (queue.length > 0) {
+            const { x, y } = queue.shift();
+
+            if (
+                x >= edgeBuffer &&
+                x <= mapWidth - 1 - edgeBuffer &&
+                y >= segmentStartY + edgeBuffer &&
+                y <= segmentEndY - edgeBuffer &&
+                this.isSpawnableTile(x, y)
+            ) {
+                results.push({ x, y });
+            }
+
+            const neighbors = [
+                { x: x + 1, y },
+                { x: x - 1, y },
+                { x, y: y + 1 },
+                { x, y: y - 1 }
+            ];
+
+            for (const next of neighbors) {
+                if (next.x < 0 || next.x >= mapWidth) continue;
+                if (next.y < segmentStartY || next.y > segmentEndY) continue;
+                if (!this.isWalkable(next.x, next.y)) continue;
+                enqueue(next.x, next.y);
+            }
+        }
+
+        if (results.length > 0) return results;
+
+        // Fallback: scan all spawnable tiles in the segment
+        const all = [];
+        for (let y = segmentStartY + edgeBuffer; y <= segmentEndY - edgeBuffer; y++) {
+            for (let x = edgeBuffer; x <= mapWidth - 1 - edgeBuffer; x++) {
+                if (this.isSpawnableTile(x, y)) {
+                    all.push({ x, y });
+                }
+            }
+        }
+        return all;
     }
 
     handleInteraction ()
@@ -1068,6 +1230,52 @@ export class Overworld extends Scene
 
         const tile = this.worldLayer.getTileAt(x, y);
         return !tile || !tile.collides;
+    }
+
+    isSpawnableTile (x, y)
+    {
+        const surfaceLayer = this.belowLayer || this.worldLayer;
+        if (!surfaceLayer || !this.worldLayer) return false;
+
+        const surfaceTile = surfaceLayer.getTileAt(x, y);
+        if (!surfaceTile) return false;
+
+        const worldTile = this.worldLayer.getTileAt(x, y);
+        if (this.belowLayer && worldTile) {
+            return false;
+        }
+        if (worldTile && worldTile.collides) {
+            return false;
+        }
+
+        if (this.aboveLayer) {
+            const aboveTile = this.aboveLayer.getTileAt(x, y);
+            if (aboveTile) {
+                return false;
+            }
+        }
+
+        if (this.objectLayer?.objects?.length) {
+            const pixelX = x * 32 + 16;
+            const pixelY = y * 32 + 16;
+            const blocked = this.objectLayer.objects.some(obj => {
+                if (obj.visible === false) return false;
+                const objX = obj.x ?? 0;
+                const objY = obj.y ?? 0;
+                const objW = obj.width ?? 0;
+                const objH = obj.height ?? 0;
+                return pixelX >= objX && pixelX <= objX + objW && pixelY >= objY && pixelY <= objY + objH;
+            });
+            if (blocked) return false;
+        }
+
+        const allowedTiles = this.worldConfig?.spawnableTileIds;
+        if (Array.isArray(allowedTiles) && allowedTiles.length > 0) {
+            const tileGid = surfaceTile.index + (this.tilesetFirstGid ?? 1);
+            return allowedTiles.includes(tileGid);
+        }
+
+        return true;
     }
 
     setMobileControlsVisible (visible)

@@ -57,7 +57,7 @@ export class Preloader extends Scene
         // Load audio files
         this.load.audio('menu-music', 'audio/music/menu-theme.ogg');
         this.load.audio('overworld-music', 'audio/music/overworld-theme.ogg');
-        this.load.audio('overworld-music-2', 'audio/music/overworld-theme-2.ogg');
+        this.load.audio('desert-music', 'audio/music/desert-theme.mp3');
         this.load.audio('town-music', 'audio/music/town-theme.ogg');
         this.load.audio('battle-music', 'audio/music/battle-theme.ogg');
         this.load.audio('battle-music-intense', 'audio/music/battle-theme-intense.ogg');
@@ -70,7 +70,8 @@ export class Preloader extends Scene
         // Load questions.json
         this.load.json('questions', 'questions.json');
 
-        // Additional map (world 2) - load locally when available
+        // Additional maps - load locally when available
+        // World 2 (Desert) - alternates with World 1 (Tuxemon)
         this.load.image('desert-tiles', 'tilemaps/tmw_desert_spacing.png');
         this.load.tilemapTiledJSON('desert-map', 'tilemaps/desert.json');
 
@@ -86,6 +87,7 @@ export class Preloader extends Scene
                 && this.cache.tilemap.exists('desert-map')
                 && this.textures.exists('desert-tiles');
             this.registry.set('desertAssetsLoaded', desertReady);
+
             this.loadGuestData();
         });
     }

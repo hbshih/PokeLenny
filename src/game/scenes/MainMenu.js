@@ -603,6 +603,7 @@ export class MainMenu extends Scene
 
         // Save player name to game state
         gameState.setPlayerName(this.playerName);
+        gameState.clearNPCPositions();
 
         // Emit player name to Vue app
         EventBus.emit('player-name-set', this.playerName);

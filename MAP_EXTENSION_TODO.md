@@ -227,3 +227,52 @@ Also update **gamification rules** to fully match `SIMPLE_GAMIFICATION.md` (XP s
 - `src/game/scenes/overworld/debug.js` — debug `L`/`J` handlers
 
 **Why this matters:** adding new worlds now usually only requires editing `worldConfig.js` and adding assets, without touching UI/event wiring.
+
+---
+
+## Implementation Log (Simplified World Cycling)
+
+**Summary:** Simplified world progression to cycle between the two existing maps (Tuxemon and Desert) indefinitely, avoiding the need to create/source new maps for each world.
+
+**Files touched:**
+- `src/game/scenes/Preloader.js`
+- `src/game/scenes/Overworld.js`
+- `src/game/scenes/overworld/worldConfig.js`
+
+**What changed:**
+1) **Removed World 3 (cybernoid)** from `WORLD_CONFIGS`
+   - Kept only two worlds: Tuxemon and Desert
+   - Added comment explaining cycling pattern
+
+2) **Cleaned up asset loading** (`Preloader.js`)
+   - Removed cybernoid asset loading
+   - Removed cybernoid availability tracking
+   - Simplified to just track desert assets
+
+3) **Updated world availability check** (`Overworld.js`)
+   - Removed cybernoid-specific checks
+   - Back to just checking desert availability
+
+4) **Deleted assets**
+   - Removed `cybernoid.json` and `cybernoid.png`
+   - Removed all preview PNG files
+
+**World progression (repeating pattern):**
+- **Stages 1–3** → Tuxemon (grass/town)
+- **Stages 4–6** → Desert
+- **Stages 7–9** → Tuxemon (repeat)
+- **Stages 10–12** → Desert (repeat)
+- **Stages 13–15** → Tuxemon (repeat)
+- ... and so on indefinitely
+
+**Why this approach:**
+- Simpler to maintain (no need to find/create new maps)
+- Players experience variety every 3 stages
+- Existing maps are already well-tested
+- Easy to understand pattern
+
+**Testing with debug keys:**
+- `L` → Increment unlocked level by 1
+- `J` → Jump to highest unlocked segment
+
+**Current status:** Simplified cycling system in place. Game will alternate between Tuxemon and Desert maps indefinitely.
