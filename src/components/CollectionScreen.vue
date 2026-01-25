@@ -74,7 +74,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 
 const props = defineProps({
   isActive: Boolean,
@@ -85,26 +85,65 @@ defineEmits(['close']);
 
 const selectedGuest = ref(null);
 const currentPage = ref(1);
-const itemsPerPage = 18; // 3x6 grid fits nicely on screen
+const windowWidth = ref(window.innerWidth);
+const windowHeight = ref(window.innerHeight);
+
+// Calculate items per page based on viewport
+const itemsPerPage = computed(() => {
+  // Calculate columns based on screen width
+  let cols = 6; // Default for large screens
+  if (windowWidth.value <= 600) {
+    cols = 3;
+  } else if (windowWidth.value <= 800) {
+    cols = 4;
+  } else if (windowWidth.value <= 1200) {
+    cols = 5;
+  }
+  
+  // Calculate rows based on available height
+  // Account for header (~100px), pagination (~60px), padding (~48px)
+  const availableHeight = windowHeight.value - 160;
+  const cardHeight = windowWidth.value <= 600 ? 140 : windowWidth.value <= 800 ? 150 : 160;
+  const gap = windowWidth.value <= 600 ? 8 : windowWidth.value <= 800 ? 10 : 12;
+  const rows = Math.floor((availableHeight + gap) / (cardHeight + gap));
+  
+  return Math.max(cols * Math.max(rows, 3), 12); // Minimum 12 items per page
+});
 
 const capturedCount = computed(() => {
   return props.collection.filter(g => g.captured).length;
 });
 
 const totalPages = computed(() => {
-  return Math.ceil(props.collection.length / itemsPerPage);
+  return Math.ceil(props.collection.length / itemsPerPage.value);
 });
 
 const paginatedGuests = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage;
-  const end = start + itemsPerPage;
+  const start = (currentPage.value - 1) * itemsPerPage.value;
+  const end = start + itemsPerPage.value;
   return props.collection.slice(start, end);
+});
+
+// Handle window resize
+function handleResize() {
+  windowWidth.value = window.innerWidth;
+  windowHeight.value = window.innerHeight;
+}
+
+onMounted(() => {
+  window.addEventListener('resize', handleResize);
+  handleResize();
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize);
 });
 
 // Reset to page 1 when collection screen opens
 watch(() => props.isActive, (newVal) => {
   if (newVal) {
     currentPage.value = 1;
+    handleResize();
   }
 });
 
@@ -253,25 +292,31 @@ function prevPage() {
 .collection-grid {
   flex: 1;
   overflow-y: auto;
-  padding: 24px;
+  padding: 20px;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 14px;
   align-content: start;
+  justify-items: stretch;
+  grid-auto-rows: min-content;
 }
 
 .guest-card {
   background: #FFF;
-  border: 3px solid #000;
-  border-radius: 12px;
-  padding: 16px;
+  border: 2px solid #000;
+  border-radius: 8px;
+  padding: 12px 10px;
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  justify-content: flex-start;
+  gap: 8px;
+  min-height: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .guest-card.captured:hover {
@@ -287,16 +332,18 @@ function prevPage() {
 }
 
 .guest-card-sprite {
-  width: 80px;
-  height: 80px;
+  width: 100%;
+  max-width: 70px;
+  height: 70px;
   background: #F0F0F0;
   border: 2px solid #000;
-  border-radius: 8px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 40px;
+  font-size: 32px;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
 }
 
 .sprite-silhouette {
@@ -306,8 +353,10 @@ function prevPage() {
 }
 
 .collection-avatar {
-  width: 76px;
-  height: 76px;
+  width: 100%;
+  height: 100%;
+  max-width: 66px;
+  max-height: 66px;
   object-fit: contain;
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges;
@@ -317,23 +366,38 @@ function prevPage() {
 .guest-card-info {
   text-align: center;
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 0;
 }
 
 .guest-card-name {
-  font-size: 11px;
+  font-size: 9px;
   font-weight: bold;
-  margin: 0 0 6px 0;
+  margin: 0;
+  padding: 0 2px;
   color: #000;
   word-wrap: break-word;
-  line-height: 1.4;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  text-align: center;
+  width: 100%;
+  min-height: 20px;
 }
 
 .guest-card-number {
-  font-size: 10px;
+  font-size: 8px;
   font-family: 'Press Start 2P', monospace, sans-serif;
   color: #666;
   margin: 0;
-  letter-spacing: 1px;
+  padding: 0 2px;
+  letter-spacing: 0.5px;
+  min-height: 12px;
 }
 
 .guest-detail-overlay {
@@ -469,10 +533,18 @@ function prevPage() {
   color: #F44336;
 }
 
+@media (max-width: 1200px) {
+  .collection-grid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    padding: 18px;
+  }
+}
+
 @media (max-width: 800px) {
   .collection-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
     padding: 16px;
   }
 
@@ -493,13 +565,37 @@ function prevPage() {
     font-size: 10px;
     padding: 8px 12px;
   }
+
+  .guest-card {
+    padding: 10px 8px;
+    gap: 6px;
+  }
+
+  .guest-card-sprite {
+    max-width: 60px;
+    height: 60px;
+    font-size: 28px;
+  }
+
+  .collection-avatar {
+    max-width: 56px;
+    max-height: 56px;
+  }
+
+  .guest-card-name {
+    font-size: 8px;
+  }
+
+  .guest-card-number {
+    font-size: 7px;
+  }
 }
 
 @media (max-width: 600px) {
   .collection-grid {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 12px;
-    padding: 12px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding: 14px;
   }
 
   .collection-header {
@@ -534,31 +630,44 @@ function prevPage() {
     padding: 6px 10px;
   }
 
+  .guest-card {
+    padding: 10px 6px;
+    gap: 6px;
+  }
+
   .guest-card-sprite {
-    font-size: 32px;
+    max-width: 50px;
+    height: 50px;
+    font-size: 24px;
+  }
+
+  .collection-avatar {
+    max-width: 46px;
+    max-height: 46px;
   }
 
   .guest-card-name {
-    font-size: 9px;
+    font-size: 7px;
+    -webkit-line-clamp: 2;
   }
 
   .guest-card-number {
-    font-size: 8px;
+    font-size: 6px;
   }
 }
 
 /* Small height devices - landscape phones */
 @media (max-height: 600px) and (orientation: landscape) {
   .collection-header {
-    padding: 12px 16px;
+    padding: 8px 12px;
   }
 
   .collection-title {
-    font-size: 14px;
+    font-size: 12px;
   }
 
   .collection-progress {
-    font-size: 10px;
+    font-size: 9px;
   }
 
   .close-btn {
@@ -567,48 +676,49 @@ function prevPage() {
   }
 
   .pagination-controls {
-    padding: 8px 16px;
+    padding: 6px 12px;
   }
 
   .page-info {
-    font-size: 9px;
-    min-width: 100px;
+    font-size: 8px;
+    min-width: 90px;
   }
 
   .page-btn {
-    font-size: 8px;
-    padding: 6px 10px;
+    font-size: 7px;
+    padding: 5px 8px;
   }
 
   .collection-grid {
-    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 8px;
     padding: 12px;
   }
 
   .guest-card {
-    padding: 10px;
-    gap: 8px;
+    padding: 8px 6px;
+    gap: 5px;
   }
 
   .guest-card-sprite {
-    width: 60px;
-    height: 60px;
-    font-size: 28px;
+    max-width: 45px;
+    height: 45px;
+    font-size: 20px;
   }
 
   .collection-avatar {
-    width: 56px;
-    height: 56px;
+    max-width: 41px;
+    max-height: 41px;
   }
 
   .guest-card-name {
-    font-size: 8px;
-    line-height: 1.3;
+    font-size: 6px;
+    -webkit-line-clamp: 2;
+    line-height: 1.2;
   }
 
   .guest-card-number {
-    font-size: 7px;
+    font-size: 5px;
   }
 
   .guest-detail {
@@ -646,15 +756,15 @@ function prevPage() {
 /* Extra small height devices */
 @media (max-height: 500px) and (orientation: landscape) {
   .collection-header {
-    padding: 8px 12px;
+    padding: 6px 10px;
   }
 
   .collection-title {
-    font-size: 12px;
+    font-size: 10px;
   }
 
   .collection-progress {
-    font-size: 8px;
+    font-size: 7px;
   }
 
   .close-btn {
@@ -663,48 +773,49 @@ function prevPage() {
   }
 
   .pagination-controls {
-    padding: 6px 12px;
+    padding: 4px 10px;
   }
 
   .page-info {
-    font-size: 8px;
-    min-width: 90px;
+    font-size: 7px;
+    min-width: 80px;
   }
 
   .page-btn {
-    font-size: 7px;
-    padding: 5px 8px;
+    font-size: 6px;
+    padding: 4px 6px;
   }
 
   .collection-grid {
-    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-    gap: 8px;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 6px;
     padding: 10px;
   }
 
   .guest-card {
-    padding: 8px;
-    gap: 6px;
+    padding: 6px 4px;
+    gap: 4px;
   }
 
   .guest-card-sprite {
-    width: 50px;
-    height: 50px;
-    font-size: 24px;
+    max-width: 35px;
+    height: 35px;
+    font-size: 16px;
   }
 
   .collection-avatar {
-    width: 46px;
-    height: 46px;
+    max-width: 31px;
+    max-height: 31px;
   }
 
   .guest-card-name {
-    font-size: 7px;
-    line-height: 1.2;
+    font-size: 5px;
+    -webkit-line-clamp: 2;
+    line-height: 1.1;
   }
 
   .guest-card-number {
-    font-size: 6px;
+    font-size: 4px;
   }
 
   .guest-detail {
