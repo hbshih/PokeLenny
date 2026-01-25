@@ -276,6 +276,7 @@ function showNextLevelUp() {
 
 function handleLevelContinue() {
   showLevelComplete.value = false;
+  EventBus.emit('battle-ended');
 
   if (levelUpInfo.value) {
     currentGameLevel.value = levelUpInfo.value.level;
@@ -311,6 +312,7 @@ function handleHPChanged(newHP) {
     console.log('HP reached 0 - Game Over!');
     showBattle.value = false;
     showGameOver.value = true;
+    EventBus.emit('battle-ended');
   }
 }
 
@@ -320,6 +322,7 @@ function handleGameRestart() {
   showBattle.value = false;
   showEncounter.value = false;
   encounterNPC.value = null;
+  EventBus.emit('battle-ended');
 
   // Reset player stats
   playerStats.value = {

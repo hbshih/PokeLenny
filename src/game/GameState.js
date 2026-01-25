@@ -10,6 +10,9 @@ export class GameState {
         this.data = {
             playerName: 'Player',
             defeatedGuests: [], // Array of guest IDs
+            overworld: {
+                npcPositions: {}
+            },
             battleStats: {
                 totalBattles: 0,
                 wins: 0,
@@ -81,6 +84,9 @@ export class GameState {
         this.data = {
             playerName: 'Player',
             defeatedGuests: [],
+            overworld: {
+                npcPositions: {}
+            },
             battleStats: {
                 totalBattles: 0,
                 wins: 0,
@@ -177,6 +183,28 @@ export class GameState {
      */
     getDefeatedGuests() {
         return [...this.data.defeatedGuests];
+    }
+
+    getNPCPositions(levelKey) {
+        return this.data.overworld?.npcPositions?.[levelKey] || [];
+    }
+
+    setNPCPositions(levelKey, positions) {
+        if (!this.data.overworld) {
+            this.data.overworld = { npcPositions: {} };
+        }
+        if (!this.data.overworld.npcPositions) {
+            this.data.overworld.npcPositions = {};
+        }
+        this.data.overworld.npcPositions[levelKey] = positions;
+        this.save();
+    }
+
+    removeNPCPosition(levelKey, guestId) {
+        if (!this.data.overworld?.npcPositions?.[levelKey]) return;
+        this.data.overworld.npcPositions[levelKey] = this.data.overworld.npcPositions[levelKey]
+            .filter(entry => entry.guestId !== guestId);
+        this.save();
     }
 
     /**

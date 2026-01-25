@@ -35,10 +35,12 @@ export class Overworld extends Scene
         this.segmentHeight = 40;
         this.segmentWidth = 40;
         this.totalSegments = 1;
+        this.isTransitioning = false;
     }
 
     init (data)
     {
+        this.isTransitioning = false;
         // Receive player name from MainMenu
         if (data.playerName) {
             this.playerName = data.playerName;
@@ -330,6 +332,10 @@ export class Overworld extends Scene
         console.log(`Total guests loaded: ${allGuests.length}`);
         console.log('Sample guest names:', allGuests.slice(0, 10).map(g => g.name));
 
+        const levelKey = this.getLevelKey();
+        const cachedPositions = gameState.getNPCPositions(levelKey);
+        const cachedById = new Map(cachedPositions.map(entry => [entry.guestId, entry]));
+
         // Match stage opponents with guest data (skip captured)
         const guestsToSpawn = [];
         for (const opponentName of stageOpponents) {
@@ -343,13 +349,13 @@ export class Overworld extends Scene
 
         if (guestsToSpawn.length === 0) {
             console.error('No matching guests found for this stage!');
+            gameState.setNPCPositions(this.getLevelKey(), []);
             return;
         }
 
         console.log(`Spawning ${guestsToSpawn.length} NPCs for Stage ${stageNumber}:`, stageOpponents);
 
         const mapWidth = this.segmentWidth;
-        const mapHeight = this.map.height;
         const segmentStartY = this.currentSegment * this.segmentHeight;
         const segmentEndY = segmentStartY + this.segmentHeight - 1;
         const minSpacing = 1; // Allow tighter placement to avoid missing NPCs
@@ -357,6 +363,7 @@ export class Overworld extends Scene
 
         let npcCount = 0;
         let attempts = 0;
+        const placedIds = new Set();
 
         // Helper function to check if position is valid
         const isValidPosition = (x, y, existingPositions) => {
@@ -384,8 +391,71 @@ export class Overworld extends Scene
 
         const npcPositions = this.npcs.map(npc => ({ x: npc.tileX, y: npc.tileY }));
 
+        const createNpcSprite = (guest, x, y, isFallback = false) => {
+            const guestId = guest.id;
+            const guestName = guest.name;
+            const avatarKey = guest.avatarKey;
+
+            const npc = {
+                id: guestId,
+                name: guestName,
+                tileX: x,
+                tileY: y,
+                direction: ['down', 'up', 'left', 'right'][Math.floor(Math.random() * 4)],
+                sprite: null,
+                challenged: false,
+                episode: guest.episode || guestName,
+                difficulty: guest.difficulty || 'Medium'
+            };
+
+            let sprite;
+
+            if (this.textures.exists(avatarKey)) {
+                sprite = this.add.sprite(
+                    x * 32 + 16,
+                    y * 32 + 16,
+                    avatarKey
+                );
+                sprite.setDisplaySize(72, 72);
+            } else {
+                console.warn(`Avatar not found for ${guestName}, using fallback`);
+                const colors = [0xFF69B4, 0x87CEEB, 0x98D982, 0xFFD700, 0xFF6B6B, 0x9B59B6];
+                sprite = this.add.rectangle(
+                    x * 32 + 16,
+                    y * 32 + 16,
+                    36, 36,
+                    colors[npcCount % colors.length]
+                );
+                sprite.setStrokeStyle(2, 0x000000);
+            }
+            sprite.setDepth(5);
+
+            npc.sprite = sprite;
+            npc.defeated = false;
+            this.npcs.push(npc);
+            npcPositions.push({ x, y });
+            placedIds.add(guestId);
+            npcCount++;
+
+            const logSuffix = isFallback ? ' (fallback)' : '';
+            console.log(`✓ Placed NPC ${npcCount}/${guestsToSpawn.length}${logSuffix}: ${guestName} at (${x}, ${y})`);
+        };
+
+        // Place cached NPCs first (preserve positions when returning to a level)
+        guestsToSpawn.forEach((guest) => {
+            const cached = cachedById.get(guest.id);
+            if (!cached) return;
+            if (npcCount >= guestsToSpawn.length) return;
+            const cachedX = Math.max(1, Math.min(mapWidth - 2, cached.x));
+            const cachedY = Math.max(segmentStartY + 1, Math.min(segmentEndY - 1, cached.y));
+            createNpcSprite(guest, cachedX, cachedY);
+        });
+
+        const remainingGuests = guestsToSpawn.filter(guest => !placedIds.has(guest.id));
+        let remainingIndex = 0;
+
         // Place NPCs
-        while (npcCount < guestsToSpawn.length && attempts < maxAttempts * guestsToSpawn.length) {
+        while (npcCount < guestsToSpawn.length && remainingIndex < remainingGuests.length && attempts < maxAttempts * guestsToSpawn.length) {
             attempts++;
 
             let x, y;
@@ -403,55 +473,47 @@ export class Overworld extends Scene
             }
 
             if (isValidPosition(x, y, npcPositions)) {
-                const guest = guestsToSpawn[npcCount];
-                const guestId = guest.id;
-                const guestName = guest.name;
-                const avatarKey = guest.avatarKey;
-
-                const npc = {
-                    id: guestId,
-                    name: guestName,
-                    tileX: x,
-                    tileY: y,
-                    direction: ['down', 'up', 'left', 'right'][Math.floor(Math.random() * 4)],
-                    sprite: null,
-                    challenged: false,
-                    episode: guest.episode || guestName,
-                    difficulty: guest.difficulty || 'Medium'
-                };
-
-                // Create NPC sprite using avatar image
-                let sprite;
-
-                if (this.textures.exists(avatarKey)) {
-                    sprite = this.add.sprite(
-                        x * 32 + 16,
-                        y * 32 + 16,
-                        avatarKey
-                    );
-                    sprite.setDisplaySize(72, 72);
-                } else {
-                    console.warn(`Avatar not found for ${guestName}, using fallback`);
-                    const colors = [0xFF69B4, 0x87CEEB, 0x98D982, 0xFFD700, 0xFF6B6B, 0x9B59B6];
-                    sprite = this.add.rectangle(
-                        x * 32 + 16,
-                        y * 32 + 16,
-                        36, 36,
-                        colors[npcCount % colors.length]
-                    );
-                    sprite.setStrokeStyle(2, 0x000000);
-                }
-                sprite.setDepth(5);
-
-                npc.sprite = sprite;
-                npc.defeated = false;
-                this.npcs.push(npc);
-                npcPositions.push({ x, y });
-                npcCount++;
-
-                console.log(`✓ Placed NPC ${npcCount}/${guestsToSpawn.length}: ${guestName} at (${x}, ${y})`);
+                const guest = remainingGuests[remainingIndex];
+                createNpcSprite(guest, x, y);
+                remainingIndex++;
             }
         }
+
+        // Fallback pass: relax spacing & collision to guarantee placement
+        let fallbackAttempts = 0;
+        const fallbackMax = 8000;
+        const fallbackMinSpacing = 0;
+
+        const isFallbackPosition = (x, y, existingPositions) => {
+            if (x < 1 || x >= mapWidth - 1 || y < segmentStartY + 1 || y > segmentEndY - 1) {
+                return false;
+            }
+            const tile = this.worldLayer.getTileAt(x, y);
+            if (!tile || tile.collides) {
+                return false;
+            }
+            for (const pos of existingPositions) {
+                const distance = Math.abs(pos.x - x) + Math.abs(pos.y - y);
+                if (distance < fallbackMinSpacing) {
+                    return false;
+                }
+            }
+            return true;
+        };
+
+        while (npcCount < guestsToSpawn.length && remainingIndex < remainingGuests.length && fallbackAttempts < fallbackMax) {
+            fallbackAttempts++;
+            const x = Math.floor(Math.random() * (mapWidth - 2)) + 1;
+            const y = Math.floor(Math.random() * (segmentEndY - segmentStartY - 2)) + segmentStartY + 1;
+            if (!isFallbackPosition(x, y, npcPositions)) continue;
+
+            const guest = remainingGuests[remainingIndex];
+            createNpcSprite(guest, x, y, true);
+            remainingIndex++;
+        }
+
+        const cacheEntries = this.npcs.map(npc => ({ guestId: npc.id, x: npc.tileX, y: npc.tileY }));
+        gameState.setNPCPositions(levelKey, cacheEntries);
 
         if (npcCount < guestsToSpawn.length) {
             console.warn(`Warning: Only placed ${npcCount}/${guestsToSpawn.length} NPCs after ${attempts} attempts`);
@@ -485,6 +547,7 @@ export class Overworld extends Scene
             // Remove from npcs array
             this.npcs.splice(npcIndex, 1);
             console.log(`✓ Removed NPC ${guestId} from map`);
+            gameState.removeNPCPosition(this.getLevelKey(), guestId);
         }
     }
 
@@ -606,27 +669,36 @@ export class Overworld extends Scene
         }
 
         // Move north to previous segment
+        if (this.currentSegment === 0 && this.currentWorld > 0 && newY <= segmentStartY) {
+            const prevWorld = this.currentWorld - 1;
+            const prevSegment = this.segmentsPerWorld - 1;
+            const prevLevel = prevWorld * this.segmentsPerWorld + prevSegment + 1;
+            this.transitionToWorld({
+                worldIndex: prevWorld,
+                segmentIndex: prevSegment,
+                level: prevLevel,
+                spawnX: newX,
+                spawnY: -1
+            });
+            return;
+        }
+
         if (newY < segmentStartY) {
             if (this.currentSegment > 0) {
-                this.currentSegment -= 1;
-                this.currentLevel = this.currentWorld * this.segmentsPerWorld + this.currentSegment + 1;
-                this.clearAllNPCs();
-                this.spawnNPCsForLevel(10);
-                this.player.tileY = segmentStartY - 2;
-                this.player.tileX = newX;
-                this.snapPlayerToTile();
-                this.updateSegmentLabel();
+                this.transitionToSegment({
+                    nextSegment: this.currentSegment - 1,
+                    nextLevel: this.currentWorld * this.segmentsPerWorld + this.currentSegment,
+                    nextX: newX,
+                    nextY: segmentStartY - 2
+                });
             } else if (this.currentWorld > 0) {
                 const prevWorld = this.currentWorld - 1;
                 const prevSegment = this.segmentsPerWorld - 1;
                 const prevLevel = prevWorld * this.segmentsPerWorld + prevSegment + 1;
-                this.scene.restart({
-                    playerName: this.playerName,
-                    map: WORLD_CONFIGS[prevWorld].key,
+                this.transitionToWorld({
                     worldIndex: prevWorld,
                     segmentIndex: prevSegment,
                     level: prevLevel,
-                    unlockedLevel: this.unlockedLevel,
                     spawnX: newX,
                     spawnY: -1
                 });
@@ -642,14 +714,12 @@ export class Overworld extends Scene
             const maxAvailableLevel = Math.min(this.unlockedLevel, getMaxWorldLevel(this.segmentsPerWorld));
             const maxSegmentsUnlocked = maxAvailableLevel - (this.currentWorld * this.segmentsPerWorld);
             if (this.currentSegment + 1 < Math.min(maxSegmentsUnlocked, this.segmentsPerWorld)) {
-                this.currentSegment += 1;
-                this.currentLevel = nextLevel;
-                this.clearAllNPCs();
-                this.spawnNPCsForLevel(10);
-                this.player.tileY = segmentEndY + 1;
-                this.player.tileX = newX;
-                this.snapPlayerToTile();
-                this.updateSegmentLabel();
+                this.transitionToSegment({
+                    nextSegment: this.currentSegment + 1,
+                    nextLevel,
+                    nextX: newX,
+                    nextY: segmentEndY + 1
+                });
             } else if (nextLevel <= maxAvailableLevel && this.currentSegment + 1 >= this.segmentsPerWorld && this.currentWorld + 1 < WORLD_CONFIGS.length) {
                 const nextWorld = this.currentWorld + 1;
                 const nextSegment = 0;
@@ -657,13 +727,10 @@ export class Overworld extends Scene
                     this.showLockedMessage('New map coming soon');
                     return;
                 }
-                this.scene.restart({
-                    playerName: this.playerName,
-                    map: WORLD_CONFIGS[nextWorld].key,
+                this.transitionToWorld({
                     worldIndex: nextWorld,
                     segmentIndex: nextSegment,
                     level: nextLevel,
-                    unlockedLevel: this.unlockedLevel,
                     spawnX: newX,
                     spawnY: 1
                 });
@@ -790,6 +857,47 @@ export class Overworld extends Scene
         showLockedMessage(this, messageOverride);
     }
 
+    transitionToSegment ({ nextSegment, nextLevel, nextX, nextY })
+    {
+        if (this.isTransitioning) return;
+        this.isTransitioning = true;
+        this.cameras.main.fadeOut(180, 0, 0, 0);
+        this.cameras.main.once('camerafadeoutcomplete', () => {
+            this.currentSegment = nextSegment;
+            this.currentLevel = nextLevel;
+            this.clearAllNPCs();
+            this.spawnNPCsForLevel(10);
+            this.player.tileY = nextY;
+            this.player.tileX = nextX;
+            this.snapPlayerToTile();
+            this.updateSegmentLabel();
+            this.updateSegmentView();
+            this.cameras.main.fadeIn(180, 0, 0, 0);
+            this.cameras.main.once('camerafadeincomplete', () => {
+                this.isTransitioning = false;
+            });
+        });
+    }
+
+    transitionToWorld ({ worldIndex, segmentIndex, level, spawnX, spawnY })
+    {
+        if (this.isTransitioning) return;
+        this.isTransitioning = true;
+        this.cameras.main.fadeOut(220, 0, 0, 0);
+        this.cameras.main.once('camerafadeoutcomplete', () => {
+            this.scene.restart({
+                playerName: this.playerName,
+                map: WORLD_CONFIGS[worldIndex].key,
+                worldIndex,
+                segmentIndex,
+                level,
+                unlockedLevel: this.unlockedLevel,
+                spawnX,
+                spawnY
+            });
+        });
+    }
+
     isWorldAvailable (worldIndex)
     {
         const config = WORLD_CONFIGS[worldIndex];
@@ -806,6 +914,11 @@ export class Overworld extends Scene
     getMaxWorldLevel ()
     {
         return getMaxWorldLevel(this.segmentsPerWorld);
+    }
+
+    getLevelKey ()
+    {
+        return `level-${this.currentLevel}`;
     }
 
     handleInteraction ()
