@@ -34,6 +34,7 @@ export class Preloader extends Scene
     {
         //  Load the assets for the game
         this.load.setPath('assets');
+        this.desertAssetsLoaded = true;
 
         this.load.image('logo', 'logo.png');
 
@@ -63,8 +64,22 @@ export class Preloader extends Scene
         // Load questions.json
         this.load.json('questions', 'questions.json');
 
+        // Additional map (world 2) - load locally when available
+        this.load.image('desert-tiles', 'tilemaps/tmw_desert_spacing.png');
+        this.load.tilemapTiledJSON('desert-map', 'tilemaps/desert.json');
+
+        this.load.on('loaderror', (file) => {
+            if (file?.key === 'desert-map' || file?.key === 'desert-tiles') {
+                this.desertAssetsLoaded = false;
+            }
+        });
+
         // Set up callback for when questions.json loads
         this.load.once('complete', () => {
+            const desertReady = this.desertAssetsLoaded
+                && this.cache.tilemap.exists('desert-map')
+                && this.textures.exists('desert-tiles');
+            this.registry.set('desertAssetsLoaded', desertReady);
             this.loadGuestData();
         });
     }

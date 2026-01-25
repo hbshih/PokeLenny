@@ -2,7 +2,32 @@ import { EventBus } from '../EventBus';
 import { Scene } from 'phaser';
 import gameState from '../GameState';
 import guestDataManager from '../GuestData';
-import { getStageOpponents } from '../StageConfig';
+import { getStageOpponents, getTotalStages } from '../StageConfig';
+
+const WORLD_CONFIGS = [
+    {
+        key: 'large-map',
+        tilesetName: 'tuxmon-sample-32px-extruded',
+        tilesKey: 'tiles',
+        layers: {
+            below: 'Below Player',
+            world: 'World',
+            above: 'Above Player'
+        },
+        segmentWidth: 40
+    },
+    {
+        key: 'desert-map',
+        tilesetName: 'Desert',
+        tilesKey: 'desert-tiles',
+        layers: {
+            below: 'Ground',
+            world: 'Ground',
+            above: null
+        },
+        segmentWidth: null
+    }
+];
 
 export class Overworld extends Scene
 {
@@ -16,7 +41,9 @@ export class Overworld extends Scene
         this.nearestNPC = null;
         this.playerName = 'Player';
         this.playerNameText = null;
-        this.currentMap = 'large-map';
+        this.segmentsPerWorld = 3;
+        this.currentWorld = 0;
+        this.currentMap = WORLD_CONFIGS[this.currentWorld].key;
         this.mapTransitions = []; // Store transition zones
         this.battleActive = false; // Track if battle is active to disable input
         this.music = null;
@@ -39,10 +66,30 @@ export class Overworld extends Scene
         }
 
         // Handle map transitions
+        if (typeof data.worldIndex === 'number') {
+            this.currentWorld = data.worldIndex;
+        }
+        if (typeof data.segmentIndex === 'number') {
+            this.currentSegment = data.segmentIndex;
+        }
+        if (typeof data.level === 'number') {
+            this.currentLevel = data.level;
+        }
+        if (typeof data.unlockedLevel === 'number') {
+            this.unlockedLevel = data.unlockedLevel;
+        }
         if (data.map) {
             this.currentMap = data.map;
         } else {
-            this.currentMap = 'large-map';
+            this.currentMap = WORLD_CONFIGS[this.currentWorld]?.key || 'large-map';
+        }
+
+        if (!this.isWorldAvailable(this.currentWorld)) {
+            console.warn('World assets missing, falling back to large-map');
+            this.currentWorld = 0;
+            this.currentMap = WORLD_CONFIGS[0].key;
+            this.currentSegment = 0;
+            this.currentLevel = Math.max(1, this.currentLevel || 1);
         }
 
         // Set spawn position if transitioning
@@ -62,9 +109,9 @@ export class Overworld extends Scene
         this.nearestNPC = null;
         this.battleNPC = null;
         this.spawnedGuestIndices = [];
-        this.currentLevel = 1;
-        this.unlockedLevel = 1;
-        this.currentSegment = 0;
+        if (!this.currentLevel) this.currentLevel = 1;
+        if (!this.unlockedLevel) this.unlockedLevel = 1;
+        if (!this.currentSegment) this.currentSegment = 0;
 
         // Clean up any DOM elements from previous scenes
         const existingInput = document.getElementById('player-name-input');
@@ -73,18 +120,89 @@ export class Overworld extends Scene
         }
 
         // Load map (default or specified map)
+        const mapData = this.cache.tilemap.get(this.currentMap);
+        if (!mapData || !this.cache.tilemap.exists(this.currentMap)) {
+            console.warn(`Map key "${this.currentMap}" not found. Falling back to large-map.`);
+            this.currentWorld = 0;
+            this.currentMap = WORLD_CONFIGS[0].key;
+            this.currentSegment = 0;
+            this.currentLevel = 1;
+        }
         const map = this.make.tilemap({ key: this.currentMap });
+        const worldConfig = WORLD_CONFIGS[this.currentWorld] || WORLD_CONFIGS[0];
 
-        // The tileset name in the JSON is "tuxmon-sample-32px-extruded", and we loaded it as "tiles"
-        const tileset = map.addTilesetImage('tuxmon-sample-32px-extruded', 'tiles');
+        if (!this.textures.exists(worldConfig.tilesKey)) {
+            console.warn(`Tileset "${worldConfig.tilesKey}" missing. Falling back to large-map.`);
+            this.currentWorld = 0;
+            this.currentMap = WORLD_CONFIGS[0].key;
+            this.currentSegment = 0;
+            this.currentLevel = 1;
+            return this.scene.restart({
+                playerName: this.playerName,
+                map: this.currentMap,
+                worldIndex: this.currentWorld,
+                segmentIndex: this.currentSegment,
+                level: this.currentLevel,
+                unlockedLevel: this.unlockedLevel,
+                spawnX: this.spawnX,
+                spawnY: this.spawnY
+            });
+        }
+        const tileset = map.addTilesetImage(worldConfig.tilesetName, worldConfig.tilesKey);
+        if (!tileset) {
+            console.warn(`Tileset "${worldConfig.tilesetName}" not found in map "${this.currentMap}". Falling back to large-map.`);
+            this.currentWorld = 0;
+            this.currentMap = WORLD_CONFIGS[0].key;
+            return this.scene.restart({
+                playerName: this.playerName,
+                map: this.currentMap,
+                worldIndex: this.currentWorld,
+                segmentIndex: 0,
+                level: 1,
+                unlockedLevel: this.unlockedLevel,
+                spawnX: this.spawnX,
+                spawnY: this.spawnY
+            });
+        }
 
-        // Create layers from tilemap
-        const belowLayer = map.createLayer('Below Player', tileset);
-        const worldLayer = map.createLayer('World', tileset);
-        const aboveLayer = map.createLayer('Above Player', tileset);
+        const layerNames = map.layers?.map(layer => layer.name) || [];
+        const resolveLayerName = (preferred) => {
+            if (preferred && layerNames.includes(preferred)) return preferred;
+            return layerNames[0] || null;
+        };
+
+        let belowLayerName = resolveLayerName(worldConfig.layers.below);
+        const worldLayerName = resolveLayerName(worldConfig.layers.world);
+        const aboveLayerName = worldConfig.layers.above && layerNames.includes(worldConfig.layers.above) ? worldConfig.layers.above : null;
+
+        if (belowLayerName && belowLayerName === worldLayerName) {
+            belowLayerName = null;
+        }
+
+        const belowLayer = belowLayerName ? map.createLayer(belowLayerName, tileset) : null;
+        const worldLayer = worldLayerName ? map.createLayer(worldLayerName, tileset) : null;
+        const aboveLayer = aboveLayerName ? map.createLayer(aboveLayerName, tileset) : null;
+
+        if (!worldLayer) {
+            console.warn(`World layer not found for map "${this.currentMap}". Falling back to large-map.`);
+            this.currentWorld = 0;
+            this.currentMap = WORLD_CONFIGS[0].key;
+            return this.scene.restart({
+                playerName: this.playerName,
+                map: this.currentMap,
+                worldIndex: this.currentWorld,
+                segmentIndex: 0,
+                level: 1,
+                unlockedLevel: this.unlockedLevel,
+                spawnX: this.spawnX,
+                spawnY: this.spawnY
+            });
+        }
 
         // Set collision on World layer
-        worldLayer.setCollisionByProperty({ collides: true });
+        if (worldLayer) {
+            worldLayer.setCollisionByProperty({ collides: true });
+        }
 
         // Create player at starting or spawn position
         this.player = {
@@ -98,10 +216,19 @@ export class Overworld extends Scene
         this.map = map;
         this.worldLayer = worldLayer;
         this.belowLayer = belowLayer;
-        this.segmentHeight = 40;
-        this.segmentWidth = 40;
-        this.totalSegments = Math.max(1, Math.floor(this.map.height / this.segmentHeight));
+        this.segmentHeight = Math.max(1, Math.floor(this.map.height / this.segmentsPerWorld));
+        this.segmentWidth = worldConfig.segmentWidth || this.map.width;
+        this.totalSegments = this.segmentsPerWorld;
         this.currentSegment = Math.min(this.currentSegment, this.totalSegments - 1);
+        if (!this.currentLevel) {
+            this.currentLevel = this.currentWorld * this.segmentsPerWorld + this.currentSegment + 1;
+        }
+
+        if (this.spawnY === -1) {
+            this.spawnY = this.map.height - 2;
+        }
+        this.spawnX = Math.max(1, Math.min(this.segmentWidth - 2, this.spawnX ?? 6));
+        this.spawnY = Math.max(1, Math.min(this.map.height - 2, this.spawnY ?? 4));
 
         this.createPlayer();
 
@@ -109,7 +236,9 @@ export class Overworld extends Scene
         this.createNPCs();
 
         // Set layer depths
-        aboveLayer.setDepth(10);
+        if (aboveLayer) {
+            aboveLayer.setDepth(10);
+        }
         this.player.sprite.setDepth(5);
 
         // Set up main camera with less zoom to see more of the map
@@ -153,7 +282,7 @@ export class Overworld extends Scene
 
         // Controls
         this.cursors = this.input.keyboard.createCursorKeys();
-        this.keys = this.input.keyboard.addKeys('W,A,S,D,C,SPACE,ENTER');
+        this.keys = this.input.keyboard.addKeys('W,A,S,D,C,SPACE,ENTER,L,J');
 
         // Mobile touch controls
         this.createMobileControls();
@@ -161,6 +290,12 @@ export class Overworld extends Scene
             this.destroyMobileControls();
             this.createMobileControls();
         });
+
+        this.eventHandlers = {};
+        this.bindEvent = (eventName, handler) => {
+            this.eventHandlers[eventName] = handler;
+            EventBus.on(eventName, handler);
+        };
 
         // Start overworld music
         if (!this.music || !this.music.isPlaying) {
@@ -172,7 +307,7 @@ export class Overworld extends Scene
         }
 
         // Listen for battle start - disable input during battle
-        EventBus.on('start-battle', () => {
+        this.bindEvent('start-battle', () => {
             this.battleActive = true;
             // Pause overworld music during battle - safely check sound context
             if (this.music && this.music.isPlaying) {
@@ -187,7 +322,7 @@ export class Overworld extends Scene
         });
 
         // Listen for battle starting from encounter dialog
-        EventBus.on('battle-starting', () => {
+        this.bindEvent('battle-starting', () => {
             this.battleActive = true;
             // Pause overworld music during battle - safely check sound context
             if (this.music && this.music.isPlaying) {
@@ -202,7 +337,7 @@ export class Overworld extends Scene
         });
 
         // Listen for battle end - re-enable input
-        EventBus.on('battle-ended', () => {
+        this.bindEvent('battle-ended', () => {
             this.battleActive = false;
             // Resume overworld music after battle - use play() instead of resume()
             if (this.music && this.sound && this.sound.context) {
@@ -219,7 +354,7 @@ export class Overworld extends Scene
         });
 
         // Listen for battle rejection
-        EventBus.on('battle-rejected', () => {
+        this.bindEvent('battle-rejected', () => {
             if (this.battleNPC) {
                 this.battleNPC.challenged = false;
                 this.battleNPC = null;
@@ -240,7 +375,7 @@ export class Overworld extends Scene
         });
 
         // Listen for player name and update display
-        EventBus.on('player-name-set', (name) => {
+        this.bindEvent('player-name-set', (name) => {
             this.playerName = name || 'Player';
             if (this.playerNameText) {
                 this.playerNameText.setText(this.playerName);
@@ -248,7 +383,7 @@ export class Overworld extends Scene
         });
 
         // Audio control events from BattleScreen
-        EventBus.on('play-battle-music', () => {
+        this.bindEvent('play-battle-music', () => {
             // Stop overworld music and play battle music - safely check sound context
             if (this.music && this.music.isPlaying) {
                 try {
@@ -275,7 +410,7 @@ export class Overworld extends Scene
             }
         });
 
-        EventBus.on('stop-battle-music', () => {
+        this.bindEvent('stop-battle-music', () => {
             // Stop battle music and resume overworld music - safely check sound context
             if (this.battleMusic && this.battleMusic.isPlaying) {
                 try {
@@ -293,7 +428,7 @@ export class Overworld extends Scene
             }
         });
 
-        EventBus.on('play-victory-sound', () => {
+        this.bindEvent('play-victory-sound', () => {
             // Play victory fanfare (doesn't loop) - safely check sound context
             if (this.sound && this.sound.context) {
                 try {
@@ -315,21 +450,25 @@ export class Overworld extends Scene
         });
 
         // Global mute/unmute control
-        EventBus.on('toggle-mute', (isMuted) => {
+        this.bindEvent('toggle-mute', (isMuted) => {
             if (this.sound && this.sound.context) {
                 this.sound.mute = isMuted;
             }
         });
 
         // Level progression - spawn next batch of NPCs
-        EventBus.on('spawn-next-level', (data) => {
+        this.bindEvent('spawn-next-level', (data) => {
             console.log('spawn-next-level event received:', data);
+            if (!this.sys?.isActive()) {
+                return;
+            }
             this.unlockedLevel = data.level;
             this.updateSegmentView();
+            this.updateSegmentLabel();
         });
 
         // Handle game restart
-        EventBus.on('restart-game', () => {
+        this.bindEvent('restart-game', () => {
             console.log('restart-game event received');
             // Reset level and spawned indices
             this.currentLevel = 1;
@@ -350,12 +489,12 @@ export class Overworld extends Scene
         });
 
         // Listen for NPC removal (when guest is captured)
-        EventBus.on('remove-npc', (guestId) => {
+        this.bindEvent('remove-npc', (guestId) => {
             this.removeNPC(guestId);
         });
 
         // Listen for return to menu (game over retry)
-        EventBus.on('return-to-menu', () => {
+        this.bindEvent('return-to-menu', () => {
             console.log('return-to-menu event received - transitioning to MainMenu');
             // Stop overworld music
             if (this.music) {
@@ -363,6 +502,13 @@ export class Overworld extends Scene
             }
             // Transition to MainMenu scene
             this.scene.start('MainMenu');
+        });
+
+        this.events.once('shutdown', () => {
+            if (!this.eventHandlers) return;
+            Object.entries(this.eventHandlers).forEach(([eventName, handler]) => {
+                EventBus.off(eventName, handler);
+            });
         });
 
         EventBus.emit('current-scene-ready', this);
@@ -399,7 +545,7 @@ export class Overworld extends Scene
     spawnNPCsForLevel(count)
     {
         // Get fixed opponents for this stage
-        const stageNumber = this.currentSegment + 1;
+        const stageNumber = this.currentLevel;
         const stageOpponents = getStageOpponents(stageNumber);
         if (!stageOpponents || stageOpponents.length === 0) {
             console.log('No opponents defined for this stage!');
@@ -576,8 +722,48 @@ export class Overworld extends Scene
 
     update (time)
     {
+        if (this.sys?.isDestroyed || !this.sys?.isActive()) {
+            return;
+        }
         // Disable all input during battle
         if (this.battleActive) {
+            return;
+        }
+
+        const debugCooldown = 400;
+        if (this.keys?.L?.isDown && time - (this.lastDebugUnlockTime || 0) > debugCooldown) {
+            this.lastDebugUnlockTime = time;
+            const totalStages = getTotalStages();
+            if (this.unlockedLevel < totalStages) {
+                this.unlockedLevel += 1;
+                this.updateSegmentView();
+                this.updateSegmentLabel();
+                console.log(`[debug] L pressed: unlockedLevel -> ${this.unlockedLevel}`);
+                this.showLockedMessage(`Map ${this.unlockedLevel} unlocked`);
+            }
+        }
+        if (this.keys?.J?.isDown && time - (this.lastDebugJumpTime || 0) > debugCooldown) {
+            this.lastDebugJumpTime = time;
+            const totalStages = getTotalStages();
+            const maxLevelAvailable = Math.min(totalStages, WORLD_CONFIGS.length * this.segmentsPerWorld);
+            const targetLevel = Math.min(this.unlockedLevel, maxLevelAvailable);
+            const targetWorld = Math.floor((targetLevel - 1) / this.segmentsPerWorld);
+            const targetSegment = (targetLevel - 1) % this.segmentsPerWorld;
+            console.log(`[debug] J pressed: targetLevel=${targetLevel} world=${targetWorld} segment=${targetSegment}`);
+            if (!this.isWorldAvailable(targetWorld)) {
+                this.showLockedMessage('New area is loading — try again soon');
+                return;
+            }
+            this.scene.restart({
+                playerName: this.playerName,
+                map: WORLD_CONFIGS[targetWorld].key,
+                worldIndex: targetWorld,
+                segmentIndex: targetSegment,
+                level: targetLevel,
+                unlockedLevel: Math.max(this.unlockedLevel, targetLevel),
+                spawnX: 6,
+                spawnY: 4
+            });
             return;
         }
 
@@ -688,13 +874,27 @@ export class Overworld extends Scene
         if (newY < segmentStartY) {
             if (this.currentSegment > 0) {
                 this.currentSegment -= 1;
-                this.currentLevel = this.currentSegment + 1;
+                this.currentLevel = this.currentWorld * this.segmentsPerWorld + this.currentSegment + 1;
                 this.clearAllNPCs();
                 this.spawnNPCsForLevel(10);
                 this.player.tileY = segmentStartY - 2;
                 this.player.tileX = newX;
                 this.snapPlayerToTile();
                 this.updateSegmentLabel();
+            } else if (this.currentWorld > 0) {
+                const prevWorld = this.currentWorld - 1;
+                const prevSegment = this.segmentsPerWorld - 1;
+                const prevLevel = prevWorld * this.segmentsPerWorld + prevSegment + 1;
+                this.scene.restart({
+                    playerName: this.playerName,
+                    map: WORLD_CONFIGS[prevWorld].key,
+                    worldIndex: prevWorld,
+                    segmentIndex: prevSegment,
+                    level: prevLevel,
+                    unlockedLevel: this.unlockedLevel,
+                    spawnX: newX,
+                    spawnY: -1
+                });
             } else {
                 this.showLockedMessage();
             }
@@ -703,15 +903,34 @@ export class Overworld extends Scene
 
         // Move south to next segment if unlocked
         if (newY >= segmentEndY) {
-            if (this.currentSegment + 1 < Math.min(this.unlockedLevel, this.totalSegments)) {
+            const nextLevel = this.currentLevel + 1;
+            const maxSegmentsUnlocked = this.unlockedLevel - (this.currentWorld * this.segmentsPerWorld);
+            if (this.currentSegment + 1 < Math.min(maxSegmentsUnlocked, this.segmentsPerWorld)) {
                 this.currentSegment += 1;
-                this.currentLevel = this.currentSegment + 1;
+                this.currentLevel = nextLevel;
                 this.clearAllNPCs();
                 this.spawnNPCsForLevel(10);
                 this.player.tileY = segmentEndY + 1;
                 this.player.tileX = newX;
                 this.snapPlayerToTile();
                 this.updateSegmentLabel();
+            } else if (nextLevel <= this.unlockedLevel && this.currentSegment + 1 >= this.segmentsPerWorld && this.currentWorld + 1 < WORLD_CONFIGS.length) {
+                const nextWorld = this.currentWorld + 1;
+                const nextSegment = 0;
+                if (!this.isWorldAvailable(nextWorld)) {
+                    this.showLockedMessage('New area is loading — try again soon');
+                    return;
+                }
+                this.scene.restart({
+                    playerName: this.playerName,
+                    map: WORLD_CONFIGS[nextWorld].key,
+                    worldIndex: nextWorld,
+                    segmentIndex: nextSegment,
+                    level: nextLevel,
+                    unlockedLevel: this.unlockedLevel,
+                    spawnX: newX,
+                    spawnY: 1
+                });
             } else {
                 this.showLockedMessage();
             }
@@ -809,7 +1028,8 @@ export class Overworld extends Scene
     updateSegmentView ()
     {
         if (!this.map || !this.cameras?.main) return;
-        const unlockedSegments = Math.min(this.unlockedLevel, this.totalSegments);
+        if (this.sys?.isDestroyed || !this.sys?.isActive()) return;
+        const unlockedSegments = Math.max(1, Math.min(this.unlockedLevel - (this.currentWorld * this.segmentsPerWorld), this.segmentsPerWorld));
         const heightTiles = unlockedSegments * this.segmentHeight;
         const heightPx = heightTiles * this.map.tileHeight;
         const widthPx = this.segmentWidth * this.map.tileWidth;
@@ -838,10 +1058,11 @@ export class Overworld extends Scene
 
     updateSegmentLabel ()
     {
-        if (!this.segmentLabel) return;
-        const current = this.currentSegment + 1;
-        const unlocked = Math.min(this.unlockedLevel, this.totalSegments);
-        this.segmentLabel.setText(`Map ${current} / ${unlocked}`);
+        if (!this.segmentLabel || !this.segmentLabel.active) return;
+        if (this.sys?.isDestroyed || !this.sys?.isActive()) return;
+        const current = this.currentLevel;
+        const totalUnlocked = this.unlockedLevel;
+        this.segmentLabel.setText(`Map ${current} / ${totalUnlocked}`);
     }
 
     snapPlayerToTile ()
@@ -853,10 +1074,13 @@ export class Overworld extends Scene
         }
     }
 
-    showLockedMessage ()
+    showLockedMessage (messageOverride)
     {
-        const message = 'Area locked — level up to continue';
-        if (!this.lockedText) {
+        if (this.sys?.isDestroyed || !this.sys?.isActive()) {
+            return;
+        }
+        const message = messageOverride || 'Area locked — level up to continue';
+        if (!this.lockedText || !this.lockedText.active || this.lockedText.scene !== this) {
             this.lockedText = this.add.text(this.scale.width / 2, 40, message, {
                 fontSize: '10px',
                 fontFamily: 'Press Start 2P, monospace',
@@ -883,6 +1107,19 @@ export class Overworld extends Scene
                 this.lockedText.setVisible(false);
             }
         });
+    }
+
+    isWorldAvailable (worldIndex)
+    {
+        const config = WORLD_CONFIGS[worldIndex];
+        if (!config) return false;
+        if (config.key === 'desert-map') {
+            const desertReady = this.registry.get('desertAssetsLoaded');
+            return (!!desertReady || (this.cache.tilemap.exists(config.key) && this.textures.exists(config.tilesKey)))
+                && this.cache.tilemap.exists(config.key)
+                && this.textures.exists(config.tilesKey);
+        }
+        return true;
     }
 
     handleInteraction ()

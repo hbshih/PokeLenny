@@ -123,6 +123,65 @@ Also update **gamification rules** to fully match `SIMPLE_GAMIFICATION.md` (XP s
 
 ---
 
+## Implementation Log (World 2 / Desert Map Integration)
+
+**Summary:** Added a second world map (`desert-map`) for stages 4–6 and introduced multi‑world transitions (3 segments per world). Implemented safer asset loading and scene event cleanup to prevent crashes on map swaps.
+
+**Files touched:**
+- `src/game/scenes/Preloader.js`
+- `src/game/scenes/Overworld.js`
+
+**New assets (local):**
+- `public/assets/tilemaps/desert.json`
+- `public/assets/tilemaps/tmw_desert_spacing.png`
+
+**Asset source + placement notes:**
+- The desert map/tiles were originally from the Phaser examples:
+  - Map: `https://cdn.phaserfiles.com/v355/assets/tilemaps/maps/desert.json`
+  - Tiles: `https://cdn.phaserfiles.com/v355/assets/tilemaps/tiles/tmw_desert_spacing.png`
+- CDN access may fail in some environments, so **download once and store locally** under `public/assets/tilemaps/`.
+- Verify the JSON `tilesets[0].name` matches `WORLD_CONFIGS.tilesetName` (for desert: `Desert`).
+
+**What broke / errors observed:**
+1) **`No map data found for key desert-map` / `Texture key "desert-tiles" not found`**
+   - Root cause: desert map/tiles were loaded from CDN, but network access failed in the environment.
+   - Fix: load both assets locally from `assets/tilemaps/` and track successful load in the registry.
+
+2) **`Invalid Tilemap Layer ID: Ground` / empty layer list**
+   - Root cause: the scene started before the tilemap was available, so no layers were created.
+   - Fix: added guards for missing map + tileset and fall back to the large map if needed.
+
+3) **`Tilemap Layer ID already exists: Ground`**
+   - Root cause: the desert map only has one layer (`Ground`), but the code attempted to create both a below‑layer and world‑layer with the same name.
+   - Fix: if `belowLayerName === worldLayerName`, skip the below layer and create `Ground` only once.
+
+4) **`Uncaught TypeError: Cannot read properties of null (reading 'drawImage')`**
+   - Root cause: `EventBus` listeners persisted across scene restarts and fired against a destroyed scene/graphics context.
+   - Fix: store handlers in `this.eventHandlers`, unregister them on `shutdown`, and guard UI updates with `sys.isActive()` checks.
+
+**Key design decisions:**
+- **3 segments per world**, so:
+  - World 1 → stages 1–3 (existing large map)
+  - World 2 → stages 4–6 (desert map)
+- **Transition south** at the end of a world when next level is unlocked.
+- **World availability check** prevents transition if desert assets aren’t loaded.
+
+**Debug helpers added:**
+- `L` → increment `unlockedLevel` by 1 (logs to console)
+- `J` → jump to the highest unlocked segment within available worlds (logs target world/segment)
+
+**How to add a new world (repeatable steps):**
+1) Put new map + tileset in `public/assets/tilemaps/` and ensure the tileset name inside the JSON matches `tilesetName`.
+2) Add a new entry in `WORLD_CONFIGS` with:
+   - `key`, `tilesetName`, `tilesKey`, and the correct layer names (or allow fallback via `resolveLayerName`).
+3) Update `Preloader` to load the new map + tiles locally.
+4) Confirm `layerNames` do not collide (only create each layer once).
+5) Test transitions with debug keys (`L`, `J`) before walking.
+
+**Current status:** World 2 loads and transitions correctly with local assets in place.
+
+---
+
 ## Files to Update (expected)
 - `src/game/scenes/Overworld.js` — transitions + segment handling
 - `src/game/scenes/Preloader.js` — load larger map (if not already)
