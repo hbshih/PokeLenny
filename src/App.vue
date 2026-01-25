@@ -131,6 +131,9 @@ const levelUpQueue = ref([]);
 const levelUpInfo = ref(null);
 const currentLevelEnemiesDefeated = ref(0);
 const totalQuestionsAnswered = ref(0);
+const showLockedModal = ref(false);
+const lockedModalMessage = ref('Area locked — level up to continue');
+const currentMapInfo = ref({ level: 1, world: 1 });
 
 // Computed stats
 const capturedCount = computed(() => collection.value.filter(g => g.captured).length);
@@ -533,6 +536,16 @@ onMounted(() => {
   });
 
   EventBus.on('open-collection', handleOpenCollection);
+  EventBus.on('locked-area', ({ message }) => {
+    lockedModalMessage.value = message || 'Area locked — level up to continue';
+    showLockedModal.value = true;
+  });
+  EventBus.on('map-level-changed', ({ level, worldIndex }) => {
+    currentMapInfo.value = {
+      level: level || playerStats.value.level,
+      world: (worldIndex ?? 0) + 1
+    };
+  });
   EventBus.on('player-name-set', (name) => {
     setPlayerName(name);
 
@@ -556,6 +569,8 @@ onUnmounted(() => {
   EventBus.off('start-battle');
   EventBus.off('open-collection', handleOpenCollection);
   EventBus.off('player-name-set');
+  EventBus.off('locked-area');
+  EventBus.off('map-level-changed');
 });
 </script>
 
@@ -575,6 +590,15 @@ onUnmounted(() => {
         >
           Explore Lenny’s Podcast →
         </a>
+      </div>
+    </div>
+    <div v-if="showLockedModal" class="locked-overlay" @click="showLockedModal = false">
+      <div class="locked-card" @click.stop>
+        <div class="locked-title">Area Locked</div>
+        <div class="locked-message">{{ lockedModalMessage }}</div>
+        <div class="locked-actions">
+          <button class="locked-btn" @click="showLockedModal = false">OK</button>
+        </div>
       </div>
     </div>
     <button
@@ -678,6 +702,10 @@ onUnmounted(() => {
         <div class="stat-item collection-stat">
           <span class="stat-label">Captured</span>
           <span class="stat-value">{{ capturedCount }}/{{ totalGuests }}</span>
+        </div>
+        <div class="stat-item map-stat">
+          <span class="stat-label">Map</span>
+          <span class="stat-value">Map {{ currentMapInfo.level }}</span>
         </div>
       </div>
 
@@ -1474,6 +1502,58 @@ body {
     transform: translateY(-1px);
   }
 
+  .locked-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 7000;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .locked-card {
+    width: min(420px, 90vw);
+    background: #fff;
+    border: 4px solid #000;
+    box-shadow: 0 6px 0 #000, 0 12px 20px rgba(0, 0, 0, 0.5);
+    padding: 18px 20px;
+    font-family: 'Press Start 2P', monospace, sans-serif;
+    text-align: center;
+  }
+
+  .locked-title {
+    font-size: 14px;
+    color: #000;
+    margin-bottom: 10px;
+  }
+
+  .locked-message {
+    font-size: 10px;
+    color: #333;
+    line-height: 1.5;
+  }
+
+  .locked-actions {
+    margin-top: 14px;
+  }
+
+  .locked-btn {
+    font-family: 'Press Start 2P', monospace, sans-serif;
+    font-size: 10px;
+    background: #FFD700;
+    color: #000;
+    border: 3px solid #000;
+    padding: 8px 16px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #000;
+  }
+
+  .locked-btn:hover {
+    transform: translateY(-1px);
+  }
+
   .mobile-view .stats-bar {
     position: fixed;
     top: calc(8px + env(safe-area-inset-top));
@@ -1636,6 +1716,59 @@ body {
 
 .credits-github svg {
   display: block;
+}
+
+/* Locked area modal (all viewports) */
+.locked-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 7000;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.locked-card {
+  width: min(420px, 90vw);
+  background: #fff;
+  border: 4px solid #000;
+  box-shadow: 0 6px 0 #000, 0 12px 20px rgba(0, 0, 0, 0.5);
+  padding: 18px 20px;
+  font-family: 'Press Start 2P', monospace, sans-serif;
+  text-align: center;
+}
+
+.locked-title {
+  font-size: 14px;
+  color: #000;
+  margin-bottom: 10px;
+}
+
+.locked-message {
+  font-size: 10px;
+  color: #333;
+  line-height: 1.5;
+}
+
+.locked-actions {
+  margin-top: 14px;
+}
+
+.locked-btn {
+  font-family: 'Press Start 2P', monospace, sans-serif;
+  font-size: 10px;
+  background: #FFD700;
+  color: #000;
+  border: 3px solid #000;
+  padding: 8px 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #000;
+}
+
+.locked-btn:hover {
+  transform: translateY(-1px);
 }
 
 @media (max-width: 480px) {

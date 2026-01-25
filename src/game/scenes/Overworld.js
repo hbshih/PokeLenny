@@ -36,11 +36,13 @@ export class Overworld extends Scene
         this.segmentWidth = 40;
         this.totalSegments = 1;
         this.isTransitioning = false;
+        this.lastLockedModalTime = 0;
     }
 
     init (data)
     {
         this.isTransitioning = false;
+        this.spawnEdge = null;
         // Receive player name from MainMenu
         if (data.playerName) {
             this.playerName = data.playerName;
@@ -75,13 +77,25 @@ export class Overworld extends Scene
         }
 
         // Set spawn position if transitioning
-        if (data.spawnX !== undefined && data.spawnY !== undefined) {
-            this.spawnX = data.spawnX;
-            this.spawnY = data.spawnY;
-        } else {
-            this.spawnX = 6;
-            this.spawnY = 4;
+        this.spawnEdge = data.spawnEdge || null;
+        this.spawnX = data.spawnX ?? 6;
+        this.spawnY = this.spawnEdge ? (data.spawnY ?? null) : (data.spawnY ?? 4);
+        if (!this.spawnEdge && this.spawnY === -1) {
+            this.spawnEdge = 'south';
+            this.spawnY = null;
         }
+        if (!this.spawnEdge && this.spawnY === 1) {
+            this.spawnEdge = 'north';
+            this.spawnY = null;
+        }
+        console.log('[spawn] init', {
+            world: this.currentWorld,
+            segment: this.currentSegment,
+            level: this.currentLevel,
+            spawnEdge: this.spawnEdge,
+            spawnX: this.spawnX,
+            spawnY: this.spawnY
+        });
     }
 
     create ()
@@ -186,14 +200,6 @@ export class Overworld extends Scene
             worldLayer.setCollisionByProperty({ collides: true });
         }
 
-        // Create player at starting or spawn position
-        this.player = {
-            sprite: null,
-            tileX: this.spawnX,
-            tileY: this.spawnY,
-            direction: 'down'
-        };
-
         // Store map and layer references (before creating NPCs)
         this.map = map;
         this.worldLayer = worldLayer;
@@ -206,11 +212,37 @@ export class Overworld extends Scene
             this.currentLevel = this.currentWorld * this.segmentsPerWorld + this.currentSegment + 1;
         }
 
-        if (this.spawnY === -1) {
-            this.spawnY = this.map.height - 2;
+        const segmentStartY = this.currentSegment * this.segmentHeight;
+        const segmentEndY = segmentStartY + this.segmentHeight - 1;
+        if (this.spawnEdge === 'north') {
+            this.spawnY = segmentStartY + 1;
+        } else if (this.spawnEdge === 'south') {
+            this.spawnY = Math.min(this.map.height - 2, segmentEndY - 1);
+        } else if (this.spawnY === -1) {
+            const segmentBottom = (this.currentSegment + 1) * this.segmentHeight - 2;
+            this.spawnY = Math.min(this.map.height - 2, segmentBottom);
         }
         this.spawnX = Math.max(1, Math.min(this.segmentWidth - 2, this.spawnX ?? 6));
-        this.spawnY = Math.max(1, Math.min(this.map.height - 2, this.spawnY ?? 4));
+        this.spawnY = Math.max(segmentStartY + 1, Math.min(segmentEndY - 1, this.spawnY ?? 4));
+        console.log('[spawn] resolved', {
+            world: this.currentWorld,
+            segment: this.currentSegment,
+            level: this.currentLevel,
+            segmentStartY,
+            segmentEndY,
+            spawnX: this.spawnX,
+            spawnY: this.spawnY,
+            spawnEdge: this.spawnEdge
+        });
+        this.spawnEdge = null;
+
+        // Create player at resolved spawn position
+        this.player = {
+            sprite: null,
+            tileX: this.spawnX,
+            tileY: this.spawnY,
+            direction: 'down'
+        };
 
         this.createPlayer();
 
@@ -245,6 +277,7 @@ export class Overworld extends Scene
 
         this.updateSegmentView();
         this.createSegmentLabel();
+        this.emitMapInfo();
 
         // Add styled border to minimap
         this.minimapBorder = this.add.graphics();
@@ -669,22 +702,40 @@ export class Overworld extends Scene
         }
 
         // Move north to previous segment
-        if (this.currentSegment === 0 && this.currentWorld > 0 && newY <= segmentStartY) {
+        if (this.currentSegment === 0 && this.currentWorld > 0 && (newY < segmentStartY || (newY === segmentStartY && !this.isWalkable(newX, newY)))) {
             const prevWorld = this.currentWorld - 1;
             const prevSegment = this.segmentsPerWorld - 1;
             const prevLevel = prevWorld * this.segmentsPerWorld + prevSegment + 1;
+            console.log(`[transition] north to prev world`, {
+                fromWorld: this.currentWorld,
+                fromSegment: this.currentSegment,
+                fromLevel: this.currentLevel,
+                toWorld: prevWorld,
+                toSegment: prevSegment,
+                toLevel: prevLevel,
+                at: { x: newX, y: newY }
+            });
             this.transitionToWorld({
                 worldIndex: prevWorld,
                 segmentIndex: prevSegment,
                 level: prevLevel,
                 spawnX: newX,
-                spawnY: -1
+                spawnY: -1,
+                spawnEdge: 'south'
             });
             return;
         }
 
         if (newY < segmentStartY) {
             if (this.currentSegment > 0) {
+                console.log(`[transition] north to prev segment`, {
+                    fromWorld: this.currentWorld,
+                    fromSegment: this.currentSegment,
+                    fromLevel: this.currentLevel,
+                    toSegment: this.currentSegment - 1,
+                    toLevel: this.currentWorld * this.segmentsPerWorld + this.currentSegment,
+                    at: { x: newX, y: newY }
+                });
                 this.transitionToSegment({
                     nextSegment: this.currentSegment - 1,
                     nextLevel: this.currentWorld * this.segmentsPerWorld + this.currentSegment,
@@ -695,12 +746,22 @@ export class Overworld extends Scene
                 const prevWorld = this.currentWorld - 1;
                 const prevSegment = this.segmentsPerWorld - 1;
                 const prevLevel = prevWorld * this.segmentsPerWorld + prevSegment + 1;
+                console.log(`[transition] north to prev world`, {
+                    fromWorld: this.currentWorld,
+                    fromSegment: this.currentSegment,
+                    fromLevel: this.currentLevel,
+                    toWorld: prevWorld,
+                    toSegment: prevSegment,
+                    toLevel: prevLevel,
+                    at: { x: newX, y: newY }
+                });
                 this.transitionToWorld({
                     worldIndex: prevWorld,
                     segmentIndex: prevSegment,
                     level: prevLevel,
                     spawnX: newX,
-                    spawnY: -1
+                    spawnY: -1,
+                    spawnEdge: 'south'
                 });
             } else {
                 this.showLockedMessage();
@@ -714,6 +775,14 @@ export class Overworld extends Scene
             const maxAvailableLevel = Math.min(this.unlockedLevel, getMaxWorldLevel(this.segmentsPerWorld));
             const maxSegmentsUnlocked = maxAvailableLevel - (this.currentWorld * this.segmentsPerWorld);
             if (this.currentSegment + 1 < Math.min(maxSegmentsUnlocked, this.segmentsPerWorld)) {
+                console.log(`[transition] south to next segment`, {
+                    fromWorld: this.currentWorld,
+                    fromSegment: this.currentSegment,
+                    fromLevel: this.currentLevel,
+                    toSegment: this.currentSegment + 1,
+                    toLevel: nextLevel,
+                    at: { x: newX, y: newY }
+                });
                 this.transitionToSegment({
                     nextSegment: this.currentSegment + 1,
                     nextLevel,
@@ -727,12 +796,22 @@ export class Overworld extends Scene
                     this.showLockedMessage('New map coming soon');
                     return;
                 }
+                console.log(`[transition] south to next world`, {
+                    fromWorld: this.currentWorld,
+                    fromSegment: this.currentSegment,
+                    fromLevel: this.currentLevel,
+                    toWorld: nextWorld,
+                    toSegment: nextSegment,
+                    toLevel: nextLevel,
+                    at: { x: newX, y: newY }
+                });
                 this.transitionToWorld({
                     worldIndex: nextWorld,
                     segmentIndex: nextSegment,
                     level: nextLevel,
                     spawnX: newX,
-                    spawnY: 1
+                    spawnY: 1,
+                    spawnEdge: 'north'
                 });
             } else {
                 this.showLockedMessage();
@@ -855,12 +934,26 @@ export class Overworld extends Scene
     showLockedMessage (messageOverride)
     {
         showLockedMessage(this, messageOverride);
+        const now = Date.now();
+        if (now - this.lastLockedModalTime > 1500) {
+            this.lastLockedModalTime = now;
+            EventBus.emit('locked-area', {
+                message: messageOverride || 'Area locked — level up to continue'
+            });
+        }
     }
 
     transitionToSegment ({ nextSegment, nextLevel, nextX, nextY })
     {
         if (this.isTransitioning) return;
         this.isTransitioning = true;
+        console.log(`[transition] segment`, {
+            world: this.currentWorld,
+            fromSegment: this.currentSegment,
+            toSegment: nextSegment,
+            toLevel: nextLevel,
+            spawn: { x: nextX, y: nextY }
+        });
         this.cameras.main.fadeOut(180, 0, 0, 0);
         this.cameras.main.once('camerafadeoutcomplete', () => {
             this.currentSegment = nextSegment;
@@ -872,6 +965,7 @@ export class Overworld extends Scene
             this.snapPlayerToTile();
             this.updateSegmentLabel();
             this.updateSegmentView();
+            this.emitMapInfo();
             this.cameras.main.fadeIn(180, 0, 0, 0);
             this.cameras.main.once('camerafadeincomplete', () => {
                 this.isTransitioning = false;
@@ -879,10 +973,20 @@ export class Overworld extends Scene
         });
     }
 
-    transitionToWorld ({ worldIndex, segmentIndex, level, spawnX, spawnY })
+    transitionToWorld ({ worldIndex, segmentIndex, level, spawnX, spawnY, spawnEdge })
     {
         if (this.isTransitioning) return;
         this.isTransitioning = true;
+        console.log(`[transition] world`, {
+            fromWorld: this.currentWorld,
+            fromSegment: this.currentSegment,
+            fromLevel: this.currentLevel,
+            toWorld: worldIndex,
+            toSegment: segmentIndex,
+            toLevel: level,
+            spawn: { x: spawnX, y: spawnY },
+            edge: spawnEdge
+        });
         this.cameras.main.fadeOut(220, 0, 0, 0);
         this.cameras.main.once('camerafadeoutcomplete', () => {
             this.scene.restart({
@@ -893,7 +997,8 @@ export class Overworld extends Scene
                 level,
                 unlockedLevel: this.unlockedLevel,
                 spawnX,
-                spawnY
+                spawnY: spawnEdge ? undefined : spawnY,
+                spawnEdge
             });
         });
     }
@@ -919,6 +1024,15 @@ export class Overworld extends Scene
     getLevelKey ()
     {
         return `level-${this.currentLevel}`;
+    }
+
+    emitMapInfo ()
+    {
+        EventBus.emit('map-level-changed', {
+            level: this.currentLevel,
+            worldIndex: this.currentWorld,
+            segment: this.currentSegment
+        });
     }
 
     handleInteraction ()
