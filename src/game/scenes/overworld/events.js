@@ -33,6 +33,14 @@ export const bindOverworldEvents = (scene) => {
     scene.bindEvent('battle-ended', () => {
         scene.battleActive = false;
 
+        // Stop any victory/defeat audio immediately, then resume map music
+        if (scene.victorySound && scene.victorySound.isPlaying) {
+            scene.victorySound.stop();
+        }
+        if (scene.defeatSound && scene.defeatSound.isPlaying) {
+            scene.defeatSound.stop();
+        }
+
         // Always resume map music when returning to the overworld
         if (scene.musicManager) {
             scene.musicManager.resume();
@@ -129,6 +137,12 @@ export const bindOverworldEvents = (scene) => {
 
     // Force resume map music (e.g. when closing results early)
     scene.bindEvent('resume-map-music', () => {
+        if (scene.victorySound && scene.victorySound.isPlaying) {
+            scene.victorySound.stop();
+        }
+        if (scene.defeatSound && scene.defeatSound.isPlaying) {
+            scene.defeatSound.stop();
+        }
         if (scene.musicManager) {
             scene.musicManager.resume();
         }

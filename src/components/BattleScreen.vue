@@ -70,6 +70,14 @@
           </div>
           <div class="hp-numeric">{{ playerHP }} / {{ playerMaxHP }}</div>
         </div>
+
+        <div
+          v-if="hpDelta < 0"
+          :key="hpDeltaKey"
+          class="hp-float"
+        >
+          -10 HP
+        </div>
       </div>
     </div>
 
@@ -170,6 +178,8 @@ const {
   playerHPPercent,
   guestHPClass,
   playerHPClass,
+  hpDelta,
+  hpDeltaKey,
   opponentLevel,
   guestAvatarPath,
   guestTitle,
@@ -419,6 +429,35 @@ const {
   position: absolute;
   bottom: 80px;
   left: 160px;
+}
+
+.hp-float {
+  position: absolute;
+  left: 160px;
+  bottom: 205px;
+  color: #ff4d4f;
+  font-size: 18px;
+  font-weight: 700;
+  text-shadow: 0 2px 0 #000, 0 0 8px rgba(255, 77, 79, 0.6);
+  min-width: 90px;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: hpFloatUp 0.8s ease-out forwards;
+}
+
+@keyframes hpFloatUp {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.9);
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-18px) scale(1.05);
+  }
 }
 
 @keyframes slideDown {

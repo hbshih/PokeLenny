@@ -26,6 +26,9 @@ export const useBattleState = (props, emit, swirlCanvas) => {
         perfectBattle: false,
         bonusCorrect: false
     });
+    const hpDelta = ref(0);
+    const hpDeltaKey = ref(0);
+    let hpDeltaTimer = null;
 
     const xpPerCorrect = computed(() => Math.min(10 + 5 * (playerLevel.value - 1), 50));
 
@@ -314,6 +317,14 @@ export const useBattleState = (props, emit, swirlCanvas) => {
             const newHP = Math.max(0, playerHP.value - 10);
             playerHP.value = newHP;
             emit('hp-changed', newHP);
+            hpDelta.value = -10;
+            hpDeltaKey.value += 1;
+            if (hpDeltaTimer) {
+                clearTimeout(hpDeltaTimer);
+            }
+            hpDeltaTimer = setTimeout(() => {
+                hpDelta.value = 0;
+            }, 800);
         }
 
         // Emit answer result to parent
@@ -451,6 +462,8 @@ export const useBattleState = (props, emit, swirlCanvas) => {
         playerHPPercent,
         guestHPClass,
         playerHPClass,
+        hpDelta,
+        hpDeltaKey,
         opponentLevel,
         guestAvatarPath,
         guestTitle,
