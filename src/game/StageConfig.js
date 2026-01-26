@@ -9,14 +9,14 @@ export const STAGE_CONFIG = [
   [
     "Brian Chesky",
     "Ben Horowitz",
+    "Elena Verna",
+    "Brian Balfour",
+    "Seth Godin",
     "Marc Benioff",
     "Stewart Butterfield",
     "Tobi Lutke",
     "Dylan Field",
-    "Melanie Perkins",
-    "Elena Verna",
-    "Brian Balfour",
-    "Seth Godin"
+    "Melanie Perkins"
   ],
 
   // Tier 2
