@@ -1,7 +1,7 @@
 <template>
   <div class="collection-screen" v-if="isActive">
     <div class="collection-header">
-      <h1 class="collection-title">PokéLenny Collection</h1>
+      <h1 class="collection-title">LennyRPG Collection</h1>
       <p class="collection-progress">
         {{ capturedCount }} / {{ totalGuests }} Captured
       </p>

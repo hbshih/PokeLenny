@@ -1,6 +1,6 @@
 {
     "name": "pokelenny-phaser",
-    "description": "PokéLenny - A Pokémon-style trivia game featuring guests from Lenny's Podcast",
+    "description": "LennyRPG - A Pokémon-style trivia game featuring guests from Lenny's Podcast",
     "version": "1.0.0",
     "type": "module",
     "keywords": [

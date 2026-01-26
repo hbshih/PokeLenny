@@ -7,7 +7,7 @@
         <button class="card-close-btn export-exclude" @click="closeModal">×</button>
         <!-- Header -->
         <div class="card-header">
-          <h2 class="card-title">PokéLenny</h2>
+          <h2 class="card-title">LennyRPG</h2>
           <p class="card-subtitle">Trainer Card</p>
         </div>
 
@@ -94,7 +94,7 @@
 
         <!-- Footer -->
         <div class="card-footer">
-          <p class="footer-text">Play PokéLenny at pokelenny.com</p>
+          <p class="footer-text">Play LennyRPG at pokelenny.com</p>
         </div>
       </div>
 
@@ -189,7 +189,7 @@ function shareOnLinkedIn() {
     ? '👥 Captured Guests: ' + safeGuestNames.join(', ') + (capturedGuests.value.length > 5 ? '...' : '')
     : '';
 
-  const shareText = `🎮 PokeLenny Trainer Card
+  const shareText = `🎮 LennyRPG Trainer Card
 Just played a fun trivia RPG inspired by Lenny's Podcast.
 📊 My Stats
 • 👤 Trainer: ${safeName}

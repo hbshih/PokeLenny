@@ -1,7 +1,7 @@
 // LocalStorage-based leaderboard (client-side only)
 // Each player sees their own historical scores
 
-const LEADERBOARD_KEY = 'pokelenny-leaderboard';
+const LEADERBOARD_KEY = 'lennyrpg-leaderboard';
 
 export const leaderboardService = {
   // Get all leaderboard entries

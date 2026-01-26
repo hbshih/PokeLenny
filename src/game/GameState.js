@@ -3,7 +3,7 @@
  * Handles all game progression, save/load, and player stats
  */
 
-const SAVE_KEY = 'pokelenny_save_data';
+const SAVE_KEY = 'lennyrpg_save_data';
 
 export class GameState {
     constructor() {

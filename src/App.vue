@@ -411,7 +411,7 @@ function setPlayerName(name) {
 function toggleMute() {
   isMuted.value = !isMuted.value;
   // Save mute preference to localStorage
-  localStorage.setItem('pokelenny-muted', isMuted.value.toString());
+  localStorage.setItem('lennyrpg-muted', isMuted.value.toString());
   // Emit mute state to Phaser
   try {
     EventBus.emit('toggle-mute', isMuted.value);
@@ -423,7 +423,7 @@ function toggleMute() {
 function handleCloseTutorial() {
   showTutorial.value = false;
   // Save that the user has seen the tutorial
-  localStorage.setItem('pokelenny-tutorial-seen', 'true');
+  localStorage.setItem('lennyrpg-tutorial-seen', 'true');
 }
 
 function handleOpenLeaderboard() {
@@ -498,7 +498,7 @@ onMounted(() => {
   }, 200); // Check every 200ms
 
   // Load mute preference from localStorage
-  const savedMuteState = localStorage.getItem('pokelenny-muted');
+  const savedMuteState = localStorage.getItem('lennyrpg-muted');
   if (savedMuteState !== null) {
     isMuted.value = savedMuteState === 'true';
     // Apply mute state to Phaser
@@ -569,7 +569,7 @@ onMounted(() => {
     setPlayerName(name);
 
     // Check if this is the first time playing
-    const hasSeenTutorial = localStorage.getItem('pokelenny-tutorial-seen');
+    const hasSeenTutorial = localStorage.getItem('lennyrpg-tutorial-seen');
     if (!hasSeenTutorial) {
       // Show tutorial modal after a brief delay
       setTimeout(() => {
@@ -599,7 +599,7 @@ onUnmounted(() => {
       <div class="orientation-card">
         <div class="orientation-title">Best on desktop</div>
         <div class="orientation-subtitle">
-          PokéLenny is designed for desktop play. For the best experience, continue on a computer.
+          LennyRPG is designed for desktop play. For the best experience, continue on a computer.
         </div>
         <a
           class="orientation-link"
@@ -676,11 +676,15 @@ onUnmounted(() => {
         <div class="footer-column credits-column mobile-credits">
           <div class="credits-title">About this game:</div>
           <div class="credits-content">
-            <div class="credits-line">
-              Created through <a href="https://www.lennysnewsletter.com/podcast" target="_blank" rel="noopener noreferrer" class="credits-lenny">Lenny Podcast Episodes</a>.
+            <div class="credits-line credits-inspiration">
+              <span>Inspired by</span>
+              <a href="https://www.lennysnewsletter.com/podcast" target="_blank" rel="noopener noreferrer" class="credits-avatar-link" data-tooltip="LennyRPG is a small fan-made RPG inspired by Lenny’s Podcast. Huge thanks to Lenny for sharing conversations and transcripts that make learning from great product minds so accessible.">
+                <img class="credits-avatar" src="/assets/favicon.png" alt="Lenny avatar" />
+              </a>
+              <a href="https://www.lennysnewsletter.com/podcast" target="_blank" rel="noopener noreferrer" class="credits-lenny" data-tooltip="LennyRPG is a small fan-made RPG inspired by Lenny’s Podcast. Huge thanks to Lenny for sharing conversations and transcripts that make learning from great product minds so accessible.">Lenny’s Podcast episodes</a>
             </div>
             <div class="credits-line credits-row">
-              <span>Built by <a href="https://benshih.design" target="_blank" rel="noopener noreferrer" class="credits-link">Ben Shih</a></span>
+              <span>Made by <a href="https://benshih.design" target="_blank" rel="noopener noreferrer" class="credits-link">Ben Shih</a></span>
               <span class="credits-separator">•</span>
               <a href="https://github.com/hbshih/PokeLenny" target="_blank" rel="noopener noreferrer" class="credits-github" title="Contribute on GitHub">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
@@ -690,7 +694,7 @@ onUnmounted(() => {
               </a>
             </div>
             <div class="credits-line credits-disclaimer">
-              Unofficial fan project. AI-generated art. No affiliation.
+              Unofficial fan project. Not affiliated. Some art is AI-generated.
             </div>
           </div>
         </div>
@@ -698,7 +702,7 @@ onUnmounted(() => {
     </div>
 
     <div class="game-header">
-      <h1 class="game-title">PokéLenny</h1>
+      <h1 class="game-title">LennyRPG</h1>
       <p class="game-subtitle">Catch 'Em All!</p>
     </div>
 
@@ -777,11 +781,15 @@ onUnmounted(() => {
         <div class="footer-column credits-column">
           <div class="credits-title">About this game:</div>
           <div class="credits-content">
-            <div class="credits-line">
-              Created through <a href="https://www.lennysnewsletter.com/podcast" target="_blank" rel="noopener noreferrer" class="credits-lenny">Lenny Podcast Episodes</a>.
+            <div class="credits-line credits-inspiration">
+              <span>Inspired by</span>
+              <a href="https://www.lennysnewsletter.com/podcast" target="_blank" rel="noopener noreferrer" class="credits-avatar-link" data-tooltip="LennyRPG is a small fan-made RPG inspired by Lenny’s Podcast. Huge thanks to Lenny for sharing conversations and transcripts that make learning from great product minds so accessible.">
+                <img class="credits-avatar" src="/assets/favicon.png" alt="Lenny avatar" />
+              </a>
+              <a href="https://www.lennysnewsletter.com/podcast" target="_blank" rel="noopener noreferrer" class="credits-lenny" data-tooltip="LennyRPG is a small fan-made RPG inspired by Lenny’s Podcast. Huge thanks to Lenny for sharing conversations and transcripts that make learning from great product minds so accessible.">Lenny’s Podcast episodes</a>
             </div>
             <div class="credits-line credits-row">
-              <span>Built by <a href="https://benshih.design" target="_blank" rel="noopener noreferrer" class="credits-link">Ben Shih</a></span>
+              <span>Made by <a href="https://benshih.design" target="_blank" rel="noopener noreferrer" class="credits-link">Ben Shih</a></span>
               <span class="credits-separator">•</span>
               <a href="https://github.com/hbshih/PokeLenny" target="_blank" rel="noopener noreferrer" class="credits-github" title="Contribute on GitHub">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
@@ -791,7 +799,7 @@ onUnmounted(() => {
               </a>
             </div>
             <div class="credits-line credits-disclaimer">
-              Unofficial fan project. AI-generated art. No affiliation.
+              Unofficial fan project. Not affiliated. Some art is AI-generated.
             </div>
           </div>
         </div>
@@ -891,27 +899,36 @@ html, body {
 }
 
 body {
-  background-color: #2b3238;
+  background-color: #bda887;
   background-image:
-    radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.08), transparent 55%),
-    radial-gradient(circle at 80% 10%, rgba(255, 255, 255, 0.06), transparent 50%),
-    radial-gradient(circle at 50% 80%, rgba(0, 0, 0, 0.35), transparent 60%),
+    radial-gradient(circle at 10% 12%, rgba(120, 110, 90, 0.2) 0.6px, transparent 0.7px),
+    radial-gradient(circle at 70% 35%, rgba(120, 110, 90, 0.18) 0.6px, transparent 0.7px),
+    radial-gradient(circle at 30% 80%, rgba(120, 110, 90, 0.16) 0.6px, transparent 0.7px),
+    radial-gradient(circle at 80% 75%, rgba(120, 110, 90, 0.14) 0.6px, transparent 0.7px),
     repeating-linear-gradient(
       0deg,
-      rgba(255, 255, 255, 0.04) 0,
-      rgba(255, 255, 255, 0.04) 1px,
+      rgba(255, 255, 255, 0.05) 0,
+      rgba(255, 255, 255, 0.05) 1px,
       transparent 1px,
       transparent 5px
     ),
     repeating-linear-gradient(
       90deg,
-      rgba(0, 0, 0, 0.08) 0,
-      rgba(0, 0, 0, 0.08) 1px,
+      rgba(0, 0, 0, 0.04) 0,
+      rgba(0, 0, 0, 0.04) 1px,
       transparent 1px,
       transparent 6px
     ),
-    linear-gradient(180deg, #3a424a 0%, #1b2024 100%);
-  background-blend-mode: screen, screen, multiply, soft-light, soft-light, normal;
+    linear-gradient(180deg, #d1c0a3 0%, #af9168 100%);
+  background-size:
+    22px 22px,
+    26px 26px,
+    24px 24px,
+    28px 28px,
+    5px 5px,
+    6px 6px,
+    100% 100%;
+  background-blend-mode: multiply, multiply, multiply, multiply, soft-light, soft-light, normal;
 }
 
 #app {
@@ -1088,10 +1105,11 @@ body {
 .game-title {
   font-size: 36px;
   margin: 0 0 8px 0;
-  color: #FFD700;
+  color: #edc62b;
   text-shadow:
-    3px 3px 0px rgba(0, 0, 0, 0.8),
-    0 0 15px rgba(255, 215, 0, 0.5);
+    3px 3px 0px rgba(0, 0, 0, 0.7),
+    6px 6px 0px rgba(0, 0, 0, 0.45),
+    0 0 10px rgba(0, 0, 0, 0.35);
 }
 
 .game-subtitle {
@@ -1733,6 +1751,29 @@ body {
   gap: 8px;
 }
 
+.credits-inspiration {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.credits-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  image-rendering: pixelated;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(255, 215, 0, 0.6);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  cursor: pointer;
+}
+
+.credits-avatar:hover {
+  transform: scale(1.08);
+  border-color: rgba(255, 215, 0, 0.9);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
 .credits-line {
   font-family: 'Press Start 2P', monospace, sans-serif;
   font-size: 9px;
@@ -1772,11 +1813,41 @@ body {
 .credits-lenny {
   color: #a78bfa;
   text-decoration: none;
+  position: relative;
+}
+
+.credits-avatar-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
 }
 
 .credits-lenny:hover {
   color: #c7b6ff;
   text-shadow: 0 0 6px rgba(167, 139, 250, 0.6);
+}
+
+.credits-lenny:hover::after,
+.credits-avatar-link:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  transform: translateX(-50%);
+  width: 320px;
+  max-width: 70vw;
+  background: rgba(0, 0, 0, 0.9);
+  color: #fff;
+  padding: 10px 12px;
+  border: 2px solid #FFD700;
+  border-radius: 8px;
+  font-size: 10px;
+  line-height: 1.5;
+  text-align: left;
+  z-index: 2000;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+  white-space: normal;
 }
 
 .credits-github {
