@@ -37,10 +37,11 @@ export class Preloader extends Scene
     preload ()
     {
         //  Load the assets for the game
-        this.load.setPath('assets');
         this.desertAssetsLoaded = true;
+        this.load.setPath('assets');
 
-        this.load.image('logo', 'logo.png');
+        // Load logo (public/assets/logo.png)
+        this.load.image('logo', 'GameLogo.png');
 
         // Load Tuxemon tileset and tilemaps (using extruded version to prevent texture bleeding)
         this.load.image('tiles', 'tuxmon-sample-32px-extruded.png');
