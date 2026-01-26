@@ -141,7 +141,7 @@ export class MainMenu extends Scene
         });
 
         // Info text - warm golden color matching logo (reduced sizes)
-        this.add.text(this.scale.width / 2, 250, 'TEST YOUR PRODUT KNOWLEDGE', {
+        this.add.text(this.scale.width / 2, 250, 'CAPTURE LENNY’S PODCAST GUESTS', {
             fontFamily: '"Press Start 2P"',
             fontSize: '16px',
             color: '#FFE066', // Warm yellow from logo
@@ -150,7 +150,7 @@ export class MainMenu extends Scene
             strokeThickness: 4
         }).setOrigin(0.5);
 
-        this.add.text(this.scale.width / 2, 280, 'Answer questions from Lenny\'s Podcast Guests to Win!', {
+        this.add.text(this.scale.width / 2, 280, 'Prove your product knowledge. Win battles. Capture guests.', {
             fontFamily: '"Press Start 2P"',
             fontSize: '13px',
             color: '#FFFFFF',
@@ -201,7 +201,7 @@ export class MainMenu extends Scene
         const newGameButton = this.add.rectangle(this.scale.width / 2, buttonY, buttonWidth, buttonHeight, 0x000000, 0)
             .setInteractive({ useHandCursor: true });
 
-        const newGameText = this.add.text(this.scale.width / 2, buttonY, '▶  START GAME', {
+        const newGameText = this.add.text(this.scale.width / 2, buttonY, 'START GAME', {
             fontFamily: '"Press Start 2P"',
             fontSize: '18px',
             color: '#FFFFFF',
