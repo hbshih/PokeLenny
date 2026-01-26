@@ -33,18 +33,10 @@ export const bindOverworldEvents = (scene) => {
     scene.bindEvent('battle-ended', () => {
         scene.battleActive = false;
 
-        // Check if victory or defeat sounds are playing before resuming music
-        const victoryPlaying = scene.victorySound && scene.victorySound.isPlaying;
-        const defeatPlaying = scene.defeatSound && scene.defeatSound.isPlaying;
-
-        if (!victoryPlaying && !defeatPlaying) {
-            // No victory/defeat sounds playing, resume map music
-            if (scene.musicManager) {
-                scene.musicManager.resume();
-            }
+        // Always resume map music when returning to the overworld
+        if (scene.musicManager) {
+            scene.musicManager.resume();
         }
-        // If victory/defeat is playing, the 'stop-battle-music' event handler
-        // will handle resuming the music after the sound completes
 
         // Show mobile controls after battle
         scene.setMobileControlsVisible(true);
@@ -132,6 +124,13 @@ export const bindOverworldEvents = (scene) => {
             if (scene.musicManager) {
                 scene.musicManager.resume();
             }
+        }
+    });
+
+    // Force resume map music (e.g. when closing results early)
+    scene.bindEvent('resume-map-music', () => {
+        if (scene.musicManager) {
+            scene.musicManager.resume();
         }
     });
 

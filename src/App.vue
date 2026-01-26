@@ -195,6 +195,8 @@ function handleCloseBattle() {
   showBattle.value = false;
   // Re-enable input in Overworld
   EventBus.emit('battle-ended');
+  // Ensure overworld music resumes even if victory/defeat sound is still playing
+  EventBus.emit('resume-map-music');
 }
 
 function handleOpenCollection() {
