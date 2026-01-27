@@ -899,7 +899,7 @@ html, body {
 }
 
 body {
-  background-color: #bda887;
+  background-color: #e3d18f;
   background-image:
     radial-gradient(circle at 10% 12%, rgba(120, 110, 90, 0.2) 0.6px, transparent 0.7px),
     radial-gradient(circle at 70% 35%, rgba(120, 110, 90, 0.18) 0.6px, transparent 0.7px),
@@ -919,7 +919,7 @@ body {
       transparent 1px,
       transparent 6px
     ),
-    linear-gradient(180deg, #d1c0a3 0%, #af9168 100%);
+    linear-gradient(180deg, #f0e2a6 0%, #d4bb73 100%);
   background-size:
     22px 22px,
     26px 26px,
@@ -1105,7 +1105,7 @@ body {
 .game-title {
   font-size: 36px;
   margin: 0 0 8px 0;
-  color: #edc62b;
+  color: #f8dc00;
   text-shadow:
     3px 3px 0px rgba(0, 0, 0, 0.7),
     6px 6px 0px rgba(0, 0, 0, 0.45),
