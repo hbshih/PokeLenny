@@ -29,9 +29,12 @@ export const leaderboardService = {
   // Save player score
   async saveScore(playerData) {
     if (!ensureSupabase()) return null;
+
+    // Use upsert to update same session or create new entry
     const { data, error } = await supabase
       .from('leaderboard')
-      .insert([{
+      .upsert([{
+        session_id: playerData.sessionId,
         player_name: playerData.name,
         level: playerData.level,
         xp: playerData.xp,
@@ -41,7 +44,10 @@ export const leaderboardService = {
         accuracy: playerData.accuracy,
         correct: playerData.correct,
         wrong: playerData.wrong
-      }]);
+      }], {
+        onConflict: 'session_id',
+        ignoreDuplicates: false
+      });
 
     if (error) throw error;
     return data;

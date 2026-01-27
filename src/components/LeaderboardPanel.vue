@@ -34,6 +34,7 @@
               #{{ getRank(index) }}
             </span>
           </div>
+          <span v-if="player.isCurrentPlayer" class="current-badge">YOU</span>
           <div class="player-info">
             <div class="player-name">{{ player.name }}</div>
             <div class="player-stats">
@@ -129,7 +130,7 @@ const currentPagePlayers = computed(() => {
   const start = (currentPage.value - 1) * playersPerPage;
   const end = start + playersPerPage;
 
-  // Map database fields to component fields and mark current player
+  // Map database fields to component fields and mark current player by session_id
   return leaderboardData.value.slice(start, end).map(player => ({
     id: player.id,
     name: player.player_name,
@@ -139,7 +140,7 @@ const currentPagePlayers = computed(() => {
     total: player.total,
     correct: player.correct ?? 0,
     wrong: player.wrong ?? 0,
-    isCurrentPlayer: player.player_name === props.currentPlayer.name
+    isCurrentPlayer: player.session_id && player.session_id === props.currentPlayer.sessionId
   }));
 });
 
@@ -222,9 +223,9 @@ async function handleRefresh() {
   emit('refresh');
 }
 
-// Fetch leaderboard when modal opens
+// Fetch leaderboard when modal opens (always fetch fresh data)
 watch(() => props.isActive, (isActive) => {
-  if (isActive && leaderboardData.value.length === 0) {
+  if (isActive) {
     fetchLeaderboard();
   }
 });
@@ -433,6 +434,7 @@ onMounted(() => {
 }
 
 .leaderboard-item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -451,9 +453,20 @@ onMounted(() => {
 }
 
 .leaderboard-item.current-player {
-  background: rgba(255, 215, 0, 0.15);
+  background: rgba(255, 215, 0, 0.25);
   border-width: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  border-color: #FFD700 !important;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3);
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
 }
 
 .rank {
@@ -508,6 +521,22 @@ onMounted(() => {
 
 .current-player .player-name {
   color: #FFD700;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.8);
+}
+
+.current-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  font-size: 7px;
+  color: #FFD700;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 3px 6px;
+  border-radius: 4px;
+  border: 2px solid #FFD700;
+  z-index: 10;
+  font-weight: bold;
+  letter-spacing: 1px;
 }
 
 .player-stats {

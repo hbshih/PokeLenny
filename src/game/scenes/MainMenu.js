@@ -605,8 +605,12 @@ export class MainMenu extends Scene
         gameState.setPlayerName(this.playerName);
         gameState.clearNPCPositions();
 
-        // Emit player name to Vue app
+        // Generate new session ID for this game run
+        const sessionId = gameState.generateNewSessionId();
+
+        // Emit player name and session ID to Vue app
         EventBus.emit('player-name-set', this.playerName);
+        EventBus.emit('session-started', sessionId);
 
         // Stop current scene (triggers cleanup) and start Overworld
         this.scene.stop('MainMenu');

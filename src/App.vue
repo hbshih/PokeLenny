@@ -36,6 +36,7 @@ const showMobileMenu = ref(false);
 
 // Player data
 const playerName = ref('Player');
+const sessionId = ref(null);
 const showShareModal = ref(false);
 
 // Audio control
@@ -270,6 +271,7 @@ function handleGuestCaptured(payload) {
 async function saveScoreToLeaderboard() {
   try {
     await leaderboardService.saveScore({
+      sessionId: sessionId.value,
       name: playerName.value,
       level: playerStats.value.level,
       xp: playerStats.value.xp,
@@ -577,6 +579,11 @@ onMounted(() => {
       }, 500);
     }
   });
+
+  EventBus.on('session-started', (newSessionId) => {
+    sessionId.value = newSessionId;
+    console.log('Session started in App.vue:', newSessionId);
+  });
 });
 
 onUnmounted(() => {
@@ -871,6 +878,7 @@ onUnmounted(() => {
     <LeaderboardPanel
       :isActive="showLeaderboard"
       :currentPlayer="{
+        sessionId: sessionId,
         name: playerName,
         level: playerStats.level,
         maxHp: playerStats.maxHp,

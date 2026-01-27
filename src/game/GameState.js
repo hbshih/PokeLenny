@@ -9,6 +9,7 @@ export class GameState {
     constructor() {
         this.data = {
             playerName: 'Player',
+            sessionId: null, // Unique ID for current game session
             defeatedGuests: [], // Array of guest IDs
             overworld: {
                 npcPositions: {}
@@ -109,6 +110,22 @@ export class GameState {
     setPlayerName(name) {
         this.data.playerName = name || 'Player';
         this.save();
+    }
+
+    /**
+     * Generate a new session ID for the current game run
+     */
+    generateNewSessionId() {
+        this.data.sessionId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+        console.log('New session started:', this.data.sessionId);
+        return this.data.sessionId;
+    }
+
+    /**
+     * Get current session ID
+     */
+    getSessionId() {
+        return this.data.sessionId;
     }
 
     /**
