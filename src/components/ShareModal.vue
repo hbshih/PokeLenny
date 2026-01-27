@@ -94,7 +94,7 @@
 
         <!-- Footer -->
         <div class="card-footer">
-          <p class="footer-text">Play LennyRPG at pokelenny.com</p>
+          <p class="footer-text">Play LennyRPG at www.lennyrpg.fun</p>
         </div>
       </div>
 
@@ -186,23 +186,27 @@ function shareOnLinkedIn() {
     .filter(Boolean);
 
   const guestsLine = safeGuestNames.length > 0
-    ? '👥 Captured Guests: ' + safeGuestNames.join(', ') + (capturedGuests.value.length > 5 ? '...' : '')
+    ? 'Captured Guests: ' + safeGuestNames.join(', ') + (capturedGuests.value.length > 5 ? '...' : '')
     : '';
 
-  const shareText = `🎮 LennyRPG Trainer Card
-Just played a fun trivia RPG inspired by Lenny's Podcast.
-📊 My Stats
-• 👤 Trainer: ${safeName}
-• ⭐ Level: ${props.stats.level}
-• 🏆 Battles Won: ${props.stats.totalBattles}
- • 🎯 Accuracy: ${props.accuracy} percent
- • 🧩 Guests Captured: ${props.capturedCount}/${props.totalGuests}
+  const shareText = `Just crushed some product knowledge battles in LennyRPG!
+
+This is such a fun way to test what you've learned from Lenny's Podcast - it's like Pokemon but with legendary product leaders and growth experts.
+
+My battle stats:
+- Level ${props.stats.level} trainer
+- ${props.stats.totalBattles} battles won
+- ${props.accuracy} percent accuracy
+- Captured ${props.capturedCount} of ${props.totalGuests} guests
 ${guestsLine ? '\n' + guestsLine : ''}
- Try it: pokelenny.com`;
+
+If you're a fan of Lenny's Podcast, you'll love this. Test your product knowledge and catch 'em all!
+
+Play now: www.lennyrpg.fun`;
 
   const encodedText = encodeURIComponent(shareText);
   const linkedInUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${encodedText}`;
-  window.open(linkedInUrl, '_blank', 'width=700,height=700');
+  window.open(linkedInUrl, '_blank', 'noopener,noreferrer');
 }
 
 async function downloadCard() {
@@ -223,7 +227,7 @@ async function downloadCard() {
       useCORS: true
     });
     const link = document.createElement('a');
-    link.download = `pokelenny-${props.playerName || 'player'}-card.png`;
+    link.download = `lennyrpg-${props.playerName || 'player'}-card.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
   } catch (error) {

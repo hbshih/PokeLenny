@@ -1105,19 +1105,27 @@ body {
 .game-title {
   font-size: 36px;
   margin: 0 0 8px 0;
-  color: #f8dc00;
+  color: #FFD700;
   text-shadow:
-    3px 3px 0px rgba(0, 0, 0, 0.7),
-    6px 6px 0px rgba(0, 0, 0, 0.45),
-    0 0 10px rgba(0, 0, 0, 0.35);
+    -1px -1px 0 rgba(0, 0, 0, 0.8),
+    1px -1px 0 rgba(0, 0, 0, 0.8),
+    -1px 1px 0 rgba(0, 0, 0, 0.8),
+    1px 1px 0 rgba(0, 0, 0, 0.8),
+    3px 3px 4px rgba(0, 0, 0, 0.5);
 }
 
 .game-subtitle {
   font-size: 14px;
   margin: 0;
   letter-spacing: 2px;
-  color: #fff;
+  color: #FFF;
   font-family: 'Press Start 2P', monospace, sans-serif;
+  text-shadow:
+    -1px -1px 0 rgba(0, 0, 0, 0.7),
+    1px -1px 0 rgba(0, 0, 0, 0.7),
+    -1px 1px 0 rgba(0, 0, 0, 0.7),
+    1px 1px 0 rgba(0, 0, 0, 0.7),
+    2px 2px 3px rgba(0, 0, 0, 0.4);
 }
 
 .game-wrapper {
