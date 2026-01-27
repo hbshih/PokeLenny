@@ -212,7 +212,7 @@ const {
 /* === BATTLE SCREEN - Authentic Pokemon Layout === */
 .battle-screen {
   position: absolute;
-  top: 45%;
+  top: 46%;
   left: 50%;
   transform: translate(-50%, -50%);
   width: min(960px, 95vw);
