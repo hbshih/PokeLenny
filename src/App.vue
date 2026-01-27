@@ -1131,6 +1131,8 @@ body {
 .game-stage {
   position: relative;
   display: inline-flex;
+  width: 960px;
+  max-width: 95vw;
 }
 
 .map-indicator {
@@ -1213,7 +1215,16 @@ body {
 #game-container {
   flex-shrink: 0;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-  border: 4px solid #FFD700;
+  border: 3px solid #FFD700;
+  border-radius: 8px;
+  overflow: hidden;
+  width: 100%;
+}
+
+#game-container canvas {
+  display: block;
+  width: 100% !important;
+  height: auto !important;
 }
 
 .action-buttons {
