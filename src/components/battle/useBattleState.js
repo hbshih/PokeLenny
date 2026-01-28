@@ -2,6 +2,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import gameState from '../../game/GameState.js';
 import { EventBus } from '../../game/EventBus';
 import { getGuestTitle } from '../../game/GuestTitles.js';
+import { getGuestTier } from '../../game/StageConfig.js';
 
 export const useBattleState = (props, emit, swirlCanvas) => {
     const guestHP = ref(100);
@@ -88,6 +89,15 @@ export const useBattleState = (props, emit, swirlCanvas) => {
         const guestLevel = props.battleData?.guest?.level;
         if (Number.isFinite(guestLevel)) return guestLevel;
 
+        // Calculate level based on tier in StageConfig
+        const guestName = props.battleData?.guest?.name;
+        if (guestName) {
+            const tier = getGuestTier(guestName);
+            // Level = Tier + 4 (e.g., Tier 1 = Lv5, Tier 28 = Lv32)
+            return tier + 4;
+        }
+
+        // Fallback to difficulty-based if guest not found
         const difficulty = (props.battleData?.guest?.difficulty || '').toLowerCase();
         if (difficulty.includes('hard')) return 40;
         if (difficulty.includes('medium')) return 35;

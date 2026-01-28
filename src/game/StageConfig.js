@@ -427,3 +427,18 @@ export function getStageOpponents(stageNumber) {
 export function getTotalStages() {
   return STAGE_CONFIG.length;
 }
+
+/**
+ * Get the tier number for a guest by name (1-indexed)
+ * Returns the tier/stage they appear in
+ */
+export function getGuestTier(guestName) {
+  for (let tierIndex = 0; tierIndex < STAGE_CONFIG.length; tierIndex++) {
+    const tier = STAGE_CONFIG[tierIndex];
+    if (tier.includes(guestName)) {
+      return tierIndex + 1; // Return 1-indexed tier
+    }
+  }
+  console.warn(`Guest "${guestName}" not found in StageConfig`);
+  return 1; // Default to tier 1 if not found
+}
