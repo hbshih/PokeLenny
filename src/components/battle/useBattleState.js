@@ -350,10 +350,12 @@ export const useBattleState = (props, emit, swirlCanvas) => {
             }
         } else {
             battleStats.value.wrongAnswers++;
-            const newHP = Math.max(0, playerHP.value - 10);
+            // Boss battles deduct 20 HP, normal battles deduct 10 HP
+            const hpPenalty = isBossBattle.value ? 20 : 10;
+            const newHP = Math.max(0, playerHP.value - hpPenalty);
             playerHP.value = newHP;
             emit('hp-changed', newHP);
-            hpDelta.value = -10;
+            hpDelta.value = -hpPenalty;
             hpDeltaKey.value += 1;
             if (hpDeltaTimer) {
                 clearTimeout(hpDeltaTimer);
