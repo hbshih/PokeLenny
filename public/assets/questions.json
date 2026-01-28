@@ -2735,63 +2735,63 @@
       "category": "Growth",
       "questions": [
         {
-          "question": "What is a key advantage of emerging distribution platforms for startups?",
+          "question": "In Brian's four-step platform cycle, what happens right after Step Zero?",
           "choices": [
-            "Incumbents can't copy fast",
-            "Lower product quality required",
-            "Less competition",
-            "Guaranteed virality"
+            "Moat",
+            "Opening",
+            "Closing",
+            "Monopoly"
           ],
-          "answer": "Incumbents can't copy fast",
-          "explanation": "New distribution platforms give startups a window to grow before incumbents can effectively copy or compete, as discussed in the episode.",
-          "difficulty": "Easy"
+          "answer": "Moat",
+          "explanation": "He defines Step Zero as market conditions being met; the next step is identifying the moat that creates defensibility.",
+          "difficulty": "Hard"
         },
         {
-          "question": "Why is building a great product alone often insufficient for growth?",
+          "question": "Which 'moat' best fits Brian's claim that models are becoming interchangeable?",
           "choices": [
-            "It costs too much",
-            "Distribution determines reach",
-            "Customers don't care",
-            "Products can't be improved"
+            "Benchmarks",
+            "Token cost",
+            "Context+memory",
+            "Brand ads"
           ],
-          "answer": "Distribution determines reach",
-          "explanation": "Brian emphasizes that effective distribution channels are crucial and often separate those who succeed from those who don't, beyond just product quality.",
-          "difficulty": "Easy"
+          "answer": "Context+memory",
+          "explanation": "He argues the differentiator won't be raw model output, but accumulated context and memory that improves personalization.",
+          "difficulty": "Hard"
         },
         {
-          "question": "According to the episode, what creates a significant opportunity for startups in the next six months?",
+          "question": "Which metric does Brian treat as a better signal than raw MAU for picking a platform bet?",
           "choices": [
-            "New SEO tactics",
-            "Development of ChatGPT-centric channels",
-            "Social media algorithm changes",
-            "Expanding influencer marketing"
+            "Retention",
+            "Signups",
+            "Virality",
+            "Impressions"
           ],
-          "answer": "Development of ChatGPT-centric channels",
-          "explanation": "Brian predicts a new, powerful distribution channel centered around ChatGPT that startups can leverage early for competitive advantage.",
-          "difficulty": "Easy"
+          "answer": "Retention",
+          "explanation": "He repeatedly emphasizes retention and depth of engagement as stronger signals than vanity metrics like MAU.",
+          "difficulty": "Hard"
         },
         {
-          "question": "How should late-stage companies approach new growth opportunities compared to startups?",
+          "question": "Which example is used to illustrate that the 'largest distribution' doesn't necessarily win?",
           "choices": [
-            "Test multiple channels",
-            "Go all in on one platform",
-            "Avoid new channels",
-            "Focus only on product quality"
+            "Facebook vs rivals",
+            "Udemy vs Coursera",
+            "Yelp vs Google",
+            "Zynga vs EA"
           ],
-          "answer": "Test multiple channels",
-          "explanation": "The episode notes that late-stage companies often place multiple bets, whereas startups tend to go all in on one new channel early on.",
-          "difficulty": "Medium"
+          "answer": "Facebook vs rivals",
+          "explanation": "He notes Facebook was smaller than competitors early on, but had stronger retention/engagement dynamics and won anyway.",
+          "difficulty": "Hard"
         },
         {
-          "question": "In a highly competitive environment driven by AI, what is a critical strategy for startups to succeed?",
+          "question": "Which platform behavior is Brian describing when he says platforms 'close' over time?",
           "choices": [
-            "Focus on product innovation",
-            "Leverage emerging distribution platforms",
-            "Reduce marketing spend",
-            "Improve customer service"
+            "More paywalls",
+            "More first-party",
+            "More open APIs",
+            "More free reach"
           ],
-          "answer": "Leverage emerging distribution platforms",
-          "explanation": "The episode stresses that leveraging new distribution channels, especially when they emerge, is essential to gaining escape velocity in a crowded AI-driven market.",
+          "answer": "More first-party",
+          "explanation": "One core closing move he lists is absorbing the highest-value use cases into first-party products (along with other controls).",
           "difficulty": "Hard"
         }
       ],
