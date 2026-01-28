@@ -86,7 +86,7 @@
           :key="hpDeltaKey"
           class="hp-float"
         >
-          -10 HP
+          {{ hpDelta }} HP
         </div>
       </div>
     </div>
