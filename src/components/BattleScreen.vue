@@ -16,13 +16,13 @@
       <div class="opponent-area">
         <!-- Opponent HP Bar (floats above) -->
         <div class="hp-display opponent-hp">
+          <span v-if="isBossBattle" class="boss-badge">BOSS</span>
           <div class="hp-header">
             <div class="guest-info">
               <span class="name-text">{{ battleData.guest.name }}</span>
               <span class="guest-title">{{ guestTitle }}</span>
             </div>
-            <span v-if="isBossBattle" class="boss-badge">BOSS</span>
-            <span v-else class="level-badge">Lv{{ opponentLevel }}</span>
+            <span v-if="!isBossBattle" class="level-badge">Lv{{ opponentLevel }}</span>
           </div>
           <div class="hp-bar-container">
             <div class="hp-label-small">HP</div>
@@ -420,6 +420,7 @@ const {
 
 /* === HP DISPLAYS === */
 .hp-display {
+  position: relative;
   background: #fff;
   border: 4px solid #000;
   border-radius: 12px;
@@ -553,15 +554,19 @@ const {
 }
 
 .boss-badge {
-  font-size: 12px;
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  font-size: 10px;
   color: #000;
   background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-  padding: 4px 10px;
+  padding: 4px 8px;
   border-radius: 4px;
   border: 2px solid #ff8c00;
   font-weight: bold;
   box-shadow: 0 2px 4px rgba(255, 140, 0, 0.3);
   animation: bossPulse 2s ease-in-out infinite;
+  z-index: 10;
 }
 
 @keyframes bossPulse {
