@@ -1,8 +1,31 @@
-# Phaser Vue Template
+# 🎮 LennyRPG - Test Your Product Knowledge
 
-This is a Phaser 3 project template that uses the Vue framework and Vite for bundling. It includes a bridge for Vue to Phaser game communication, hot-reloading for quick development workflow and scripts to generate production-ready builds.
+**A retro-style RPG game featuring legendary guests from [Lenny's Podcast](https://www.lennysnewsletter.com/podcast)** by Lenny Rachitsky.
 
-**[This Template is also available as a TypeScript version.](https://github.com/phaserjs/template-vue-ts)**
+Battle through 283 product leaders, designers, and founders. Answer challenging questions about product management, growth, and building great products. Level up your PM skills while having fun!
+
+🎯 **[Play Now](https://www.lennyrpg.fun/)** | 🎙️ **[Listen to Lenny's Podcast](https://www.lennysnewsletter.com/podcast)**
+
+---
+
+**Created by [Ben Shih](https://benshih.design/)** | [LinkedIn](https://linkedin.com/in/hbshih)
+
+## About
+
+LennyRPG is an educational game that turns Lenny's incredible podcast guest lineup into an epic adventure. Each guest becomes a capturable character with questions based on their expertise and insights from their podcast episodes.
+
+### Features
+
+- 🎯 **283 Legendary Guests** - Battle product leaders from companies like Airbnb, Stripe, Figma, and more
+- 📚 **Product Knowledge Quiz** - Test yourself on PM frameworks, growth strategies, and startup wisdom
+- 🎮 **Retro RPG Gameplay** - Pokemon-inspired mechanics with modern web technology
+- 📈 **Global Leaderboard** - Compete with other product enthusiasts worldwide
+- ✨ **Progressive Difficulty** - 29 maps with escalating challenges
+- 💯 **Perfect Kill Bonuses** - Earn extra XP for flawless battles
+
+## Built With
+
+This project uses the Phaser 3 game engine with Vue 3 and Vite for a modern, performant gaming experience.
 
 ### Versions
 

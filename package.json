@@ -1,15 +1,30 @@
 {
-    "name": "pokelenny-phaser",
-    "description": "LennyRPG - A Pokémon-style trivia game featuring guests from Lenny's Podcast",
+    "name": "lennyrpg",
+    "description": "LennyRPG - Test your product knowledge with a retro-style RPG game featuring 283 legendary guests from Lenny's Podcast by Lenny Rachitsky. Battle product leaders, answer PM questions, and level up your skills!",
     "version": "1.0.0",
     "type": "module",
+    "author": {
+        "name": "Ben Shih",
+        "url": "https://benshih.design/",
+        "email": "ben@benshih.design"
+    },
+    "homepage": "https://www.lennyrpg.fun",
     "keywords": [
+        "lenny-rachitsky",
+        "lennys-podcast",
+        "product-management",
+        "pm-game",
+        "product-knowledge",
+        "educational-game",
+        "rpg",
         "phaser",
         "phaser3",
         "vue",
-        "game",
-        "trivia",
-        "pokemon"
+        "trivia-game",
+        "product-leaders",
+        "startup-game",
+        "tech-podcast",
+        "retro-game"
     ],
     "scripts": {
         "dev": "vite --config vite/config.dev.mjs",

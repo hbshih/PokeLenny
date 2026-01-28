@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+
+  <!-- Home Page -->
+  <url>
+    <loc>https://www.lennyrpg.fun/</loc>
+    <lastmod>2026-01-28</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://www.lennyrpg.fun/OpenGraph.png</image:loc>
+      <image:title>LennyRPG - Test Your Product Knowledge</image:title>
+      <image:caption>A retro RPG game featuring 283 legendary guests from Lenny's Podcast. Battle product leaders and level up your PM skills!</image:caption>
+    </image:image>
+  </url>
+
+</urlset>

@@ -1,0 +1,11 @@
+# LennyRPG - Robots.txt
+# Allow all search engines to crawl the entire site
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://www.lennyrpg.fun/sitemap.xml
+
+# Crawl delay to be respectful to servers
+Crawl-delay: 1
