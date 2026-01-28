@@ -30,7 +30,21 @@ export const useBattleState = (props, emit, swirlCanvas) => {
     const hpDeltaKey = ref(0);
     let hpDeltaTimer = null;
 
-    const xpPerCorrect = computed(() => Math.min(10 + 5 * (playerLevel.value - 1), 50));
+    const xpDelta = ref(0);
+    const xpDeltaKey = ref(0);
+    let xpDeltaTimer = null;
+
+    // Boss battle detection - Brian Balfour is the boss
+    const isBossBattle = computed(() => {
+        return props.battleData?.guest?.name === 'Brian Balfour';
+    });
+
+    const xpPerCorrect = computed(() => {
+        // Boss battles award 30 XP per correct answer
+        if (isBossBattle.value) return 30;
+        // Normal scaling: 10-50 XP based on level
+        return Math.min(10 + 5 * (playerLevel.value - 1), 50);
+    });
 
     const currentQuestion = computed(() => {
         const questions = props.battleData?.questions;
@@ -303,6 +317,18 @@ export const useBattleState = (props, emit, swirlCanvas) => {
 
             battleStats.value.xpGained += earnedXp;
 
+            // Show XP gain animation for boss battles
+            if (isBossBattle.value) {
+                xpDelta.value = earnedXp;
+                xpDeltaKey.value += 1;
+                if (xpDeltaTimer) {
+                    clearTimeout(xpDeltaTimer);
+                }
+                xpDeltaTimer = setTimeout(() => {
+                    xpDelta.value = 0;
+                }, 800);
+            }
+
             if (bonusHp > 0) {
                 const bonusNewHP = Math.min(playerMaxHP.value, playerHP.value + bonusHp);
                 const actualBonus = bonusNewHP - playerHP.value;
@@ -464,6 +490,9 @@ export const useBattleState = (props, emit, swirlCanvas) => {
         playerHPClass,
         hpDelta,
         hpDeltaKey,
+        xpDelta,
+        xpDeltaKey,
+        isBossBattle,
         opponentLevel,
         guestAvatarPath,
         guestTitle,

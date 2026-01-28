@@ -31,6 +31,15 @@
           </div>
         </div>
 
+        <!-- Boss XP Gain Float Animation -->
+        <div
+          v-if="xpDelta > 0 && isBossBattle"
+          :key="xpDeltaKey"
+          class="xp-float"
+        >
+          +{{ xpDelta }} XP
+        </div>
+
         <!-- Opponent Sprite -->
         <div class="opponent-sprite">
           <img
@@ -180,6 +189,9 @@ const {
   playerHPClass,
   hpDelta,
   hpDeltaKey,
+  xpDelta,
+  xpDeltaKey,
+  isBossBattle,
   opponentLevel,
   guestAvatarPath,
   guestTitle,
@@ -446,6 +458,22 @@ const {
   animation: hpFloatUp 0.8s ease-out forwards;
 }
 
+.xp-float {
+  position: absolute;
+  left: -200px;
+  top: 180px;
+  color: #4caf50;
+  font-size: 20px;
+  font-weight: 700;
+  text-shadow: 0 2px 0 #000, 0 0 10px rgba(76, 175, 80, 0.8);
+  min-width: 100px;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: xpFloatUp 0.8s ease-out forwards;
+  z-index: 100;
+}
+
 @keyframes hpFloatUp {
   0% {
     opacity: 0;
@@ -457,6 +485,20 @@ const {
   100% {
     opacity: 0;
     transform: translateY(-18px) scale(1.05);
+  }
+}
+
+@keyframes xpFloatUp {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.9);
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-25px) scale(1.1);
   }
 }
 

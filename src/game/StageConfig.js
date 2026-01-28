@@ -12,7 +12,7 @@ export const STAGE_CONFIG = [
     "Elena Verna",
     "Brian Balfour",
     "Seth Godin",
-    "Marc Benioff",
+    "Jake Knapp + John Zeratsky",
     "Stewart Butterfield",
     "Tobi Lutke",
     "Dylan Field",
@@ -385,10 +385,10 @@ export const STAGE_CONFIG = [
   // Tier 28
   [
     "Jackie Bavaro",
-    "Jake Knapp + John Zeratsky",
     "Madhavan Ramanujam",
     "Matt MacInnis",
     "Melissa Perri",
+    "Marc Benioff",
     "Nikita Bier"
   ]
 ];
