@@ -526,6 +526,7 @@ const {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  padding-right: 60px;
 }
 
 .name-text {
