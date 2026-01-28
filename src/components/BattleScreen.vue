@@ -21,7 +21,8 @@
               <span class="name-text">{{ battleData.guest.name }}</span>
               <span class="guest-title">{{ guestTitle }}</span>
             </div>
-            <span class="level-badge">Lv{{ opponentLevel }}</span>
+            <span v-if="isBossBattle" class="boss-badge">BOSS</span>
+            <span v-else class="level-badge">Lv{{ opponentLevel }}</span>
           </div>
           <div class="hp-bar-container">
             <div class="hp-label-small">HP</div>
@@ -549,6 +550,27 @@ const {
   border-radius: 4px;
   border: 2px solid #ddd;
   font-weight: bold;
+}
+
+.boss-badge {
+  font-size: 12px;
+  color: #000;
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 2px solid #ff8c00;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(255, 140, 0, 0.3);
+  animation: bossPulse 2s ease-in-out infinite;
+}
+
+@keyframes bossPulse {
+  0%, 100% {
+    box-shadow: 0 2px 4px rgba(255, 140, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 2px 8px rgba(255, 140, 0, 0.6), 0 0 12px rgba(255, 215, 0, 0.4);
+  }
 }
 
 .hp-bar-container {
