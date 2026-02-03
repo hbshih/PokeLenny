@@ -142,8 +142,8 @@ class GuestDataManager {
           return null; // No avatar available
         }
         const cleanName = this.cleanGuestName(replacement);
-        const encodedFileName = encodeURI(`${cleanName}_pixel_art.png`);
-        return `avatars/${encodedFileName}`;
+        const fileName = `${cleanName}_pixel_art.png`;
+        return `avatars/${fileName}`;
       }
     }
 
@@ -154,20 +154,18 @@ class GuestDataManager {
           return null; // No avatar available
         }
         const cleanName = this.cleanGuestName(replacement);
-        const encodedFileName = encodeURI(`${cleanName}_pixel_art.png`);
-        return `avatars/${encodedFileName}`;
+        const fileName = `${cleanName}_pixel_art.png`;
+        return `avatars/${fileName}`;
       }
     }
 
     // Clean the name first (remove version numbers, etc.)
     const cleanName = this.cleanGuestName(guestName);
 
-    // URL-encode the filename to handle special characters like ö, ü, etc.
-    // This ensures files like "Gustav Söderström" load correctly
+    // Build filename - Vite handles special characters in filenames automatically
     const fileName = `${cleanName}_pixel_art.png`;
-    const encodedFileName = encodeURIComponent(fileName);
 
-    return `avatars/${encodedFileName}`;
+    return `avatars/${fileName}`;
   }
 
   /**
