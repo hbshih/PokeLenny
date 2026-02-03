@@ -156,8 +156,16 @@ function getGuestAvatarPath(guest) {
     return '/assets/elena-front.png';
   }
 
-  // Use the avatar naming convention from the assets folder
-  return `/assets/avatars/${guest.name}_pixel_art.png`;
+  // Transform name to match renamed files (spaces to hyphens, special chars removed)
+  const safeName = guest.name
+    .replace(/\s+/g, '-')
+    .replace(/[&+,]/g, '-')
+    .replace(/ö/g, 'o')
+    .replace(/ü/g, 'u')
+    .replace(/ä/g, 'a')
+    .replace(/-+/g, '-');
+
+  return `/assets/avatars/${safeName}_pixel_art.png`;
 }
 
 function handleImageError(guest) {

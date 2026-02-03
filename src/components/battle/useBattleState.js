@@ -113,7 +113,16 @@ export const useBattleState = (props, emit, swirlCanvas) => {
             return `/assets/elena-front.png`;
         }
 
-        return `/assets/avatars/${guestName}_pixel_art.png`;
+        // Transform name to match renamed files (spaces to hyphens, special chars removed)
+        const safeName = guestName
+            .replace(/\s+/g, '-')
+            .replace(/[&+,]/g, '-')
+            .replace(/ö/g, 'o')
+            .replace(/ü/g, 'u')
+            .replace(/ä/g, 'a')
+            .replace(/-+/g, '-');
+
+        return `/assets/avatars/${safeName}_pixel_art.png`;
     });
 
     const guestTitle = computed(() => {

@@ -108,19 +108,19 @@ class GuestDataManager {
     // Handle collaboration episodes - use first person's avatar
     const collaborationMappings = {
       'Keith Coleman & Jay Baxter': 'Keith Coleman',
-      'Jake Knapp + John Zeratsky': 'Jake Knapp + John Zeratsky',
+      'Jake Knapp + John Zeratsky': 'Jake-Knapp-John-Zeratsky',
       'Melissa Perri + Denise Tilles': 'Melissa Perri',
-      'Hamel Husain & Shreya Shankar': 'Hamel Husain & Shreya Shankar', // This one exists
+      'Hamel Husain & Shreya Shankar': 'Hamel-Husain-Shreya-Shankar',
       'Aishwarya Naresh Reganti + Kiriti Badam': null, // No avatar
-      'Sriram and Aarthi': 'Sriram and Aarthi' // This one exists
+      'Sriram and Aarthi': 'Sriram and Aarthi'
     };
 
     // Handle special episodes/variations
     const specialMappings = {
       'Shreyas Doshi Live': 'Shreyas Doshi',
       'Yuhki Yamashata': 'Yuhki Yamashita',
-      'Melissa': 'Melissa Perri', // Use Melissa Perri for standalone "Melissa"
-      'Failure': 'Failure', // This one exists
+      'Melissa': 'Melissa Perri',
+      'Failure': 'Failure',
       // Missing avatars
       'Dr. Fei Fei Li': 'Dr. Fei-Fei Li',
       'Gia Laudi': 'Georgiana Laudi',
@@ -132,7 +132,8 @@ class GuestDataManager {
       'Jeanne Grosser': 'Jeanne DeWitt Grosser',
       'Jess Lachs': 'Jessica Lachs',
       'Jason M Lemkin': 'Jason Lemkin',
-      'Mike Maples Jr': 'Mike Maples, Jr.'
+      'Mike Maples Jr': 'Mike-Maples-Jr',
+      'Gustav Söderström': 'Gustav-Soderstrom'
     };
 
     // Check collaboration mappings first
@@ -142,8 +143,15 @@ class GuestDataManager {
           return null; // No avatar available
         }
         const cleanName = this.cleanGuestName(replacement);
-        const fileName = `${cleanName}_pixel_art.png`;
-        return `avatars/${fileName}`;
+        // Replace spaces with hyphens and remove special characters for simple filenames
+        const safeFileName = cleanName
+          .replace(/\s+/g, '-')
+          .replace(/[&+,]/g, '-')
+          .replace(/ö/g, 'o')
+          .replace(/ü/g, 'u')
+          .replace(/ä/g, 'a')
+          .replace(/-+/g, '-');
+        return `avatars/${safeFileName}_pixel_art.png`;
       }
     }
 
@@ -154,18 +162,31 @@ class GuestDataManager {
           return null; // No avatar available
         }
         const cleanName = this.cleanGuestName(replacement);
-        const fileName = `${cleanName}_pixel_art.png`;
-        return `avatars/${fileName}`;
+        // Replace spaces with hyphens and remove special characters for simple filenames
+        const safeFileName = cleanName
+          .replace(/\s+/g, '-')
+          .replace(/[&+,]/g, '-')
+          .replace(/ö/g, 'o')
+          .replace(/ü/g, 'u')
+          .replace(/ä/g, 'a')
+          .replace(/-+/g, '-');
+        return `avatars/${safeFileName}_pixel_art.png`;
       }
     }
 
     // Clean the name first (remove version numbers, etc.)
     const cleanName = this.cleanGuestName(guestName);
 
-    // Build filename - Vite handles special characters in filenames automatically
-    const fileName = `${cleanName}_pixel_art.png`;
+    // Replace spaces with hyphens and remove special characters for simple, safe filenames
+    const safeFileName = cleanName
+      .replace(/\s+/g, '-')
+      .replace(/[&+,]/g, '-')
+      .replace(/ö/g, 'o')
+      .replace(/ü/g, 'u')
+      .replace(/ä/g, 'a')
+      .replace(/-+/g, '-');
 
-    return `avatars/${fileName}`;
+    return `avatars/${safeFileName}_pixel_art.png`;
   }
 
   /**
